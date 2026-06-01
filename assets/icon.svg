@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>xiaoyuan-vault logo</title>
+  <desc>晓园 Vault — X 字母标 + AI 星芒</desc>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <filter id="s">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#1e3a8a" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- White rounded background -->
+  <rect x="64" y="64" width="384" height="384" rx="96" ry="96"
+        fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- X mark -->
+  <g filter="url(#s)">
+    <path d="M156 120 L356 392"
+          stroke="url(#g)" stroke-width="48" stroke-linecap="round" fill="none"/>
+    <path d="M356 120 L156 392"
+          stroke="url(#g)" stroke-width="48" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- AI sparkle dot -->
+  <circle cx="300" cy="188" r="10" fill="#5eead4"/>
+  <circle cx="300" cy="188" r="20" fill="#5eead4" opacity="0.2"/>
+
+  <!-- Subtle accent line -->
+  <line x1="180" y1="440" x2="332" y2="440" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+</svg>

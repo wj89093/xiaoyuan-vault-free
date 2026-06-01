@@ -1,0 +1,1334 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+/* AI Chat CSS Variables */
+:root {
+  --chat-blue: #007aff;
+  --chat-blue-dark: rgba(0,122,255,0.10);
+  --chat-blue-dashed: rgba(0,122,255,0.25);
+  --chat-green: #22c55e;
+  --chat-red: #ff453a;
+  --chat-orange: #f59e0b;
+  --chat-gray-dark: #1d1d1f;
+  --chat-gray-mid: #8e8e93;
+  --chat-gray-light: #a1a1a6;
+  --chat-gray-bg: #f0f0f5;
+  --chat-gray-bg-2: #f5f5f7;
+  --chat-gray-border: #e5e5ea;
+  --chat-code-bg: #1e1e2e;
+  --chat-code-text: #cdd6f4;
+  --chat-warn-bg: #fef3c7;
+  --chat-warn-text: #92400e;
+  --chat-success-bg: #d1fae5;
+  --chat-success-text: #065f46;
+  --chat-error-bg: #fff0f0;
+  --chat-error-text: #c53030;
+  --chat-tool-bg: #f0f4ff;
+  --chat-tool-text: #4a6fa5;
+  --chat-titlebar-bg: #f9f9fb;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#ffffff;color:var(--chat-gray-dark);overflow:hidden;animation:fadeIn 150ms ease-out both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)}}
+.wrap{display:flex;flex-direction:column;height:100vh}
+.titlebar{height:48px;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--chat-titlebar-bg);border-bottom:1px solid var(--chat-gray-border);flex-shrink:0;cursor:grab;user-select:none}
+.titlebar .icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#007aff,#5856d6);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.titlebar .title{font-size:13px;font-weight:600;flex:1;color:var(--chat-gray-dark)}
+.titlebar button{width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--chat-gray-mid);display:flex;align-items:center;justify-content:center}
+.titlebar button:hover{background:var(--chat-gray-border);color:var(--chat-gray-dark)}
+.titlebar .closebtn:hover{background:var(--chat-red);color:#fff}
+.tool-header{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tool-icon{font-size:13px}
+.tool-name{font-weight:600;color:var(--chat-tool-text)}
+.tool-status{color:var(--chat-gray-mid);font-size:11px}
+.tool-summary{color:var(--chat-tool-text);font-size:11px;margin-left:auto}
+.tool-expand-btn{background:none;border:none;color:var(--chat-gray-mid);cursor:pointer;font-size:10px;padding:2px 4px;border-radius:3px;line-height:1}
+.tool-expand-btn:hover{background:var(--chat-gray-border);color:var(--chat-tool-text)}
+.tool-card{padding:8px 12px}
+.tool-card .tool-header{position:relative}
+.resize-grip{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;z-index:10;display:flex;align-items:center;justify-content:center;opacity:.35}
+.resize-grip:hover{opacity:.75}
+.resize-grip svg{width:12px;height:12px}
+.messages{flex:1;overflow-y:auto;padding:12px}
+/* Welcome panel */
+.welcome-panel{text-align:center;padding:32px 16px 24px}
+.welcome-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#007aff,#5856d6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.welcome-avatar svg{color:#fff}
+.welcome-title{font-size:16px;font-weight:600;color:var(--color-text-primary);margin-bottom:20px}
+/* Prompt examples */
+.prompt-examples{display:flex;flex-direction:column;gap:8px;text-align:left}
+.prompt-example{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--color-border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--color-text-secondary);transition:all 150ms ease;background:var(--color-surface)}
+.prompt-example:hover{background:var(--color-surface-hover);border-color:var(--color-primary);color:var(--color-primary);transform:translateX(2px)}
+.prompt-example-icon{color:var(--color-primary);flex-shrink:0;font-size:12px}
+/* Char counter */
+.char-counter{font-size:10px;color:var(--color-text-tertiary);position:absolute;bottom:14px;right:56px;pointer-events:none}
+
+.msg{margin-bottom:12px;display:flex;flex-direction:column;gap:4px}
+.msg.user{align-items:flex-end}
+.msg.assistant{align-items:flex-start}
+.bubble{max-width:80%;padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.5;position:relative}
+.msg.user .bubble{background:var(--chat-blue);color:#fff;border-bottom-right-radius:4px}
+.msg.assistant .bubble{background:var(--chat-gray-bg);color:var(--chat-gray-dark);border-bottom-left-radius:4px}
+.msg .bubble svg{flex-shrink:0;vertical-align:-2px}
+.msg{animation:msgIn 180ms ease-out both}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)}}
+.msg .bubble:hover .copy-btn{display:flex}
+.msg .copy-btn{display:none;position:absolute;top:-30px;right:0;gap:4px;background:#fff;border:1px solid var(--chat-gray-border);border-radius:6px;padding:3px 6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;font-size:11px;color:var(--chat-gray-mid);align-items:center;white-space:nowrap}
+.msg .copy-btn:hover{color:var(--chat-gray-dark);background:var(--chat-gray-bg-2)}
+.msg .meta{font-size:10px;color:var(--chat-gray-mid);padding:0 4px;display:flex;align-items:center;gap:3px}
+.msg .meta svg{flex-shrink:0}
+.loading{padding:12px;color:var(--chat-gray-mid);font-size:13px}
+.loading span{animation:blink 1s infinite}@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.error{color:var(--chat-red);font-size:12px;padding:8px 12px}
+.input-row{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--chat-gray-border);background:var(--chat-titlebar-bg);flex-shrink:0;align-items:flex-end;position:relative}
+.input-row textarea{flex:1;resize:none;border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-family:inherit;background:var(--chat-gray-bg);color:var(--chat-gray-dark);min-height:38px;max-height:120px;outline:none}
+.input-row textarea::placeholder{color:var(--chat-gray-light)}
+
+/* Slash command menu */
+#cmdMenu{position:absolute;bottom:100%;left:12px;margin-bottom:4px;background:var(--chat-titlebar-bg,#2c2c2e);border:1px solid var(--chat-gray-border,#3a3a3c);border-radius:10px;box-shadow:0 -4px 16px rgba(0,0,0,0.25);max-height:260px;overflow-y:auto;min-width:220px;z-index:100;display:none}
+#cmdMenu .cmd-item{padding:7px 14px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;transition:background 80ms}
+#cmdMenu .cmd-item:first-child{border-radius:10px 10px 0 0}
+#cmdMenu .cmd-item:last-child{border-radius:0 0 10px 10px}
+#cmdMenu .cmd-item.selected{background:var(--chat-blue-dark,rgba(0,122,255,0.12))}
+#cmdMenu .cmd-item:hover{background:var(--chat-blue-dark,rgba(0,122,255,0.08))}
+#cmdMenu .cmd-item .cmd-name{font-weight:600;color:var(--chat-blue,#007aff);min-width:60px}
+#cmdMenu .cmd-item .cmd-desc{color:var(--chat-gray-light,#8e8e93);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cmdMenu .cmd-item .cmd-aliases{color:var(--chat-gray-light,#8e8e93);font-size:11px;opacity:0.6}
+.attachbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--chat-gray-border);background:#fff;color:var(--chat-gray-mid);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.attachbtn:hover{background:var(--chat-gray-bg);color:var(--chat-gray-dark)}
+.attachbtn svg{transition:color .15s}
+.sendbtn{width:36px;height:36px;border-radius:10px;border:none;background:var(--chat-blue);color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sendbtn:disabled{background:#e5e5ea;color:var(--chat-gray-light);cursor:default}
+.sendbtn:not(:disabled):hover{background:#0066d6}
+.dropzone{margin:8px 12px;padding:8px 10px;border-radius:8px;background:var(--chat-blue)10;border:1px dashed var(--chat-blue-dashed);font-size:11px;color:var(--chat-blue);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.dropzone .files{font-weight:600}
+.dropzone .dismiss{background:none;border:none;color:var(--chat-blue);cursor:pointer;font-size:11px;margin-left:auto}
+
+.markdown-body h1,.markdown-body h2,.markdown-body h3{font-size:inherit;font-weight:600;margin:12px 0 4px;line-height:1.4}
+.markdown-body h1{font-size:1.2em}.markdown-body h2{font-size:1.1em}.markdown-body h3{font-size:1em}
+.markdown-body p{margin:4px 0}
+.markdown-body ul,.markdown-body ol{padding-left:18px;margin:4px 0}
+.markdown-body li{margin:2px 0}
+.markdown-body code{background:var(--chat-gray-bg);padding:1px 5px;border-radius:3px;font-size:0.88em;font-family:'SF Mono',Monaco,monospace}
+.markdown-body pre{background:var(--chat-code-bg);color:var(--chat-code-text);padding:10px 14px;border-radius:8px;overflow-x:auto;margin:8px 0;font-size:12px;line-height:1.5}
+.streaming-code{position:relative}
+.streaming-cursor{animation:blink 1s step-end infinite;color:var(--chat-code-text);font-weight:700}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}};color:var(--chat-code-text);padding:10px 14px;border-radius:8px;overflow-x:auto;margin:8px 0;font-size:12px;line-height:1.5}
+.markdown-body pre code{background:none;padding:0;border-radius:0;color:inherit;font-size:inherit}
+.markdown-body blockquote{border-left:2px solid var(--chat-blue);padding-left:10px;margin:8px 0;color:var(--chat-gray-mid)}
+.markdown-body table{border-collapse:collapse;margin:8px 0;font-size:12px;width:100%}
+.markdown-body th,.markdown-body td{border:1px solid var(--chat-gray-border);padding:4px 8px;text-align:left}
+.markdown-body th{background:var(--chat-gray-bg-2);font-weight:600}
+.markdown-body strong{font-weight:600}
+.markdown-body em{font-style:italic}
+.markdown-body a{color:var(--chat-blue);text-decoration:none}
+.reasoning-block{margin:0 0 8px;padding:8px 10px;border-radius:8px;background:rgba(120,120,160,0.06);border-left:2px solid var(--chat-blue);font-size:12px;line-height:1.5}
+.reasoning-block summary{color:var(--chat-gray-mid);cursor:pointer;font-size:11px;user-select:none;list-style:none;display:flex;align-items:center;gap:4px}
+.reasoning-block summary::-webkit-details-marker{display:none}
+.reasoning-block .reasoning-text{font-size:11px;color:var(--chat-gray-mid);line-height:1.6;margin-top:6px;padding-top:6px;border-top:1px solid rgba(120,120,160,0.08)}
+.answer-body{margin-top:4px}
+.markdown-body hr{border:none;border-top:1px solid var(--chat-gray-border);margin:12px 0}
+</style></head><body>
+<div class="wrap">
+  <div class="resize-grip" id="resizeGrip" title="拖动调整大小"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="10" x2="10" y2="4"/><line x1="7" y1="10" x2="10" y2="7"/><line x1="10" y1="10" x2="10" y2="10"/></svg></div>
+  <div class="titlebar">
+    <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><circle cx="9" cy="16" r="1.2" fill="white" stroke="white"/><circle cx="15" cy="16" r="1.2" fill="white" stroke="white"/><path d="M9 16v-2.5a3 3 0 016 0V16"/><line x1="12" y1="3" x2="12" y2="8"/><circle cx="12" cy="6" r="1.5"/></svg></div>
+    <span class="title">AI 对话</span>
+    <button id="mainWinBtn" title="打开主界面"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+    <button id="resetBtn" title="重置会话 (新建当日会话)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></button>
+    <button id="clearBtn" title="清空会话 (删除会话文件)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+    <button id="closeBtn" class="closebtn" title="关闭">&#x2715;</button>
+  </div>
+  <div class="messages" id="messages">
+    <div id="welcomePanel" class="welcome-panel">
+<div class="welcome-avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><circle cx="9" cy="16" r="1.2" fill="currentColor" stroke="currentColor" stroke-width="0"/><circle cx="15" cy="16" r="1.2" fill="currentColor" stroke="currentColor" stroke-width="0"/><path d="M9 16v-2.5a3 3 0 016 0V16"/><line x1="12" y1="3" x2="12" y2="8"/><circle cx="12" cy="6" r="1.5"/></svg></div>
+<div class="welcome-title">有什么可以帮你的？</div>
+<div id="promptExamples" class="prompt-examples">
+<div class="prompt-example" onclick="window.__selectPrompt(this)"><span class="prompt-example-icon">▸</span><span>帮我总结这个文件的核心观点</span></div>
+<div class="prompt-example" onclick="window.__selectPrompt(this)"><span class="prompt-example-icon">▸</span><span>将这个文件夹整理成 Wiki</span></div>
+<div class="prompt-example" onclick="window.__selectPrompt(this)"><span class="prompt-example-icon">▸</span><span>查找知识库里相关内容</span></div>
+</div>
+</div>
+  </div>
+  <div id="dropzoneBox"></div>
+  <div id="inputRow" class="input-row">
+    <div id="dragCover" style="display:none;position:absolute;inset:0;background:var(--chat-blue)18;border:2px dashed #007aff;border-radius:12px;z-index:10;pointer-events:none;align-items:center;justify-content:center;font-size:13px;color:var(--chat-blue);font-weight:500;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>放入文件</div>
+    <button class="attachbtn" id="attachBtn" title="附件"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+    <input type="file" id="fileInput" multiple style="display:none" />
+    <textarea id="input" placeholder="输入消息 or /help 查看命令…" rows="1"></textarea><div id="charCounter" class="char-counter" style="display:none"></div>
+    <button class="sendbtn" id="sendBtn" disabled>&#x2191;</button>
+    <div id="cmdMenu"></div>
+  </div>
+</div>
+<!-- Markdown parser -->
+
+<script>
+// ── Crash diagnostics ───────────────────────────────────────────
+window.addEventListener('error', function(e) {
+  console.error('[AIChat] UNCAUGHT', e.message, '@', e.filename, ':', e.lineno, ':', e.colno, 'stack:', (e.error && e.error.stack ? e.error.stack : 'N/A'))
+})
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('[AIChat] UNHANDLED REJECTION:', e.reason)
+})
+
+function renderMarkdown(text) {
+  if (!text) return '';
+  var blocks = [];
+  var inCode = false, codeBlock = '', codeLang = '';
+  var lines = text.split('\n');
+  // Pre-process: detect tables (lines with | cells)
+  var processed = [];
+  var i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (line.indexOf('|') !== -1 && line.trim().startsWith('|') && i + 1 < lines.length) {
+      var nextLine = lines[i+1] || '';
+      if (nextLine.indexOf('|') !== -1 && /^\|?[\s:-]+\|[\s|:-]+\|?$/.test(nextLine.trim())) {
+        // Found table header + separator
+        var headerCols = line.split('|').filter(function(c) { return c.trim() !== '' });
+        var alignCols = nextLine.split('|').filter(function(c) { return c.trim() !== '' });
+        var tableHtml = '<table><thead><tr>';
+        for (var h = 0; h < headerCols.length; h++) {
+          tableHtml += '<th>' + inlineMd(headerCols[h].trim()) + '</th>';
+        }
+        tableHtml += '</tr></thead><tbody>';
+        i += 2; // skip header + separator
+        // Parse body rows
+        while (i < lines.length && lines[i].indexOf('|') !== -1 && lines[i].trim().startsWith('|')) {
+          var cells = lines[i].split('|').filter(function(c) { return true }); // keep empty cells
+          // Remove leading/trailing empty from split
+          var cleanCells = [];
+          for (var ci = 0; ci < cells.length; ci++) {
+            if (ci > 0 || cells[ci] !== '') cleanCells.push(cells[ci]);
+            else if (ci > 0) cleanCells.push(cells[ci]);
+          }
+          tableHtml += '<tr>';
+          for (var c = 0; c < headerCols.length; c++) {
+            var cellContent = c < cleanCells.length ? cleanCells[c].trim() : '';
+            tableHtml += '<td>' + inlineMd(cellContent) + '</td>';
+          }
+          tableHtml += '</tr>';
+          i++;
+        }
+        tableHtml += '</tbody></table>';
+        processed.push(tableHtml);
+        continue;
+      }
+    }
+    processed.push(line);
+    i++;
+  }
+  // Parse blocks from processed array
+  for (var i = 0; i < processed.length; i++) {
+    var line = processed[i];
+    if (line.trim().startsWith('<table')) { blocks.push(line); continue; }
+    if (line.trim().startsWith('```')) {
+      if (!inCode) { inCode = true; codeLang = line.trim().slice(3); codeBlock = ''; }
+      else { blocks.push('<pre><code>' + escapeHtml(codeBlock.trim()) + '</code></pre>'); inCode = false; }
+      continue;
+    }
+    if (inCode) { codeBlock += line + '\n'; continue; }
+    var trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('### ')) blocks.push('<h3>' + inlineMd(trimmed.slice(4)) + '</h3>');
+    else if (trimmed.startsWith('## ')) blocks.push('<h2>' + inlineMd(trimmed.slice(3)) + '</h2>');
+    else if (trimmed.startsWith('# ')) blocks.push('<h1>' + inlineMd(trimmed.slice(2)) + '</h1>');
+    else if (trimmed === '---') blocks.push('<hr>');
+    else if (trimmed.startsWith('- ')) blocks.push('<li>' + inlineMd(trimmed.slice(2)) + '</li>');
+    else blocks.push('<p>' + inlineMd(line) + '</p>');
+  }
+  if (inCode) blocks.push('<pre><code>' + escapeHtml(codeBlock.trim()) + '</code></pre>');
+  return blocks.join('');
+}
+function inlineMd(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+}
+function escapeHtml(text) { return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Streaming-friendly markdown renderer: handles unclosed fence/table gracefully
+function renderMarkdownStreaming(text) {
+  if (!text) return { html: '', complete: true };
+  var fenceRe = /```(\w*)[^\n]*\n([\s\S]*?)$/;
+  var openFences = (text.match(/^```/gm) || []).length;
+  var closeFences = (text.match(/^```/gm) || []).length;
+  // Count fences more carefully: each ``` opens or closes
+  var fences = text.match(/^```/gm) || [];
+  var fc = 0;
+  var inFence = false;
+  var fenceContent = '';
+  for (var i = 0; i < fences.length; i++) { fc++; if (fc % 2 === 1) inFence = true; else inFence = false; }
+  // Simpler: count total ``` and check if even
+  var totalFences = (text.match(/```/g) || []).length;
+  var lastFencePos = text.lastIndexOf('```');
+  var lastNL = text.lastIndexOf('\n');
+  var fenceOpen = totalFences % 2 === 1 && lastFencePos > lastNL;
+  if (fenceOpen) {
+    // Fence is open: render everything before the fence as complete,
+    // the fence content after last ``` as raw
+    var parts = text.split(/^(```\w*)$/m);
+    var html = '';
+    var raw = '';
+    var inRaw = false;
+    for (var pi = 0; pi < parts.length; pi++) {
+      var p = parts[pi];
+      if (p === undefined) continue;
+      if (p.match(/^```\w*$/)) {
+        inRaw = !inRaw;
+        continue;
+      }
+      if (inRaw) { raw += p + '\n'; }
+      else { html += renderMarkdownBlock(p); }
+    }
+    var escaped = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return { html: html + '<pre class="streaming-code">' + escaped + '<span class="streaming-cursor">|</span></pre>', complete: false };
+  }
+  return { html: renderMarkdownBlock(text), complete: true };
+}
+
+// Render markdown assuming all blocks are complete (for streaming final render)
+function renderMarkdownBlock(text) {
+  if (!text) return '';
+  var blocks = [];
+  var inCode = false, codeBlock = '', codeLang = '';
+  var lines = text.split('\n');
+  // Pre-process: detect tables
+  var processed = [];
+  var i = 0;
+  while (i < lines.length) {
+    var line = lines[i];
+    if (line.indexOf('|') !== -1 && line.trim().startsWith('|') && i + 1 < lines.length) {
+      var nextLine = lines[i+1] || '';
+      if (nextLine.indexOf('|') !== -1 && /^\|?[\s:-]+\|[\s|:-]+\|?$/.test(nextLine.trim())) {
+        var headerCols = line.split('|').filter(function(c) { return c.trim() !== '' });
+        var alignCols = nextLine.split('|').filter(function(c) { return c.trim() !== '' });
+        var tableHtml = '<table><thead><tr>';
+        for (var h = 0; h < headerCols.length; h++) { tableHtml += '<th>' + inlineMd(headerCols[h].trim()) + '</th>'; }
+        tableHtml += '</tr></thead><tbody>';
+        i += 2;
+        while (i < lines.length && lines[i].indexOf('|') !== -1 && lines[i].trim().startsWith('|')) {
+          var cells = lines[i].split('|').filter(function(c) { return true });
+          var cleanCells = [];
+          for (var ci = 0; ci < cells.length; ci++) {
+            if (ci > 0 || cells[ci] !== '') cleanCells.push(cells[ci]);
+          }
+          tableHtml += '<tr>';
+          for (var c = 0; c < headerCols.length; c++) {
+            var cellContent = c < cleanCells.length ? cleanCells[c].trim() : '';
+            tableHtml += '<td>' + inlineMd(cellContent) + '</td>';
+          }
+          tableHtml += '</tr>';
+          i++;
+        }
+        tableHtml += '</tbody></table>';
+        processed.push(tableHtml);
+        continue;
+      }
+    }
+    processed.push(line);
+    i++;
+  }
+  // Parse blocks
+  for (var i = 0; i < processed.length; i++) {
+    var line = processed[i];
+    if (line.trim().startsWith('<table')) { blocks.push(line); continue; }
+    if (line.trim().startsWith('```')) {
+      if (!inCode) { inCode = true; codeLang = line.trim().slice(3); codeBlock = ''; }
+      else { blocks.push('<pre><code>' + escapeHtml(codeBlock.trim()) + '</code></pre>'); inCode = false; }
+      continue;
+    }
+    if (inCode) { codeBlock += line + '\n'; continue; }
+    var trimmed = line.trim();
+    if (!trimmed) continue;
+    if (trimmed.startsWith('### ')) blocks.push('<h3>' + inlineMd(trimmed.slice(4)) + '</h3>');
+    else if (trimmed.startsWith('## ')) blocks.push('<h2>' + inlineMd(trimmed.slice(3)) + '</h2>');
+    else if (trimmed.startsWith('# ')) blocks.push('<h1>' + inlineMd(trimmed.slice(2)) + '</h1>');
+    else if (trimmed === '---') blocks.push('<hr>');
+    else if (trimmed.startsWith('- ')) blocks.push('<li>' + inlineMd(trimmed.slice(2)) + '</li>');
+    else if (trimmed.startsWith('> ')) blocks.push('<blockquote>' + inlineMd(trimmed.slice(2)) + '</blockquote>');
+    else blocks.push('<p>' + inlineMd(line) + '</p>');
+  }
+  if (inCode) blocks.push('<pre><code>' + escapeHtml(codeBlock.trim()) + '</code></pre>');
+  return blocks.join('');
+}
+
+
+// Icon SVGs
+var ICONS = {
+  bot: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:5px"><rect x="4" y="10" width="16" height="10" rx="2"/><circle cx="9" cy="16" r="1.2" fill="currentColor" stroke="currentColor" stroke-width="0"/><circle cx="15" cy="16" r="1.2" fill="currentColor" stroke="currentColor" stroke-width="0"/><path d="M9 16v-2.5a3 3 0 016 0V16"/><line x1="12" y1="3" x2="12" y2="8"/><circle cx="12" cy="6" r="1.5"/></svg>',
+  paperclip: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  clipboard: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
+  document: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  check: '&#x2713;'
+}
+
+var ipc = window.xyAIChat
+var chatHistory = [];
+var chatReady = false;
+var historyLoaded = false;
+
+// Step 1: Load session via sessionManager (triggers daily reset + greeting)
+ipc.chat.invoke('chat:session', { action: 'get' }).then(function(r) {
+  chatHistory = [];
+  if (r && r.messages && r.messages.length > 0) {
+    var msgs = r.messages.filter(function(m) { return m.role === 'user' || m.role === 'assistant' });
+    var isNewSession = msgs.length === 1 && msgs[0].role === 'assistant';
+    msgs.forEach(function(m) {
+      chatHistory.push(m);
+      var div = document.createElement('div');
+      div.className = 'msg ' + m.role;
+      var html = m.role === 'assistant' ? renderMarkdown(m.content || '') : m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      div.innerHTML = '<div class="bubble' + (m.role === 'assistant' ? ' markdown-body' : '') + '">' + html + '<\/div>';
+      document.getElementById('messages').appendChild(div);
+    });
+    // Hide welcome panel for fresh daily session (greeting serves as welcome)
+    if (isNewSession) {
+      var wp = document.getElementById('welcomePanel');
+      if (wp) wp.style.display = 'none';
+    }
+    scrollBottom();
+  } else {
+    // No messages yet — show welcome panel with prompt examples
+    var wp2 = document.getElementById('welcomePanel');
+    if (wp2) wp2.style.display = '';
+  }
+}).catch(function(e) { console.error('[AIChat] session load failed:', e); }).finally(function() { chatReady = true; });
+
+// ── Deferred promise helper ──────────────────────────────────────────
+window.Deferred = function() {
+  this.promise = new Promise(function(resolve, reject) {
+    this.resolve = resolve; this.reject = reject
+  }.bind(this))
+}
+
+// ── Streaming invoke: use invoke + window.postMessage bridge ────────
+// Preload registers ipcRenderer.on and forwards via window.postMessage
+// (no contextBridge callback proxy → no IpcRenderer.sub crash).
+// HTML listens for postMessage events to render tokens as they arrive.
+var _ss = {}  // streaming state: id → {acc, div, loadingDiv, done, blink, mdDiv}
+
+function _finishStream(id, errorMsg) {
+  var s = _ss[id]; if (!s) return
+  clearInterval(s.blink)
+  if (s.loadingDiv) s.loadingDiv.remove()
+  delete _ss[id]
+  if (errorMsg) {
+    var e2 = document.createElement('div')
+    e2.className = 'msg assistant'
+    e2.innerHTML = '<div class="error">&#x274C; ' + errorMsg + '<\/div>'
+    document.getElementById('messages').appendChild(e2)
+    scrollBottom()
+    s.done.reject(new Error(errorMsg))
+  } else {
+    s.done.resolve()
+  }
+}
+
+var toolEls = {}
+
+// ── CustomEvent stream handlers (injected via executeJavaScript) ──
+
+window.addEventListener('xy:sessionSwitched', function(e) {
+  var data = e.detail
+  if (!data || !data.messages) return
+  // Reload chat display with new vault's session
+  chatHistory = []
+  document.getElementById('messages').innerHTML = ''
+  data.messages.forEach(function(m) {
+    if (m.role !== 'user' && m.role !== 'assistant') return
+    chatHistory.push(m)
+    var div = document.createElement('div')
+    div.className = 'msg ' + m.role
+    var html = m.role === 'assistant' ? renderMarkdown(m.content || '') : m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    div.innerHTML = '<div class="bubble' + (m.role === 'assistant' ? ' markdown-body' : '') + '">' + html + '<\/div>'
+    document.getElementById('messages').appendChild(div)
+  })
+  scrollBottom()
+  chatReady = true
+})
+window.addEventListener('xy:greeting', function(e) {
+  if (!e.detail || !e.detail.text) return
+  var greetingText = e.detail.text
+  // Only show if no messages rendered yet (first load)
+  if (chatHistory.length <= 1) {
+    chatHistory.push({ role: 'assistant', content: greetingText })
+    var gdiv = document.createElement('div')
+    gdiv.className = 'msg assistant'
+    gdiv.innerHTML = '<div class="bubble markdown-body">' + renderMarkdown(greetingText) + '</div>'
+    document.getElementById('messages').appendChild(gdiv)
+  }
+})
+window.addEventListener('xy:streamChunk', function(e) {
+  if (!e.detail || !e.detail.chunk) return
+  var chunk = e.detail.chunk
+  for (var k in _ss) {
+    var s = _ss[k]
+    if (!s.mdDiv) {
+      s.mdDiv = document.createElement('div')
+      s.mdDiv.className = 'msg assistant'
+      s.mdDiv.innerHTML = '<div class="bubble markdown-body"><\/div>'
+      document.getElementById('messages').appendChild(s.mdDiv)
+      if (s.div) { s.div.remove(); s.div = null }
+    }
+    // Prepend reasoning block if available
+    if (s.reasoning && !s.reasoningDone) {
+      var bubble = s.mdDiv.querySelector('.bubble')
+      var detailsId = 'reasoning-' + k
+      var existing = document.getElementById(detailsId)
+      var detailsHtml = '<details id="' + detailsId + '" class="reasoning-block" open><summary>💭 思考中...</summary><div class="reasoning-text markdown-body">' + renderMarkdownBlock(s.reasoning) + '<\/div><\/details>'
+      if (existing) { existing.outerHTML = detailsHtml }
+      else if (bubble) { bubble.innerHTML = detailsHtml + renderMarkdownBlock(s.acc) }
+    }
+    s.acc += chunk
+    var bubble2 = s.mdDiv.querySelector('.bubble')
+    if (bubble2) {
+      // If reasoning block exists, update only the answer portion after it
+      var rb = s.mdDiv.querySelector('.reasoning-block')
+      if (rb) {
+        var afterRb = rb.nextSibling
+        if (!afterRb || afterRb.className !== 'answer-body') {
+          afterRb = document.createElement('div')
+          afterRb.className = 'answer-body'
+          rb.after(afterRb)
+        }
+        afterRb.innerHTML = renderMarkdownBlock(s.acc)
+      } else {
+        bubble2.innerHTML = renderMarkdownBlock(s.acc)
+      }
+    }
+    scrollBottom()
+    break
+  }
+})
+
+window.addEventListener('xy:streamReasoning', function(e) {
+  if (!e.detail || !e.detail.chunk) return
+  for (var k in _ss) {
+    var s = _ss[k]
+    if (!s.reasoning) s.reasoning = ''
+    s.reasoning += e.detail.chunk
+    break
+  }
+})
+
+window.addEventListener('xy:streamDone', function(e) {
+  var answer = (e.detail && e.detail.answer) || ''
+  if (answer) {
+    chatHistory.push({role:'assistant', content:answer})
+    compressContext()
+  }
+  for (var k2 in _ss) {
+    var s2 = _ss[k2]
+    if (answer) {
+      // Create answer bubble if no streaming content was rendered (non-streaming turns)
+      if (!s2.mdDiv) {
+        s2.mdDiv = document.createElement('div')
+        s2.mdDiv.className = 'msg assistant'
+        s2.mdDiv.innerHTML = '<div class="bubble markdown-body">' + renderMarkdownBlock(answer) + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button><\/div>'
+        document.getElementById('messages').appendChild(s2.mdDiv)
+        if (s2.div) { s2.div.remove(); s2.div = null }
+      } else {
+        // Streaming turns: update existing bubble with final answer
+        // Collapse reasoning block
+        var rb2 = s2.mdDiv.querySelector('.reasoning-block')
+        if (rb2) {
+          rb2.open = false
+          rb2.querySelector('summary').textContent = '💭 已思考'
+        }
+        // Render final answer (replacing streaming content)
+        var answerBody = s2.mdDiv.querySelector('.answer-body')
+        if (answerBody) {
+          answerBody.innerHTML = renderMarkdownBlock(answer)
+        } else {
+          var b2 = s2.mdDiv.querySelector('.bubble')
+          if (b2) b2.innerHTML = renderMarkdownBlock(answer)
+        }
+        var cbtn = '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '<\/button>'
+        var mainBubble = s2.mdDiv.querySelector('.bubble')
+        if (mainBubble && mainBubble.innerHTML.indexOf('copy-btn') < 0) {
+          mainBubble.innerHTML += cbtn
+        }
+      }
+    }
+    s2.reasoningDone = true
+    _finishStream(k2)
+  }
+  // Collapse tool update cards after answer is shown
+  for (var k in toolEls) {
+    var el = toolEls[k]
+    if (el) el.style.display = 'none'
+  }
+})
+
+window.addEventListener('xy:streamError', function(e) {
+  var err = (e.detail && e.detail.error) || '\u6d41\u5f0f\u8f93\u51fa\u9519\u8bef'
+  for (var k3 in _ss) { _finishStream(k3, err) }
+})
+
+window.addEventListener('xy:aborted', function() {
+  for (var k4 in _ss) {
+    // Collapse reasoning block if present
+    var rb4 = _ss[k4].mdDiv && _ss[k4].mdDiv.querySelector('.reasoning-block')
+    if (rb4) { rb4.open = false; rb4.querySelector('summary').textContent = '💭 已取消' }
+    _finishStream(k4, '已取消')
+  }
+})
+
+window.addEventListener('xy:toolUpdate', function(e) {
+  if (!e.detail) return
+  var d = e.detail
+  var key = d.name + JSON.stringify(d.args)
+  if (d.status === 'running') {
+    var tdiv = document.createElement('div')
+    tdiv.className = 'msg assistant'
+    tdiv.id = 'tool-' + key
+    tdiv.innerHTML = '<div class="bubble tool-card" style="background:var(--chat-tool-bg);font-size:12px;color:var(--chat-tool-text)"><div class="tool-header"><span class="tool-icon">&#x1f527;</span> <span class="tool-name">' + d.name + '</span> <span class="tool-status">&#x23f3; &#x6267;&#x884c;&#x4e2d;...</span></div></div>'
+    document.getElementById('messages').appendChild(tdiv)
+    toolEls[key] = tdiv
+    scrollBottom()
+  } else if (d.status === 'done') {
+    var el = toolEls[key] || document.getElementById('tool-' + key)
+    if (el) {
+      // Format result for display
+      var rawRes = d.result
+      var resultSummary = ''
+      var resultDetail = ''
+      if (rawRes) {
+        if (typeof rawRes === 'string') {
+          resultDetail = rawRes.length > 200 ? rawRes.slice(0, 200) + '\u2026' : rawRes
+          resultSummary = rawRes.length > 80 ? rawRes.slice(0, 80) + '\u2026' : rawRes
+        } else {
+          var s = JSON.stringify(rawRes)
+          resultDetail = s.length > 200 ? s.slice(0, 200) + '\u2026' : s
+          resultSummary = s.length > 80 ? s.slice(0, 80) + '\u2026' : s
+        }
+      }
+      var toggleBtn = resultDetail ? '<button class="tool-expand-btn" onclick="toggleToolDetail(this)">&#x25bc;</button>' : ''
+      var detailBlock = resultDetail ? '<div class="tool-detail" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.08)">&#x2705; ' + resultDetail + '</div>' : ''
+      el.innerHTML = '<div class="bubble tool-card" style="background:var(--chat-tool-bg);font-size:12px;color:var(--chat-tool-text)"><div class="tool-header">' + toggleBtn + '<span class="tool-icon">&#x2705;</span> <span class="tool-name">' + d.name + '</span><span class="tool-summary">' + resultSummary + '</span></div>' + detailBlock + '</div>'
+    }
+  }
+})
+
+window.addEventListener('xy:complete', function(e) {
+  // Legacy compat — streamDone already handles cleanup
+})
+
+window.addEventListener('xy:setFiles', function(e) {
+  if (e.detail) setFiles(e.detail)
+})
+
+
+window._invokeStream = function(q, history, loadingDiv) {
+  var id = Date.now() + "." + Math.random();
+  var div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = '<div class="loading"><span>&#x25CF;&#x25CF;&#x25CF;</span> AI \u5206\u6790\u4e2d...<\/div>';
+  document.getElementById('messages').appendChild(div);
+  scrollBottom()
+  var done = new window.Deferred()
+  var blink = setInterval(function() {}, 500)
+  _ss[id] = {acc:'', div:div, loadingDiv:loadingDiv, done:done, blink:blink, mdDiv:null}
+  // Fire invoke — stream events arrive via polling bridge
+  ipc.chat.invoke('chat:sessionAsk', q, history).then(function(result) {
+    if (!_ss[id]) return  // already cleaned up by streamDone
+    if (result && !result.ok) {
+      _finishStream(id, (result && result.error) || '请求处理出错')
+      return
+    }
+    // If invoke returns answer, render it (works even without streaming)
+    if (result && result.answer && _ss[id]) {
+      var s = _ss[id]
+      if (s.mdDiv) {
+        // Update existing streamed content
+        var bubble = s.mdDiv.querySelector('.bubble')
+        if (bubble) bubble.innerHTML = renderMarkdownBlock(result.answer) + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button>'
+      } else if (s.div) {
+        // No streaming happened — replace loading spinner with answer
+        s.div.className = 'msg assistant'
+        s.div.innerHTML = '<div class="bubble markdown-body">' + renderMarkdownBlock(result.answer) + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button></div>'
+        chatHistory.push({role:'assistant', content: result.answer})
+        compressContext()
+        // Collapse tool update cards
+        for (var k in toolEls) { var el = toolEls[k]; if (el) el.style.display = 'none' }
+      }
+    }
+    // Belt-and-suspenders: ensure stream cleanup even if streamDone missed
+    // (e.g. agent returned empty answer after tool calls)
+    for (var k in _ss) { _finishStream(k) }
+  }).catch(function(err) {
+    for (var k in _ss) { _finishStream(k, err.message || String(err)) }
+  })
+  return done.promise
+}
+// ── Stream completion handler (legacy, kept for chat:complete sent during greeting push) ──
+// Note: window.postMessage events from preload do NOT cross contextIsolation.
+// Instead, stream events are silently dropped. The invoke result is the primary data path.
+// Save history before closing
+function saveHistory() {
+  if (chatHistory.length > 1) {
+    ipc.chat.invoke('aiChat:saveHistory', chatHistory)
+  }
+}
+
+function copyText(btn) {
+  var text = btn.closest('.bubble').cloneNode(true)
+  text.querySelectorAll('.copy-btn').forEach(function(b){ b.remove() })
+  navigator.clipboard.writeText(text.textContent || '').then(function() {
+    btn.innerHTML = ICONS.check
+    setTimeout(function(){ btn.innerHTML = ICONS.clipboard }, 1200)
+  }).catch(function(){})
+}
+
+function toggleToolDetail(btn) {
+  var card = btn.closest('.tool-card')
+  if (!card) return
+  var detail = card.querySelector('.tool-detail')
+  if (!detail) return
+  var isHidden = detail.style.display === 'none'
+  detail.style.display = isHidden ? 'block' : 'none'
+  btn.innerHTML = isHidden ? '&#x25b2;' : '&#x25bc;'
+}
+function updateSendBtn() {
+  var hasText = document.getElementById('input').value.trim() !== ''
+  var hasFiles = window.__files && window.__files.length > 0
+  document.getElementById('sendBtn').disabled = !hasText && !hasFiles
+}
+function setFiles(paths) {
+  var box = document.getElementById('dropzoneBox')
+  var names = paths.map(function(p){ return p.split('/').pop() }).join(', ')
+  box.innerHTML = '<div class="dropzone">' + ICONS.paperclip + ' <span class="files">' + paths.length + ' \u4E2A\u6587\u4EF6: ' + names + '</span><button id="dismissFiles">\u2715</button><\/div>'
+  box.querySelector('#dismissFiles').onclick = function() { box.innerHTML = ''; window.__files = null; (function(){var h=document.getElementById('input').value.trim()!=='';var f=window.__files&&window.__files.length>0;document.getElementById('sendBtn').disabled=!h&&!f})() }
+  window.__files = paths;
+  (function(){var h=document.getElementById('input').value.trim()!=='';var f=window.__files&&window.__files.length>0;document.getElementById('sendBtn').disabled=!h&&!f})();
+  // Auto-send files-only drops from bubble (no text in input)
+  // Wait for chatReady — may still be loading if window just opened
+  (function tryAutoSend() {
+    if (chatReady && !document.getElementById('input').value.trim()) {
+      sendMessage()
+    } else if (!chatReady) {
+      setTimeout(tryAutoSend, 200)
+    }
+  })()
+}
+
+window.__setFiles = setFiles
+window.__setPrompt = function(text) { var inp = document.getElementById('input'); if (inp) { inp.value = text; updateSendBtn(); inp.focus() } }
+window.__selectPrompt = function(el){var t=el.querySelector('span:last-child').textContent;document.getElementById('input').value=t;updateSendBtn();document.getElementById('input').focus()}
+
+// System prompt loaded above (merged with history)
+
+
+window.readFile = function(path) { return ipc.chat.invoke('aiChat:readFile', path) }
+window.listFiles = function(dir) { return ipc.chat.invoke('aiChat:listFiles', dir || '') }
+window.writeWiki = function(data) { return ipc.chat.invoke('aiChat:writeWiki', data) }
+window.searchFiles = function(query) { return ipc.chat.invoke('aiChat:searchFiles', query) }
+window.runLint = function() { return ipc.chat.invoke('aiChat:runLint') }
+window.newDailyNote = function(body) { return ipc.chat.invoke('aiChat:newDailyNote', body) }
+window.moveFile = function(fp, dir) { return ipc.chat.invoke('aiChat:moveFile', fp, dir) }
+window.renameFile = function(old, name) { return ipc.chat.invoke('aiChat:renameFile', old, name) }
+window.deleteFile = function(fp) { return ipc.chat.invoke('aiChat:deleteFile', fp) }
+window.createFolder = function(dir, name) { return ipc.chat.invoke('aiChat:createFolder', dir, name) }
+window.deleteFolder = function(fp) { return ipc.chat.invoke('aiChat:deleteFolder', fp) }
+window.importFiles = function(paths) { return ipc.chat.invoke('aiChat:importFiles', paths) }
+window.findWikiGap = function(q) { return ipc.chat.invoke('aiChat:findWikiGap', q) }
+window.findBacklinks = function(p) { return ipc.chat.invoke('aiChat:findBacklinks', p) }
+window.getSources = function(f) { return ipc.chat.invoke('aiChat:getSources', f) }
+
+// Make entire body a drop target
+document.body.addEventListener('dragover', function(e) {
+  e.preventDefault(); e.stopPropagation()
+  document.body.style.background = 'rgba(0,122,255,0.03)'
+})
+document.body.addEventListener('dragleave', function(e) {
+  if (e.target === document.body) document.body.style.background = ''
+})
+document.body.addEventListener('drop', function(e) {
+  e.preventDefault(); e.stopPropagation()
+  document.body.style.background = ''
+  var files = Array.from(e.dataTransfer.files || []).map(function(f){ return f.path }).filter(Boolean)
+  if (files.length > 0) setFiles(files)
+})
+
+var closeBtn = document.getElementById('closeBtn')
+var mainWinBtn = document.getElementById('mainWinBtn')
+if (mainWinBtn) mainWinBtn.addEventListener('click', function() {
+  ipc.aiChat.send('aiChat:openMainWindow')
+})
+if (closeBtn) closeBtn.addEventListener('click', function() {
+  saveHistory()
+  document.body.style.animation = 'fadeOut 150ms ease-in both'
+  setTimeout(function() { ipc.aiChat.send('aiChat:close') }, 150)
+})
+// ── Session reset ────────────────────────────────────────────────
+var resetBtn = document.getElementById('resetBtn')
+if (resetBtn) resetBtn.addEventListener('click', function() {
+  if (!confirm('重置会话将创建新的当日会话，当前对话将保存到历史。\n确定重置？')) return
+  ipc.chat.invoke('chat:session', { action: 'reset' }).then(function(r) {
+    chatHistory = []
+    chatReady = true
+    document.getElementById('messages').innerHTML = ''
+    document.getElementById('dropzoneBox').innerHTML = ''
+    _ss = {}
+    // Render greeting from new session
+    if (r && r.messages && r.messages.length > 0) {
+      r.messages.forEach(function(m) {
+        if (m.role !== 'user' && m.role !== 'assistant') return
+        chatHistory.push(m)
+        var div = document.createElement('div')
+        div.className = 'msg ' + m.role
+        var html = m.role === 'assistant' ? renderMarkdown(m.content || '') : m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        div.innerHTML = '<div class="bubble' + (m.role === 'assistant' ? ' markdown-body' : '') + '">' + html + '<\/div>'
+        document.getElementById('messages').appendChild(div)
+      })
+    }
+    updateSendBtn()
+  }).catch(function(e) { console.error('[AIChat] session reset failed:', e) })
+})
+var clearBtn = document.getElementById('clearBtn')
+if (clearBtn) clearBtn.addEventListener('click', function() {
+  if (!confirm('清空会话将删除当前会话文件，对话记录不可恢复。\n确定清空？')) return
+  ipc.chat.invoke('chat:session', { action: 'delete' }).then(function() {
+    chatHistory = []
+    chatReady = true
+    document.getElementById('messages').innerHTML = ''
+    document.getElementById('dropzoneBox').innerHTML = ''
+    _ss = {}
+    updateSendBtn()
+    // Re-initialize: delete creates new empty session
+    ipc.chat.invoke('chat:sessionAsk', '', []).catch(function() {})
+  }).catch(function(e) { console.error('[AIChat] session delete failed:', e) })
+})
+document.getElementById('attachBtn').onclick = function() {
+  ipc.chat.invoke('aiChat:importFilesFromDialog').then(function(result) {
+    if (result && result.filePaths && result.filePaths.length > 0) setFiles(result.filePaths)
+  }).catch(function() {})
+}
+
+var dragCover = document.getElementById('dragCover')
+document.addEventListener('dragover', function(e){
+  e.preventDefault()
+  dragCover.style.display = 'flex'
+})
+document.addEventListener('dragleave', function(e){
+  if (e.target === document.body || !document.body.contains(e.relatedTarget)) dragCover.style.display = 'none'
+})
+document.addEventListener('drop', function(e) {
+  e.preventDefault()
+  dragCover.style.display = 'none'
+  var files = Array.from(e.dataTransfer.files || []).map(function(f){ return f.path }).filter(Boolean)
+  if (files.length > 0) setFiles(files)
+})
+
+// ── Slash Command Menu ───────────────────────────────────────────
+var SLASH_CMDS = [
+  { name:'/stop', aliases:['/abort'], desc:'强制停止当前 AI 输出' },
+  { name:'/reset', aliases:[], desc:'重置对话（存档旧会话，开新会话）' },
+  { name:'/clear', aliases:[], desc:'清空对话显示（保留会话）' },
+  { name:'/status', aliases:['/info'], desc:'查看会话状态（Token/模型）' },
+  { name:'/compact', aliases:[], desc:'手动压缩上下文' },
+  { name:'/retry', aliases:[], desc:'重发上一条消息' },
+  { name:'/help', aliases:['/?'], desc:'显示可用命令列表' },
+]
+var cmdMenu = document.getElementById('cmdMenu')
+var cmdSelectedIdx = -1
+var cmdFilteredItems = []
+
+function buildCmdMenu(filter) {
+  var q = (filter || '').toLowerCase()
+  cmdFilteredItems = SLASH_CMDS.filter(function(c) {
+    return c.name.toLowerCase().indexOf(q) >= 0 || c.aliases.some(function(a) { return a.toLowerCase().indexOf(q) >= 0 })
+  })
+  cmdSelectedIdx = 0
+  cmdMenu.innerHTML = cmdFilteredItems.map(function(c, i) {
+    var aliasText = c.aliases.length ? ' ' + c.aliases.join(' ') : ''
+    return '<div class="cmd-item" data-idx="' + i + '"><span class="cmd-name">' + c.name + '</span><span class="cmd-desc">' + c.desc + '</span><span class="cmd-aliases">' + aliasText + '</span></div>'
+  }).join('')
+  if (cmdFilteredItems.length > 0) {
+    cmdMenu.style.display = 'block'
+    cmdMenu.querySelector('.cmd-item').classList.add('selected')
+  } else {
+    cmdMenu.style.display = 'none'
+  }
+}
+
+function selectCmdItem(idx) {
+  var items = cmdMenu.querySelectorAll('.cmd-item')
+  items.forEach(function(it) { it.classList.remove('selected') })
+  if (items[idx]) items[idx].classList.add('selected')
+  cmdSelectedIdx = idx
+}
+
+function applyCmdSelection() {
+  if (cmdFilteredItems.length === 0) return
+  var cmd = cmdFilteredItems[Math.max(0, cmdSelectedIdx)].name
+  input.value = cmd + ' '
+  input.focus()
+  cmdMenu.style.display = 'none'
+  cmdFilteredItems = []
+  input.style.height = 'auto'
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px'
+  updateSendBtn()
+}
+
+cmdMenu.addEventListener('click', function(e) {
+  var item = e.target.closest('.cmd-item')
+  if (!item) return
+  cmdSelectedIdx = parseInt(item.getAttribute('data-idx'))
+  applyCmdSelection()
+})
+
+// ── Input handling ───────────────────────────────────────────────
+var input = document.getElementById('input')
+var sendBtn = document.getElementById('sendBtn')
+input.addEventListener('input', function() {
+  sendBtn.disabled = this.value.trim() === '' && !(window.__files && window.__files.length > 0)
+  input.style.height = 'auto'
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px'
+  // Slash command menu
+  var val = input.value
+  var cursorPos = input.selectionStart
+  var lineStart = val.lastIndexOf('\n', cursorPos - 1) + 1
+  var lineText = val.substring(lineStart, cursorPos)
+  if (lineText.startsWith('/') && lineStart === 0 && lineText.indexOf(' ') === -1) {
+    buildCmdMenu(lineText.slice(1))
+  } else {
+    cmdMenu.style.display = 'none'
+    cmdFilteredItems = []
+  }
+  var cc = document.getElementById('charCounter')
+  if (cc) {
+    var len = input.value.length
+    if (len > 50) {
+      cc.textContent = len + ' 字'
+      cc.style.display = 'block'
+    } else { cc.style.display = 'none' }
+  }
+})
+input.addEventListener('keydown', function(e) {
+  // Slash menu navigation
+  if (cmdMenu.style.display === 'block' && cmdFilteredItems.length > 0) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      selectCmdItem(Math.min(cmdSelectedIdx + 1, cmdFilteredItems.length - 1))
+      return
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      selectCmdItem(Math.max(cmdSelectedIdx - 1, 0))
+      return
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      applyCmdSelection()
+      return
+    }
+    if (e.key === 'Escape') {
+      cmdMenu.style.display = 'none'
+      cmdFilteredItems = []
+      return
+    }
+  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
+  if (e.key === 'Enter' && e.shiftKey) { /* allow default newline */ }
+  if (e.key === 'Escape') { document.getElementById('closeBtn').click() }
+})
+
+function doBatchIngest(filePaths) {
+  var loadingDiv = document.createElement('div')
+  loadingDiv.className = 'msg assistant'
+  loadingDiv.innerHTML = '<div class="loading"><span>&#x25CF;&#x25CF;&#x25CF;</span> 导入文件中...<\/div>'
+  document.getElementById('messages').appendChild(loadingDiv)
+  scrollBottom()
+  document.getElementById('dropzoneBox').innerHTML = ''
+  updateSendBtn()
+  
+  window.importFiles(filePaths).then(function(result) {
+    loadingDiv.remove()
+    if (result.imported > 0) {
+      var vaultPaths = result.files ? result.files.map(function(f) { return f.vaultPath || f }) : filePaths.map(function(p) { return '_raw/' + p.split('/').pop() })
+      var msg = '请分析我导入的以下文件：' + vaultPaths.map(function(p, i) { return '\n- ' + p + (result.files && result.files[i] && result.files[i].originalName ? ' (' + result.files[i].originalName + ')' : '') }).join('')
+      // Send as user message and let agent handle
+      var msgDiv = document.createElement('div')
+      msgDiv.className = 'msg user'
+      msgDiv.innerHTML = '<div class="bubble markdown-body">' + ICONS.paperclip + ' ' + filePaths.length + ' 个文件已导入<\/div>'
+      document.getElementById('messages').appendChild(msgDiv)
+      scrollBottom()
+      var ansDiv = document.createElement('div')
+      ansDiv.className = 'msg assistant'
+      document.getElementById('messages').appendChild(ansDiv)
+      scrollBottom()
+      chatHistory.push({ role: 'user', content: msg })
+      _invokeStream(msg, chatHistory, ansDiv).then(function() { compressContext() }).catch(function(e) {
+        ansDiv.innerHTML = '<div class="error">分析失败: ' + (e.message || '') + '<\/div>'
+      })
+    } else {
+      var errDiv = document.createElement('div')
+      errDiv.className = 'msg assistant'
+      errDiv.innerHTML = '<div class="error">&#x274C; 导入失败：' + ((result.errors && result.errors[0]) || '未知错误') + '<\/div>'
+      document.getElementById('messages').appendChild(errDiv)
+    }
+  }).catch(function(err) {
+    loadingDiv.remove()
+    var errDiv = document.createElement('div')
+    errDiv.className = 'msg assistant'
+    errDiv.innerHTML = '<div class="error">&#x274C; ' + (err.message || String(err)) + '<\/div>'
+    document.getElementById('messages').appendChild(errDiv)
+    scrollBottom()
+  })
+}
+
+var MAX_TOKENS = 900000
+var COMPRESS_AT = 0.85
+
+function estimateTokens(text) {
+  return Math.ceil(text.length / 2.5)
+}
+
+function totalContextTokens() {
+  var n = 0
+  for (var i = 0; i < chatHistory.length; i++) n += estimateTokens(chatHistory[i].content || '')
+  return n
+}
+
+async function compressContext() {
+  if (chatHistory.length < 6) return
+  var ratio = totalContextTokens() / MAX_TOKENS
+  if (ratio < COMPRESS_AT) return
+
+  var msgs = document.getElementById('messages')
+  var note = document.createElement('div')
+  note.className = 'msg assistant'
+  note.innerHTML = '<div class="bubble" style="background:var(--chat-warn-bg);color:var(--chat-warn-text);font-size:12px">🔄 上下文压缩中...<\/div>'
+  msgs.appendChild(note); scrollBottom()
+
+  try {
+    var summaryPrompt = '请用200字以内简要总结以上对话的关键信息和决策点。'
+    var resp = await ipc.chat.invoke('chat:ask', summaryPrompt, chatHistory)
+    note.remove()
+    
+    // Save briefing
+    var briefText = '## AI 对话摘要 ' + new Date().toLocaleString() + '\n\n' + resp.answer + '\n\n---'
+    await ipc.chat.invoke('chat:saveBriefing', briefText).catch(function(){})
+    
+    // Replace history with summary + last 3 messages
+    chatHistory = [
+      chatHistory[0],
+      { role: 'assistant', content: '【对话摘要】' + resp.answer },
+      chatHistory[chatHistory.length-3],
+      chatHistory[chatHistory.length-2],
+      chatHistory[chatHistory.length-1]
+    ]
+    
+    var done = document.createElement('div')
+    done.className = 'msg assistant'
+    done.innerHTML = '<div class="bubble" style="background:var(--chat-success-bg);color:var(--chat-success-text);font-size:12px">✅ 上下文已压缩（摘要已存至简报）<\/div>'
+    msgs.appendChild(done); scrollBottom()
+  } catch(e) {
+    note.innerHTML = '<div class="error">压缩失败: ' + (e.message||'') + '<\/div>'
+  }
+}
+
+function addMessageEl(role, content) {
+  var div = document.createElement('div')
+  div.className = 'msg ' + role
+  var html = renderMarkdown(content)
+  div.innerHTML = '<div class="bubble markdown-body">' + html + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button><\/div>'
+  document.getElementById('messages').appendChild(div)
+}
+
+// ── Slash Commands ────────────────────────────────────────────────
+function handleCommand(cmd) {
+  var parts = cmd.split(/\s+/)
+  var action = parts[0].toLowerCase()
+  var arg = parts.slice(1).join(' ') || ''
+  var msgEl
+  switch (action) {
+    case '/stop':
+    case '/abort':
+      // Abort current AI session
+      ipc.chat.session({ action: 'abort' }).then(function(r) {
+        if (r && r.ok) {
+          for (var k in _ss) { _finishStream(k, '用户强制停止') }
+          msgEl = document.createElement('div')
+          msgEl.className = 'msg system'
+          msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-tertiary,#8e8e93)">⏹ 已停止当前对话</div>'
+          document.getElementById('messages').appendChild(msgEl)
+          scrollBottom()
+        }
+      }).catch(function(e) {
+        msgEl = document.createElement('div')
+        msgEl.className = 'msg system'
+        msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--error,#ff3b30)">❌ 停止失败: ' + (e.message || '') + '</div>'
+        document.getElementById('messages').appendChild(msgEl)
+        scrollBottom()
+      })
+      return true
+
+    case '/reset':
+      // Reset session: save old conversation, start fresh
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg system'
+      msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-secondary)">🔄 重置对话中…</div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      ipc.chat.session({ action: 'reset' }).then(function(r) {
+        chatHistory = []
+        document.getElementById('messages').innerHTML = ''
+        document.getElementById('dropzoneBox').innerHTML = ''
+        window.__files = null
+        updateSendBtn()
+        // Render greeting from new session
+        if (r && r.messages && r.messages.length > 0) {
+          r.messages.forEach(function(m) {
+            if (m.role !== 'user' && m.role !== 'assistant') return
+            chatHistory.push(m)
+            var div = document.createElement('div')
+            div.className = 'msg ' + m.role
+            var html = m.role === 'assistant' ? renderMarkdown(m.content || '') : m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+            div.innerHTML = '<div class="bubble' + (m.role === 'assistant' ? ' markdown-body' : '') + '">' + html + '<\/div>'
+            document.getElementById('messages').appendChild(div)
+          })
+          scrollBottom()
+        }
+      }).catch(function(e) {
+        msgEl = document.createElement('div')
+        msgEl.className = 'msg system'
+        msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--error,#ff3b30)">❌ 重置失败: ' + (e.message || '') + '</div>'
+        document.getElementById('messages').appendChild(msgEl)
+        scrollBottom()
+      })
+      return true
+
+    case '/clear':
+      // Clear chat DOM only (keep session)
+      chatHistory = []
+      document.getElementById('messages').innerHTML = ''
+      document.getElementById('dropzoneBox').innerHTML = ''
+      window.__files = null
+      updateSendBtn()
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg system'
+      msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-tertiary,#8e8e93)">🧹 对话已清空</div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      return true
+
+    case '/status':
+    case '/info':
+      // Show session status
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg system'
+      msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-secondary)">📊 获取状态…</div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      ipc.chat.session({ action: 'get' }).then(function(r) {
+        msgEl.remove()
+        var tokens = totalContextTokens()
+        var infoText = [
+          '**会话状态**',
+          '',
+          '| 项目 | 值 |',
+          '|------|-----|',
+          '| 会话 ID | `' + ((r && r.id) || '—').slice(0, 20) + '` |',
+          '| 对话轮数 | ' + chatHistory.filter(function(m){return m.role!=='system'}).length + ' |',
+          '| 估算 Token | ~' + tokens + ' |',
+          '| 模型 | ' + ((r && r.session && r.session.model) ? r.session.model.split('/').pop() : '—') + ' |',
+        ].join('&#10;')
+        if (tokens > 6000) infoText += '&#10;&#10;⚠️ Token 量接近上限，建议 `/reset`'
+        msgEl = document.createElement('div')
+        msgEl.className = 'msg assistant'
+        msgEl.innerHTML = '<div class="bubble markdown-body">' + renderMarkdownBlock(infoText) + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button></div>'
+        document.getElementById('messages').appendChild(msgEl)
+        scrollBottom()
+      }).catch(function(e) {
+        msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--error,#ff3b30)">❌ 获取状态失败: ' + (e.message || '') + '</div>'
+      })
+      return true
+
+    case '/compact':
+      // Manually trigger context compression
+      compressContext()
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg system'
+      msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-tertiary,#8e8e93)">📦 上下文已压缩</div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      return true
+
+    case '/retry':
+      // Retry last user message
+      var lastUser = null
+      for (var i = chatHistory.length - 1; i >= 0; i--) {
+        if (chatHistory[i].role === 'user') { lastUser = chatHistory[i].content; break }
+      }
+      if (!lastUser) {
+        msgEl = document.createElement('div')
+        msgEl.className = 'msg system'
+        msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-tertiary,#8e8e93)">没有可重试的消息</div>'
+        document.getElementById('messages').appendChild(msgEl)
+        scrollBottom()
+        return true
+      }
+      // Remove last user+assistant messages from history and DOM
+      var msgsContainer = document.getElementById('messages')
+      while (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'assistant') {
+        chatHistory.pop()
+        if (msgsContainer.lastChild && msgsContainer.lastChild.className && msgsContainer.lastChild.className.indexOf('assistant') >= 0) msgsContainer.lastChild.remove()
+      }
+      if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+        chatHistory.pop()
+        if (msgsContainer.lastChild && msgsContainer.lastChild.className && msgsContainer.lastChild.className.indexOf('user') >= 0) msgsContainer.lastChild.remove()
+      }
+      // Resend
+      input.value = lastUser
+      sendMessage()
+      return true
+
+    case '/help':
+    case '/?':
+      var helpText = [
+        '**可用命令：**',
+        '',
+        '| 命令 | 说明 |',
+        '|------|------|',
+        '| `/stop` `/abort` | 强制停止当前 AI 输出 |',
+        '| `/reset` | 重置对话（存档旧会话，开新会话） |',
+        '| `/clear` | 清空对话显示（保留会话） |',
+        '| `/status` `/info` | 查看会话状态（Token/模型） |',
+        '| `/compact` | 手动压缩上下文 |',
+        '| `/retry` | 重发上一条消息 |',
+        '| `/help` `/?` | 显示此帮助 |',
+      ].join('&#10;')
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg assistant'
+      msgEl.innerHTML = '<div class="bubble markdown-body">' + renderMarkdownBlock(helpText) + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button></div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      return true
+
+    default:
+      // Unknown command — show hint
+      msgEl = document.createElement('div')
+      msgEl.className = 'msg system'
+      msgEl.innerHTML = '<div class="bubble" style="font-size:12px;color:var(--text-tertiary,#8e8e93)">❓ 未知命令: `' + escapeHtml(action) + '` — 输入 `/help` 查看可用命令</div>'
+      document.getElementById('messages').appendChild(msgEl)
+      scrollBottom()
+      return true
+  }
+  return false
+}
+// ── /Commands ──────────────────────────────────────────────────────
+
+function sendMessage() {
+  if (!chatReady) return;
+  var text = input.value.trim()
+  // Slash commands
+  if (text.startsWith('/') && handleCommand(text)) {
+    input.value = ''
+    input.style.height = 'auto'
+    return
+  }
+  var files = window.__files || []
+  // Batch ingest mode: files only, no text → skip discussion, go straight to import
+  if (!text && files.length > 0) {
+    input.value = ''
+    window.__files = null
+    doBatchIngest(files)
+    return
+  }
+
+  input.value = ''
+  input.style.height = 'auto'
+  var msgDiv = document.createElement('div')
+  msgDiv.className = 'msg user'
+  msgDiv.innerHTML = '<div class="bubble markdown-body">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button><\/div>'
+  document.getElementById('messages').appendChild(msgDiv)
+  scrollBottom()
+  var loadingDiv = document.createElement('div')
+  loadingDiv.className = 'msg assistant'
+  loadingDiv.innerHTML = '<div class="loading"><span>&#x25CF;&#x25CF;&#x25CF;</span> AI 分析中...<\/div>'
+  document.getElementById('messages').appendChild(loadingDiv)
+  scrollBottom()
+  var fileMsg = text
+  if (files.length > 0) {
+    // Read file contents directly via aiChat:readFile
+    Promise.all(files.map(function(p) {
+      return window.readFile(p).then(function(r) {
+        if (r && r.ok && r.content) return '\n\n### ' + p.split('/').pop() + '\n' + (r.content || '')
+        return '\n\n### ' + p.split('/').pop() + '\n(无法读取)'
+      }).catch(function(){ return '' })
+    })).then(function(contents) {
+      var msg = text + contents.join('')
+      window.__files = null
+      chatHistory.push({ role: 'user', content: msg })
+      _invokeStream(msg, chatHistory, loadingDiv)
+    }).catch(function(e) {
+      loadingDiv.innerHTML = '<div class=\'error\'>读取文件失败: ' + (e.message || String(e)) + '<\/div>'
+    })
+  } else {
+    // No files: send text directly
+    chatHistory.push({ role: 'user', content: text })
+    _invokeStream(text, chatHistory, loadingDiv)
+  }
+}
+
+function handleResponse(resp, loadingDiv) {
+  loadingDiv.remove()
+  chatHistory.push({ role: 'assistant', content: resp.answer })
+  compressContext()
+  var ansDiv = document.createElement('div')
+  ansDiv.className = 'msg assistant'
+  var html = renderMarkdown(resp.answer || '')
+  ansDiv.innerHTML = '<div class="bubble markdown-body">' + html + '<button class="copy-btn" onclick="copyText(this)">' + ICONS.clipboard + '</button><\/div>'
+  if (resp.sources && resp.sources.length > 0) {
+    ansDiv.innerHTML += '<div class="meta">' + ICONS.document + resp.sources.map(function(s){return s.title}).join(', ') + '<\/div>'
+  }
+  document.getElementById('messages').appendChild(ansDiv)
+  scrollBottom()
+}
+
+function handleError(err, loadingDiv) {
+  loadingDiv.remove()
+  var errDiv = document.createElement('div')
+  errDiv.className = 'msg assistant'
+  errDiv.innerHTML = '<div class="error">&#x274C; ' + (err.message || String(err)) + '<\/div>'
+  document.getElementById('messages').appendChild(errDiv)
+  scrollBottom()
+}
+
+sendBtn.onclick = sendMessage
+
+// Debug agent
+window.testAgent = function() {
+  var d = document.createElement('div'); d.className='msg assistant'; d.innerHTML='<div class="bubble">🔍 测试Agent...<\/div>'; document.getElementById('messages').appendChild(d); scrollBottom()
+  ipc.chat.invoke('chat:debugAgent').then(function(r) {
+    d.innerHTML = '<div class="bubble"><pre style="font-size:11px;white-space:pre-wrap">' + JSON.stringify(r,null,2).replace(/</g,'&lt;') + '</pre><\/div>'
+    scrollBottom()
+  }).catch(function(e) { d.innerHTML = '<div class="error">' + e.message + '<\/div>' })
+}
+
+function scrollBottom() {
+  var m = document.getElementById('messages')
+  m.scrollTop = m.scrollHeight
+}
+
+var titlebar = document.querySelector('.titlebar')
+var grip=document.getElementById('resizeGrip');var resizing=false,rSX=0,rSY=0,rSW=0,rSH=0;grip&&grip.addEventListener('mousedown',function(e){e.preventDefault();e.stopPropagation();resizing=true;rSX=e.screenX;rSY=e.screenY;var s=ipc.aiChat.sendSync('aiChat:getWindowSize');if(!s)return;rSW=s[0];rSH=s[1];document.addEventListener('mousemove',onRM);document.addEventListener('mouseup',onRU);});function onRM(e){if(!resizing)return;var nw=Math.max(280,rSW+(e.screenX-rSX));var nh=Math.max(200,rSH+(e.screenY-rSY));ipc.aiChat.send('aiChat:setWindowSize',nw,nh);}function onRU(){resizing=false;document.removeEventListener('mousemove',onRM);document.removeEventListener('mouseup',onRU);}
+var sx = 0, sy = 0, dragging = false
+titlebar.addEventListener('mousedown', function(e) {
+  if (e.target.tagName === 'BUTTON') return
+  sx = e.screenX; sy = e.screenY; dragging = true
+  document.addEventListener('mousemove', onmove)
+  document.addEventListener('mouseup', onup)
+})
+function onmove(e) {
+  if (!dragging) return
+  ipc.aiChat.send('aiChat:move', e.screenX - sx, e.screenY - sy)
+  sx = e.screenX; sy = e.screenY
+}
+function onup() { dragging = false; document.removeEventListener('mousemove', onmove); document.removeEventListener('mouseup', onup) }
+
+</script></body></html>

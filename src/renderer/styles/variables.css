@@ -1,0 +1,320 @@
+/* ============================================================
+   晓园 Vault — Design System Tokens
+   基于 mdeditor CSSVariableManager 设计（2026-05-22）
+   参考：mdeditor/theme-presets.js + Apple HIG
+   ============================================================ */
+
+/* --------------------------------------------------------
+   1. 颜色系统（Color System）
+   命名规范参考 Tailwind CSS + Apple HIG
+   -------------------------------------------------------- */
+
+:root {
+  /* 主色 Primary */
+  --color-primary: #1a56a8;
+  --color-primary-hover: #15447d;
+  --color-primary-active: #103866;
+  --color-primary-light: #e5eff9;
+  --color-primary-10: rgba(26, 86, 168, 0.10);
+  --color-primary-15: rgba(26, 86, 168, 0.15);
+  --color-primary-20: rgba(26, 86, 168, 0.20);
+  --color-primary-25: rgba(26, 86, 168, 0.25);
+  --color-primary-40: rgba(26, 86, 168, 0.40);
+  --color-primary-rgb: 26, 86, 168;
+
+  /* 强调色 Accent */
+  --color-accent: #1e7a4d;
+  --color-accent-hover: #165e3a;
+  --color-accent-active: #104d2e;
+  --color-accent-light: #d1f0e1;
+  --color-accent-10: rgba(30, 122, 77, 0.10);
+  --color-accent-25: rgba(30, 122, 77, 0.25);
+
+  /* 系统色 System（状态/图标/交互） */
+  /* ⚠️ 这些是 JSX 内联 hardcoded 重灾区，需要逐个替换 */
+  --color-blue: #007aff;        /* iOS system blue */
+  --color-green: #22c55e;       /* success / 完成 */
+  --color-red: #ef4444;        /* error / 警告 / 死链 */
+  --color-orange: #f59e0b;     /* warning / 警告 */
+  --color-orange-light: #fff8e1;  /* warning 浅色背景 */
+  --color-purple: #5856d6;     /* AI / special */
+  --color-gray: #6b7280;       /* neutral text */
+  --color-gray-light: #a1a1a6; /* tertiary text */
+  --color-gray-dark: #1d1d1f;  /* primary text (light mode) */
+
+  /* 背景色 Background */
+  --color-bg: #fafafa;
+  --color-bg-code: #f5f5f7;
+  --color-code-text: #1d1d1f;
+  --color-bg-hover: #f0f0f2;
+  --color-bg-active: #e8e8ea;
+
+  /* 表面色 Surface（卡片/面板/输入框） */
+  --color-surface: #ffffff;
+  --color-surface-hover: #f5f5f5;
+  --color-surface-active: #eeeeee;
+  --color-surface-raised: #ffffff;
+
+  /* 边框色 Border */
+  --color-border: #d1d1d6;
+  --color-border-hover: #bebec4;
+  --color-border-active: #8e8e93;
+  --color-border-strong: #c7c7cc;
+
+  /* 文字色 Text */
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #8e8e8e;
+  --color-text-inverse: #ffffff;
+
+  /* 图表色 Graph（知识图谱节点） */
+  --color-graph-1: #1a56a8;
+  --color-graph-2: #1e7a4d;
+  --color-graph-3: #8b5cf6;
+  --color-graph-4: #d97706;
+  --color-graph-5: #dc2626;
+  --color-graph-6: #0891b2;
+  --color-graph-7: #65a30d;
+  --color-graph-8: #c026d3;
+  --color-graph-note: #a0b4cf;
+  --color-graph-link: #a0b4cf;
+
+  /* ========================================================
+     2. 间距系统 Spacing（4px base unit）
+     ======================================================== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ========================================================
+     3. 字体系统 Typography
+     ======================================================== */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, 'Liberation Mono', monospace;
+  --font-ui: var(--font-sans);
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ========================================================
+     4. 圆角 Border Radius
+     ======================================================== */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* ========================================================
+     5. 阴影 Shadows
+     ======================================================== */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.08), 0 10px 10px rgba(0,0,0,0.04);
+  --shadow-panel: 0 8px 32px rgba(0,0,0,0.12);
+
+  /* ========================================================
+     6. 动效 Transitions
+     ======================================================== */
+  --transition-fast: 100ms ease;
+  --transition-base: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ========================================================
+     7. 布局 Layout
+     ======================================================== */
+  --sidebar-width: 220px;
+  --icon-sidebar-width: 40px;
+  --ai-panel-width: 400px;
+  --header-height: 40px;
+
+  /* ========================================================
+     8. Z-Index 层级
+     ======================================================== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-panel: 400;
+  --z-floating: 500;
+  --z-modal: 600;
+  --z-toast: 700;
+}
+
+/* ========================================================
+   深色主题（Dark Mode）
+   ======================================================== */
+[data-theme="dark"] {
+  /* 背景色 */
+  --color-bg: #1a1a1c;
+  --color-bg-code: #1e1e2e;
+  --color-code-text: #cdd6f4;
+  --color-bg-hover: #242426;
+  --color-bg-active: #2a2a2c;
+
+  /* 表面色 */
+  --color-surface: #242426;
+  --color-surface-hover: #2e2e31;
+  --color-surface-active: #38383b;
+  --color-surface-raised: #2d2d2f;
+
+  /* 边框色 */
+  --color-border: #38383b;
+  --color-border-hover: #4a4a4e;
+  --color-border-active: #5a5a5e;
+  --color-border-strong: #48484c;
+
+  /* 文字色 */
+  --color-text-primary: #f0f0f2;
+  --color-text-secondary: #b0b0b4;
+  --color-text-tertiary: #7c7c80;
+  --color-text-inverse: #1d1d1f;
+
+  /* 系统色 */
+  --color-blue: #0a84ff;
+  --color-green: #30d158;
+  --color-red: #ff453a;
+  --color-orange: #ff9f0a;
+  --color-orange-light: #2d2010;  /* warning 浅色背景 (dark) */
+  --color-purple: #bf5af2;
+  --color-gray: #8e8e93;
+  --color-gray-light: #636366;
+  --color-gray-dark: #e5e5e7;
+
+  /* 主色 */
+  --color-primary: #5599e8;
+  --color-primary-hover: #77b0f0;
+  --color-primary-active: #88c3f5;
+  --color-primary-light: #1a2d4a;
+  --color-primary-10: rgba(85, 153, 232, 0.10);
+  --color-primary-15: rgba(85, 153, 232, 0.15);
+  --color-primary-20: rgba(85, 153, 232, 0.20);
+  --color-primary-25: rgba(85, 153, 232, 0.25);
+  --color-primary-40: rgba(85, 153, 232, 0.40);
+  --color-primary-rgb: 85, 153, 232;
+
+  /* 强调色 */
+  --color-accent: #3db872;
+  --color-accent-hover: #55cc85;
+  --color-accent-active: #66d993;
+  --color-accent-light: #1a3d2a;
+  --color-accent-10: rgba(61, 184, 114, 0.10);
+  --color-accent-25: rgba(61, 184, 114, 0.25);
+
+  /* 图表色 */
+  --color-graph-1: #5599e8;
+  --color-graph-2: #3db872;
+  --color-graph-3: #bf5af2;
+  --color-graph-4: #ff9f0a;
+  --color-graph-5: #ff453a;
+  --color-graph-6: #64d2ff;
+  --color-graph-7: #32d74b;
+  --color-graph-8: #ff2d55;
+  --color-graph-note: #8e8e93;
+  --color-graph-link: #7c7c80;
+
+  /* 阴影 */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.24), 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.22), 0 2px 4px rgba(0,0,0,0.18);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.26), 0 4px 6px rgba(0,0,0,0.18);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.30), 0 10px 10px rgba(0,0,0,0.22);
+  --shadow-panel: 0 8px 32px rgba(0,0,0,0.40);
+}
+
+/* ========================================================
+   重要：CM Editor 深色模式保证（防止黑屏）
+   ======================================================== */
+[data-theme="dark"] .cm-editor {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+[data-theme="dark"] .cm-editor .cm-content {
+  caret-color: var(--color-primary) !important;
+}
+[data-theme="dark"] .cm-editor .cm-cursor {
+  border-left-color: var(--color-primary) !important;
+}
+[data-theme="dark"] .cm-editor .cm-selectionBackground {
+  background: var(--color-primary-25) !important;
+}
+[data-theme="dark"] .cm-editor .cm-focused .cm-selectionBackground {
+  background: var(--color-primary-20) !important;
+}
+[data-theme="dark"] .cm-editor .cm-line {
+  color: var(--color-text-primary) !important;
+}
+/* ========================================================
+   AI Chat Window 专用变量
+   （这些变量也在 src/main/templates/aiChat.html 中通过 <style> 使用）
+   ======================================================== */
+:root {
+  /* Chat bubbles */
+  --chat-user-bubble: var(--color-blue);
+  --chat-user-text: #ffffff;
+  --chat-assistant-bubble: #f0f0f5;
+  --chat-assistant-bubble-dark: #2a2a2e;
+  --chat-assistant-text: var(--color-text-primary);
+
+  /* Chat surfaces */
+  --chat-titlebar-bg: #f9f9fb;
+  --chat-titlebar-border: var(--color-border);
+  --chat-input-bg: #f0f0f5;
+  --chat-input-bg-dark: #2a2a2e;
+  --chat-panel-bg: var(--color-surface);
+
+  /* Chat code blocks */
+  --chat-code-bg: #1e1e2e;
+  --chat-code-text: #cdd6f4;
+  --chat-code-border: #3a3a4a;
+
+  /* Chat states */
+  --chat-tool-running-bg: #f0f4ff;
+  --chat-tool-running-text: #4a6fa5;
+  --chat-success-bg: #d1fae5;
+  --chat-success-text: #065f46;
+  --chat-error-bg: #fff0f0;
+  --chat-error-text: #c53030;
+  --chat-warn-bg: #fef3c7;
+  --chat-warn-text: #92400e;
+
+  /* Chat meta / tertiary */
+  --chat-meta-text: #8e8e93;
+  --chat-placeholder: #a1a1a6;
+}
+
+[data-theme="dark"] {
+  --chat-assistant-bubble: #2a2a2e;
+  --chat-titlebar-bg: #242426;
+  --chat-input-bg: #2a2a2e;
+}

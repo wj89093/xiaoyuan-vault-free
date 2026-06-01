@@ -1,0 +1,45 @@
+{
+  "appId": "com.xiaoyuan.vault",
+  "productName": "晓园 Vault",
+  "directories": {
+    "buildResources": "resources",
+    "output": "dist"
+  },
+  "files": [
+    "out/**/*",
+    "**/*.map"
+  ],
+  "asarUnpack": [
+    "**/*.node",
+    "whisper/**"
+  ],
+  "extraResources": [
+    {
+      "from": "resources/whisper",
+      "to": "whisper",
+      "filter": ["**/*"]
+    }
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.productivity"
+  },
+  "win": {
+    "target": ["nsis"]
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "category": "Office"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true
+  }
+}

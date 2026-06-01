@@ -1,0 +1,35 @@
+node_modules/
+out/
+dist/
+*.log
+.DS_Store
+*.local
+.env
+.env.*
+!.env.example
+ai-engineering/
+chi_sim.traineddata
+eng.traineddata
+*.db-shm
+*.db-wal
+electron.vite.config.js
+tsconfig.tsbuildinfo
+src/**/*.js
+src/**/*.mjs
+src/**/*.cjs
+# Build artifacts - never commit compiled JS alongside TS source
+src/**/*.js
+
+# Compiled preloads (build artifacts, already in out/preload/)
+preload/
+# Test temp directories
+test-tmp-*/
+# Old bubble.html (now in src/main/)
+bubble.html
+
+# WorkBuddy artifact (not this project)
+.workbuddy/
+
+# auth-gateway runtime
+auth-gateway/data/*.db
+auth-gateway/logs/

@@ -1,0 +1,162 @@
+[
+  {
+    "file": "ENGINEERING_MAP.md",
+    "status": "current",
+    "reason": "Updated 2026-05-19, v1.3-dev. Accurate project structure for current codebase."
+  },
+  {
+    "file": "API.md",
+    "status": "current",
+    "reason": "Updated 2026-05-14, v1.3-dev. Documents 9 handler groups, 95 IPC channels matching current implementation."
+  },
+  {
+    "file": "ARCHITECTURE_REVIEW_V4.md",
+    "status": "current",
+    "reason": "Dated 2026-05-19, content reflects v5.0. Live health metrics (165 errors, 232 tests) relevant as of this week."
+  },
+  {
+    "file": "FILE_INVENTORY.md",
+    "status": "current",
+    "reason": "Dated 2026-05-17. Documents actual file inventory with correct status flags (e.g. .bak file marked deleteable). Still accurate."
+  },
+  {
+    "file": "AGENT_ARCHITECTURE.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-19, marked '重构中'. Architecture in flux (pi-agent-core ESM incompatibility, SelfAgentAdapter in progress). Not finalized; may have further changes before stabilization."
+  },
+  {
+    "file": "AGENT_PLAN.md",
+    "status": "obsolete",
+    "reason": "Dated 2026-05-19, explicitly marked '⚠️ 已归档 — 被 AGENT_SELF_DESIGN.md 替代'. pi-agent-core剥离方案 superseded by self-designed AgentLoop."
+  },
+  {
+    "file": "AGENT_SELF_DESIGN.md",
+    "status": "current",
+    "reason": "Dated 2026-05-19. Contains finalized architecture decision: 4 atomic tools (read/write/edit/bash), SelfAgentAdapter, unified tool defs. Active design doc."
+  },
+  {
+    "file": "CHANGELOG.md",
+    "status": "current",
+    "reason": "Updated 2026-05-20. Covers recent CM6 widget fixes, Mermaid DOMPurify fix, build/test results. Active log."
+  },
+  {
+    "file": "SKILLS.md",
+    "status": "current",
+    "reason": "Updated 2026-05-14, v1.3-dev. Phase 1 implemented, v1.3 mainline ongoing. Skills design stable."
+  },
+  {
+    "file": "pre-launch-checklist.md",
+    "status": "stale",
+    "reason": "Version 0.1, dated 2026-05-25. Covers code signing and auto-update gaps. No evidence of progress on these items since. Checkpoint not updated."
+  },
+  {
+    "file": "CODING_STANDARDS.md",
+    "status": "stale",
+    "reason": "Version v1.0, last updated 2026-04-27. Predates v1.3-dev development. No updates reflecting actual lint errors (165 current) or current TypeScript strictness levels."
+  },
+  {
+    "file": "CONTRIBUTING.md",
+    "status": "stale",
+    "reason": "Version v1.0, last updated 2026-04-27. Pre-dates current Agent architecture (self-designed), current IPC handler structure (95 channels), and current build tooling. Would need significant updates."
+  },
+  {
+    "file": "DEPLOY.md",
+    "status": "stale",
+    "reason": "Last updated 2026-05-14, v1.3-dev. Covers dev environment correctly but no production deployment steps (no electron-builder config, no CI/CD, no signing)."
+  },
+  {
+    "file": "CODE_REVIEW.md",
+    "status": "obsolete",
+    "reason": "Point-in-time snapshot from 2026-05-18 (2 errors, 97 warnings). Superseded by ARCHITECTURE_REVIEW_V4.md which captures 2026-05-19 state (165 errors, 108 warnings). Historical record only."
+  },
+  {
+    "file": "CODE_REVIEW_STANDARDS.md",
+    "status": "current",
+    "reason": "No date/version header visible but content describes CI pipeline requirements (tsc --noEmit, eslint, prettier, vitest) consistent with current workflow. Process doc, not time-sensitive."
+  },
+  {
+    "file": "AI_CHAT_STREAMING_REPORT.md",
+    "status": "current",
+    "reason": "Dated 2026-05-22. Analyzes current aiChat.html streaming architecture (renderMarkdownStreaming, complete event flow). Recent and specific to current implementation."
+  },
+  {
+    "file": "ATOMIC_EDITOR_IMPLEMENTATION_PLAN.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-22. Proposes Phase 1 infrastructure移植 from kenforthewin/atomic-editor. No evidence of execution or further progress. Plan has not been validated against current codebase."
+  },
+  {
+    "file": "CM6_MARKDOWN_OPTIMIZATION_REPORT.md",
+    "status": "current",
+    "reason": "Dated 2026-05-22. Documents implemented components (useCodeMirror, FrontmatterWidget, TableWidget, MermaidWidget, BlockEditor) with status flags. Accurate as of recent CHANGELOG entries."
+  },
+  {
+    "file": "CM6_MARKDOWN_PREVIEW_FINAL.md",
+    "status": "current",
+    "reason": "Based on 2026-05-18 Zettlr source research. Documents Decoration.replace block widget architecture. Updated in CHANGELOG 2026-05-21. Reference architecture doc still valid."
+  },
+  {
+    "file": "CM6_WIDGET_UI_OPTIMIZATION.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-21. Survey of mdeditor/Vditor UI patterns. Informational research only, not tied to implementation. No commit history referencing this doc."
+  },
+  {
+    "file": "MARKDOWN_EDITOR_ROADMAP.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-21. Documents Decoration.replace block widget as final decision. Confirmed by CHANGELOG 2026-05-21 as implemented. Roadmap portion (future work) not tracked."
+  },
+  {
+    "file": "MDEDITOR_DEEP_REPORT.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-22. Deep-dive research on mdeditor project (stars, tech stack, features). Informational only; no evidence of findings being applied to current implementation."
+  },
+  {
+    "file": "MOBILE.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-05, v1.0, status '规划中'. Describes WebDAV sync concept but no implementation progress. Pre-dates all v1.3 architecture decisions."
+  },
+  {
+    "file": "PERFORMANCE_OPTIMIZATION.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-17. Identifies graph.ts full-scan without incremental as P0 issue. No evidence in CHANGELOG of graph.ts optimization being completed. Checkpoint stale."
+  },
+  {
+    "file": "PRODUCT_ARCH_REVIEW.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-14. Documents Phase 0+1+2 execution. Pre-dates Agent architecture redesign (2026-05-19), CM6 widget rebuilds (2026-05-21), and streaming fixes. Historical record."
+  },
+  {
+    "file": "PRODUCT_DESIGN_INTENT.md",
+    "status": "current",
+    "reason": "Dated 2026-05-17. Documents foundational design intent (AI-native knowledge base, _raw/_wiki三层架构). These principles remain valid and guiding for current development."
+  },
+  {
+    "file": "QA_TEST_CASES.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-14, v1.3 Phase 0+1+2. Pre-dates CM6 widget rewrites, Mermaid/DOMPurify fix, and other v1.3 changes. Test cases would need updating to reflect current UI and features."
+  },
+  {
+    "file": "UI.md",
+    "status": "stale",
+    "reason": "Last updated 2026-05-15. Documents layout architecture but misses AI Chat Window (400×600 BrowserWindow) details. CHANGELOG 2026-05-20 covers visual enhancements not reflected here."
+  },
+  {
+    "file": "UI_OPTIMIZATION_PLAN.md",
+    "status": "current",
+    "reason": "Dated 2026-05-20. References actual UI problems (IconSidebar 40px, breadcrumb missing, streaming gap). Cross-referenced with actual implementation status. Most items still open but accurate snapshot."
+  },
+  {
+    "file": "UX_INTERACTION.md",
+    "status": "stale",
+    "reason": "Dated 2026-05-17. Identifies P0 issue: import success/fail feedback missing. No CHANGELOG entry confirming this was addressed. Issue likely still open, but doc is a static analysis not updated with resolution status."
+  },
+  {
+    "file": "FILETREE_SIDEBAR_AUDIT.md",
+    "status": "current",
+    "reason": "Dated 2026-05-27 (today). Fresh audit covering FileTree catch swallowing, drop target guard missing, flattenTree mutation issue. Active finding report for current codebase."
+  },
+  {
+    "file": "CODE_REVIEW_QUICK_CARD.md",
+    "status": "current",
+    "reason": "Dated 2026-05-27 (today). Quick reference card with blocking items and suggestions. Reflects current project standards. Active tool for PR workflow."
+  }
+]
