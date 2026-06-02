@@ -1,6 +1,6 @@
 {
   "name": "xiaoyuan-vault-free",
-  "version": "1.3.0-free",
+  "version": "1.3.1-free",
   "description": "\u6653\u56ed Vault \u5f00\u6e90\u7248 - \u514d\u8d39\u7684\u672c\u5730\u77e5\u8bc6\u5e93 (Markdown / \u77e5\u8bc6\u56fe\u8c31 / FTS5 \u641c\u7d22 / \u591a vault / Skill.md \u63d2\u4ef6)",
   "main": "./out/main/index.js",
   "author": "Xiaoyuan Team",
