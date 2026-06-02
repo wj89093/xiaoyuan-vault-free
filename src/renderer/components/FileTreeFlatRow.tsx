@@ -1,7 +1,7 @@
 /**
  * FileTreeFlatRow — FileTree 拍平后的单行渲染组件
  *
- * P3-2026-06-02 (backport from Pro 仓): 替代 FileTreeNode 的递归渲染
+ * P3-2026-06-02: 替代 FileTreeNode 的递归渲染
  * 拍平后的 flatItems 数组,每个元素用 FileTreeFlatRow 渲染单行
  * 不递归,子项通过 flatItems 中后续的元素体现(已经按 DFS 拍平)
  *
@@ -11,7 +11,6 @@
  * - 后续接 react-window FixedSizeList 时,只需替换外层 .map
  */
 import React, { memo } from 'react'
-import type { JSX } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import type { FlatTreeItem } from '../utils/flattenTree'
 
@@ -32,7 +31,7 @@ export interface FileTreeFlatRowProps {
   onDropOnFile: (e: React.DragEvent, filePath: string) => void
   onDragOver: (e: React.DragEvent) => void
   onDragLeave: () => void
-  itemRefs?: React.MutableRefObject<(HTMLDivElement | null)[]>
+  itemRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
 }
 
 export const FileTreeFlatRow = memo(function FileTreeFlatRow({
@@ -65,7 +64,7 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
 
   return (
     <div
-      ref={el => { if (itemRefs) itemRefs.current[flatIdx] = el }}
+      ref={el => { itemRefs.current[flatIdx] = el }}
       className={[
         'file-tree-item',
         isSelected ? 'selected' : '',
