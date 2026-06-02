@@ -13,9 +13,7 @@ import {
   Check,
   Trash2,
   RefreshCw,
-  Save,
-  Power,
-  Wifi
+  Save
 } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
@@ -40,27 +38,15 @@ export function SettingsPanel({
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system')
   const [themeLoading, setThemeLoading] = useState(false)
 
-  // ── Skill 插件全功能状态 ──
+  // ── Skill 用户 CRUD (v1.4 精简) ──
   const [skillContent, setSkillContent] = useState('')
   const [copied, setCopied] = useState(false)
-  const [skillTemplates, setSkillTemplates] = useState<
-    Array<{ name: string; description: string; filename: string }>
-  >([])
   const [userSkills, setUserSkills] = useState<Array<{ name: string; path: string }>>([])
   const [currentSkillName, setCurrentSkillName] = useState<string>('') // '' = 新建/未选
   const [skillStatus, setSkillStatus] = useState<{ msg: string; kind: 'info' | 'ok' | 'err' }>({
     msg: '',
     kind: 'info'
   })
-  const [endpointUrl, setEndpointUrl] = useState('http://127.0.0.1:18789')
-  const [endpointProtocol, setEndpointProtocol] = useState<'http' | 'ws' | 'skill'>('http')
-  const [endpointNote, setEndpointNote] = useState('')
-  const [endpointTestStatus, setEndpointTestStatus] = useState<{
-    msg: string
-    kind: 'info' | 'ok' | 'err'
-  }>({ msg: '', kind: 'info' })
-  const [endpointTesting, setEndpointTesting] = useState(false)
-  const [endpointEnabled, setEndpointEnabled] = useState(true)
 
   const applyTheme = (t: 'light' | 'dark' | 'system') => {
     setThemeLoading(true)
@@ -123,18 +109,8 @@ export function SettingsPanel({
 
   async function refreshSkillData(): Promise<void> {
     try {
-      const [templates, users, endpoint] = await Promise.all([
-        window.api.skillListTemplates?.() ?? [],
-        window.api.skillList?.() ?? [],
-        window.api.skillGetEndpoint?.()
-      ])
-      setSkillTemplates(templates)
+      const users = (await window.api.skillList?.()) ?? []
       setUserSkills(users)
-      if (endpoint) {
-        setEndpointUrl(endpoint.url)
-        setEndpointProtocol(endpoint.protocol)
-        setEndpointNote(endpoint.note ?? '')
-      }
     } catch (e) {
       console.error('[Settings] refreshSkillData failed:', e)
     }
@@ -439,35 +415,18 @@ export function SettingsPanel({
           )}
         </div>
 
-        {/* ── Skill.md 插件(开源版核心入口) ── */}
+        {/* ── Skill.md 插件 (v1.4 精简) ── */}
         <div className="settings-section">
           <div className="settings-section-title">
             <Plug size={14} />
             Skill.md
-            <button
-              className="btn btn-ghost"
-              onClick={() => setEndpointEnabled(!endpointEnabled)}
-              title={endpointEnabled ? '已启用' : '已停用'}
-              style={{
-                marginLeft: 'auto',
-                fontSize: 11,
-                padding: '2px 8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4
-              }}
-            >
-              <Power size={11} /> {endpointEnabled ? '已启用' : '已停用'}
-            </button>
           </div>
-
-          {/* ── Endpoint 配置 ── */}
           <div
             className="settings-row"
-            style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}
+            style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}
           >
             <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
-              你的 Agent 服务的访问地址。OpenClaw 默认{' '}
+              写自己的 Skill.md 供 Agent 加载。Agent 工作流规范见{' '}
               <code
                 style={{
                   background: 'var(--color-bg-secondary)',
@@ -475,205 +434,9 @@ export function SettingsPanel({
                   borderRadius: 3
                 }}
               >
-                http://127.0.0.1:18789
+                src/main/templates/Agents.md
               </code>
-              。
-            </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <input
-                type="text"
-                value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
-                placeholder="http://127.0.0.1:18789"
-                disabled={!endpointEnabled}
-                style={{
-                  flex: 1,
-                  fontSize: 12,
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text)'
-                }}
-              />
-              <select
-                value={endpointProtocol}
-                onChange={(e) => setEndpointProtocol(e.target.value as 'http' | 'ws' | 'skill')}
-                disabled={!endpointEnabled}
-                title="协议（当前仅 HTTP 可用）"
-                style={{
-                  fontSize: 12,
-                  padding: '6px 8px',
-                  borderRadius: 6,
-                  border: '1px solid var(--color-border)',
-                  background: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text)'
-                }}
-              >
-                <option value="http">HTTP</option>
-                <option value="ws" disabled>
-                  WebSocket (TODO)
-                </option>
-                <option value="skill" disabled>
-                  Skill 协议 (TODO)
-                </option>
-              </select>
-              <button
-                className="btn btn-ghost"
-                onClick={async () => {
-                  setEndpointTesting(true)
-                  setEndpointTestStatus({ msg: '测试中...', kind: 'info' })
-                  try {
-                    const ok = await window.api.skillSetEndpoint?.({
-                      url: endpointUrl,
-                      protocol: endpointProtocol,
-                      note: endpointNote
-                    })
-                    if (ok) {
-                      setEndpointTestStatus({ msg: '已保存 · 可在 Agent 端检查连通性', kind: 'ok' })
-                    } else {
-                      setEndpointTestStatus({ msg: '保存失败', kind: 'err' })
-                    }
-                  } catch (e) {
-                    setEndpointTestStatus({
-                      msg: '错误:' + (e instanceof Error ? e.message : String(e)),
-                      kind: 'err'
-                    })
-                  }
-                  setEndpointTesting(false)
-                }}
-                disabled={!endpointEnabled || endpointTesting || endpointSaving}
-                style={{
-                  fontSize: 12,
-                  padding: '6px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4
-                }}
-                title="保存 endpoint 配置"
-              >
-                <Save size={12} /> 保存
-              </button>
-              <button
-                className="btn btn-ghost"
-                onClick={async () => {
-                  // URL 校验：防止路径拼接导致意外主机 / 协议
-                  let parsed: URL
-                  try {
-                    parsed = new URL(endpointUrl)
-                  } catch {
-                    setEndpointTestStatus({ msg: 'URL 格式不合法', kind: 'err' })
-                    return
-                  }
-                  if (
-                    parsed.protocol !== 'http:' &&
-                    parsed.protocol !== 'https:' &&
-                    parsed.protocol !== 'ws:' &&
-                    parsed.protocol !== 'wss:'
-                  ) {
-                    setEndpointTestStatus({ msg: '协议必须是 http(s) 或 ws(s)', kind: 'err' })
-                    return
-                  }
-                  if (parsed.protocol === 'ws:' || parsed.protocol === 'wss:') {
-                    setEndpointTestStatus({
-                      msg: 'WebSocket 协议尚未实现，请先用 http://',
-                      kind: 'err'
-                    })
-                    return
-                  }
-                  const isLocal =
-                    parsed.hostname === 'localhost' ||
-                    parsed.hostname === '127.0.0.1' ||
-                    parsed.hostname === '::1'
-                  if (!isLocal && !confirm(`连接到外部 host "${parsed.hostname}"?`)) return
-
-                  setEndpointTesting(true)
-                  setEndpointTestStatus({ msg: '连接中...', kind: 'info' })
-                  try {
-                    const resp = await fetch(parsed.origin + '/agent/run', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ system: 'ping', user_message: 'ping' }),
-                      signal: AbortSignal.timeout(5000)
-                    })
-                    if (resp.ok || resp.status === 400 || resp.status === 422) {
-                      setEndpointTestStatus({ msg: `可连通 · HTTP ${resp.status}`, kind: 'ok' })
-                    } else {
-                      setEndpointTestStatus({ msg: `HTTP ${resp.status}`, kind: 'err' })
-                    }
-                  } catch (e) {
-                    setEndpointTestStatus({
-                      msg: '连接失败：' + (e instanceof Error ? e.message : String(e)),
-                      kind: 'err'
-                    })
-                  }
-                  setEndpointTesting(false)
-                }}
-                disabled={!endpointEnabled || endpointTesting}
-                style={{
-                  fontSize: 12,
-                  padding: '6px 10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4
-                }}
-                title="测试连接"
-              >
-                <Wifi size={12} /> 测试
-              </button>
-            </div>
-            {endpointTestStatus.msg && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color:
-                    endpointTestStatus.kind === 'ok'
-                      ? 'var(--color-accent)'
-                      : endpointTestStatus.kind === 'err'
-                        ? 'var(--color-error, #c44)'
-                        : 'var(--color-text-tertiary)'
-                }}
-              >
-                {endpointTestStatus.msg}
-              </div>
-            )}
-          </div>
-
-          {/* ── Skill 列表 ── */}
-          <div
-            className="settings-row"
-            style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, marginTop: 4 }}
-          >
-            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
-              选一个 Skill 发给 Agent:预设 8 个常用场景,或点 + 新建自己的。
-            </div>
-
-            {/* 预设模板 */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-              {skillTemplates.map((t) => (
-                <button
-                  key={t.name}
-                  className={`btn ${currentSkillName === t.name ? 'btn-primary' : 'btn-ghost'}`}
-                  onClick={async () => {
-                    try {
-                      const content = (await window.api.skillLoadTemplate?.(t.name)) ?? ''
-                      setSkillContent(content)
-                      setCurrentSkillName(t.name)
-                      setSkillStatus({ msg: `已加载预设:${t.name}`, kind: 'ok' })
-                    } catch (e) {
-                      setSkillStatus({
-                        msg: '加载失败:' + (e instanceof Error ? e.message : String(e)),
-                        kind: 'err'
-                      })
-                    }
-                  }}
-                  disabled={!endpointEnabled}
-                  title={t.description}
-                  style={{ fontSize: 11, padding: '4px 8px' }}
-                >
-                  {t.name}
-                </button>
-              ))}
+              ，9 个场景触发器在顶部索引里。
             </div>
 
             {/* 用户自定义列表 */}
@@ -709,7 +472,6 @@ export function SettingsPanel({
                         setCurrentSkillName(s.name)
                         setSkillStatus({ msg: `已加载:${s.name}`, kind: 'ok' })
                       }}
-                      disabled={!endpointEnabled}
                       style={{ fontSize: 11, padding: '2px 6px' }}
                       title="编辑"
                     >
@@ -727,7 +489,6 @@ export function SettingsPanel({
                         }
                         setSkillStatus({ msg: `已删除:${s.name}`, kind: 'ok' })
                       }}
-                      disabled={!endpointEnabled}
                       style={{
                         fontSize: 11,
                         padding: '2px 6px',
@@ -741,156 +502,145 @@ export function SettingsPanel({
                 ))}
               </div>
             )}
-          </div>
 
-          {/* ── 编辑区 ── */}
-          {endpointEnabled && (
-            <div
-              className="settings-row"
-              style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, marginTop: 4 }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input
-                  type="text"
-                  value={currentSkillName}
-                  onChange={(e) => setCurrentSkillName(e.target.value)}
-                  placeholder="skill-name (字母/数字/-/_)"
-                  style={{
-                    flex: 1,
-                    fontSize: 12,
-                    padding: '4px 8px',
-                    borderRadius: 4,
-                    border: '1px solid var(--color-border)',
-                    background: 'var(--color-bg-secondary)',
-                    color: 'var(--color-text)'
-                  }}
-                />
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    if (!currentSkillName) {
-                      setSkillStatus({ msg: '请输入 Skill 名称', kind: 'err' })
-                      return
-                    }
-                    if (!/^[a-zA-Z0-9_-]+$/.test(currentSkillName)) {
-                      setSkillStatus({ msg: '名称只能含字母、数字、-、_', kind: 'err' })
-                      return
-                    }
-                    try {
-                      const ok = await window.api.skillSave?.(currentSkillName, skillContent)
-                      if (ok) {
-                        await refreshSkillData()
-                        setSkillStatus({ msg: `已保存:${currentSkillName}`, kind: 'ok' })
-                      } else {
-                        setSkillStatus({ msg: '保存失败', kind: 'err' })
-                      }
-                    } catch (e) {
-                      setSkillStatus({
-                        msg: '错误:' + (e instanceof Error ? e.message : String(e)),
-                        kind: 'err'
-                      })
-                    }
-                  }}
-                  style={{
-                    fontSize: 12,
-                    padding: '4px 8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3
-                  }}
-                  title="保存"
-                >
-                  <Save size={11} /> 保存
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(skillContent)
-                      setCopied(true)
-                      setTimeout(() => setCopied(false), 1500)
-                      setSkillStatus({ msg: '已复制全文', kind: 'ok' })
-                    } catch {
-                      setSkillStatus({ msg: '复制失败', kind: 'err' })
-                    }
-                  }}
-                  style={{
-                    fontSize: 12,
-                    padding: '4px 8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3
-                  }}
-                  title="复制全文到剪贴板"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={11} /> 已复制
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={11} /> 复制
-                    </>
-                  )}
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    const content = (await window.api.skillLoadDefault?.()) ?? ''
-                    setSkillContent(content)
-                    setCurrentSkillName('default')
-                    setSkillStatus({ msg: '已加载默认模板', kind: 'ok' })
-                  }}
-                  style={{
-                    fontSize: 12,
-                    padding: '4px 8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 3
-                  }}
-                  title="重置为默认模板"
-                >
-                  <RefreshCw size={11} /> 默认
-                </button>
-              </div>
-              <textarea
-                value={skillContent}
-                onChange={(e) => setSkillContent(e.target.value)}
-                placeholder="点上方预设按钮加载,或点默认按钮重置为出厂模板,或直接编辑你的 Skill.md..."
+            {/* 编辑区 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <input
+                type="text"
+                value={currentSkillName}
+                onChange={(e) => setCurrentSkillName(e.target.value)}
+                placeholder="skill-name (字母/数字/-/_)"
                 style={{
-                  minHeight: 200,
-                  maxHeight: 400,
-                  resize: 'vertical',
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  padding: 8,
-                  borderRadius: 6,
+                  flex: 1,
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  borderRadius: 4,
                   border: '1px solid var(--color-border)',
                   background: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text)',
-                  whiteSpace: 'pre'
+                  color: 'var(--color-text)'
                 }}
               />
-              {skillStatus.msg && (
-                <div
-                  style={{
-                    fontSize: 11,
-                    color:
-                      skillStatus.kind === 'ok'
-                        ? 'var(--color-accent)'
-                        : skillStatus.kind === 'err'
-                          ? 'var(--color-error, #c44)'
-                          : 'var(--color-text-tertiary)'
-                  }}
-                >
-                  {skillStatus.msg}
-                </div>
-              )}
+              <button
+                className="btn btn-ghost"
+                onClick={async () => {
+                  if (!currentSkillName) {
+                    setSkillStatus({ msg: '请输入 Skill 名称', kind: 'err' })
+                    return
+                  }
+                  if (!/^[a-zA-Z0-9_-]+$/.test(currentSkillName)) {
+                    setSkillStatus({ msg: '名称只能含字母、数字、-、_', kind: 'err' })
+                    return
+                  }
+                  try {
+                    const ok = await window.api.skillSave?.(currentSkillName, skillContent)
+                    if (ok) {
+                      await refreshSkillData()
+                      setSkillStatus({ msg: `已保存:${currentSkillName}`, kind: 'ok' })
+                    } else {
+                      setSkillStatus({ msg: '保存失败', kind: 'err' })
+                    }
+                  } catch (e) {
+                    setSkillStatus({
+                      msg: '错误:' + (e instanceof Error ? e.message : String(e)),
+                      kind: 'err'
+                    })
+                  }
+                }}
+                style={{
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3
+                }}
+                title="保存"
+              >
+                <Save size={11} /> 保存
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(skillContent)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 1500)
+                    setSkillStatus({ msg: '已复制全文', kind: 'ok' })
+                  } catch {
+                    setSkillStatus({ msg: '复制失败', kind: 'err' })
+                  }
+                }}
+                style={{
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3
+                }}
+                title="复制全文到剪贴板"
+              >
+                {copied ? (
+                  <>
+                    <Check size={11} /> 已复制
+                  </>
+                ) : (
+                  <>
+                    <Copy size={11} /> 复制
+                  </>
+                )}
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={async () => {
+                  const content = (await window.api.skillLoadDefault?.()) ?? ''
+                  setSkillContent(content)
+                  setCurrentSkillName('default')
+                  setSkillStatus({ msg: '已加载默认模板 (Agents.md)', kind: 'ok' })
+                }}
+                style={{
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3
+                }}
+                title="重置为默认模板 (Agents.md)"
+              >
+                <RefreshCw size={11} /> 默认
+              </button>
             </div>
-          )}
-
-          <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
-            复制后粘贴到你的 Agent(OpenClaw / Claude Code / 任何兼容服务)作为系统提示词。
+            <textarea
+              value={skillContent}
+              onChange={(e) => setSkillContent(e.target.value)}
+              placeholder="点默认按钮加载 Agents.md 全文,或直接编辑你的 Skill.md..."
+              style={{
+                minHeight: 200,
+                maxHeight: 400,
+                resize: 'vertical',
+                fontSize: 11,
+                fontFamily: 'monospace',
+                padding: 8,
+                borderRadius: 6,
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-bg-secondary)',
+                color: 'var(--color-text)',
+                whiteSpace: 'pre'
+              }}
+            />
+            {skillStatus.msg && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color:
+                    skillStatus.kind === 'ok'
+                      ? 'var(--color-accent)'
+                      : skillStatus.kind === 'err'
+                        ? 'var(--color-error, #c44)'
+                        : 'var(--color-text-tertiary)'
+                }}
+              >
+                {skillStatus.msg}
+              </div>
+            )}
           </div>
         </div>
       </div>

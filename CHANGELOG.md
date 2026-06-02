@@ -1,7 +1,40 @@
 # 晓园 Vault 开源版 变更日志
 
-> 版本：v1.3.0-free
-> 发布日期：2026-06-01
+> 当前版本：v1.4.0-free
+> 发布日期：2026-06-02
+
+---
+
+## 2026-06-02 — v1.4.0-free 定位修正：文件系统优先
+
+### 定位修正
+- 晓园 Vault = **本地知识库文件系统**（不是后端 service）
+- Agent 本地直接操作文件 + 文件夹（4 个原子工具：read / write / edit / bash）
+- **不用 HTTP 协议**（v1.3.1 的 Skill HTTP 协议删除）
+- Skill.md 协议改为 **AGENTS.md 通用约定**（Anthropic / OpenAI 标准）
+
+### 新增
+- 仓库根 `AGENTS.md`（Anthropic / OpenAI / Cursor / Claude Code / Codex 等都自动加载）
+- `src/main/templates/Agents.md` v2.4：顶部加 9 场景 Skill 触发索引表
+
+### 删除
+- `src/main/templates/skill-plugin-default.md`（已合并到 `Agents.md` 索引）
+- `src/main/templates/skills/*.md`（8 个，已合并到 `Agents.md` 索引）
+- `skillHandlers.ts`：删 `listTemplates` / `loadTemplate` / `getEndpoint` / `setEndpoint` IPC
+- `preload/index.ts`：删对应 API
+- `shared/window.d.ts`：删对应类型
+- `SettingsPanel.tsx`：删 endpoint 配置 + 8 预设按钮 + 启用开关（v1.3.1 加的 HTTP UI）
+- `skillHandlers.test.ts`：从 13 个测试减到 7 个（删端点 / 模板相关）
+
+### 保留
+- 用户 Skill CRUD（list / loadDefault / save / read / delete）— 写自己的 Skill.md
+- 默认模板 = `Agents.md` 全文（v1.3.1 是 skill-plugin-default.md）
+
+### 不变
+- `src/main/templates/LLM-wiki.md`（控制平面）
+- `src/main/templates/system.md`（系统规则）
+- vault 目录结构（`_raw/ _wiki/ _briefing/ log.md index.md`）
+- 4 工具约定（read / write / edit / bash）
 
 ---
 

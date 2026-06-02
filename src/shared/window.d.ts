@@ -270,25 +270,12 @@ export interface XyVaultAPI {
     args: Record<string, unknown>
   ): Promise<{ ok: boolean; result?: string; error?: string }>
 
-  // ─── Skill.md plugin (open-source 核心入口) ───
+  // ─── Skill.md 用户 CRUD (v1.4 精简：仅用户写自己的 Skill) ───
   skillList(): Promise<Array<{ name: string; path: string }>>
   skillLoadDefault(): Promise<string>
   skillRead(name: string): Promise<string>
   skillSave(name: string, content: string): Promise<boolean>
   skillDelete(name: string): Promise<boolean>
-  skillListTemplates(): Promise<Array<{ name: string; description: string; filename: string }>>
-  skillLoadTemplate(name: string): Promise<string>
-  skillGetEndpoint(): Promise<{
-    url: string
-    protocol: 'http' | 'ws' | 'skill'
-    note?: string
-    updatedAt: number
-  }>
-  skillSetEndpoint(config: {
-    url?: string
-    protocol?: 'http' | 'ws' | 'skill'
-    note?: string
-  }): Promise<boolean>
 }
 
 declare global {
