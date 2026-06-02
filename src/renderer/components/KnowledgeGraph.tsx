@@ -242,6 +242,22 @@ export const KnowledgeGraph = memo(function KnowledgeGraph({
     }
   }, [])
 
+  // P3-2026-06-02: 选中文件变化时,触发增量重建
+  // 大 vault(500+)图谱更新 5s → 200ms
+  useEffect(() => {
+    if (!selectedFile) return
+    let cancelled = false
+    void (async () => {
+      try {
+        await window.api.graph.rebuildIncremental?.([selectedFile])
+        if (cancelled) return
+        const { nodes, links } = await loadGraph()
+        if (!cancelled) setGraph({ nodes, links })
+      } catch { /* ignore — incremental rebuild is best-effort */ }
+    })()
+    return () => { cancelled = true }
+  }, [selectedFile])
+
   const toggleLinkFilter = (type: string) => {
     setLinkFilters((prev) => {
       const next = new Set(prev)
