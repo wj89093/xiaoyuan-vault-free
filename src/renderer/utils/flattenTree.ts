@@ -1,7 +1,7 @@
 /**
  * flattenTree — 把 FileTree 递归树拍平为线性列表
  *
- * P3-2026-06-02 (backport from Pro 仓): 为 FileTree 虚拟化做的基础工具。
+ * P3-2026-06-02: 为 FileTree 虚拟化做的基础工具。
  * 配合 react-window FixedSizeList,可在 500+ 文件的 vault 下流畅渲染。
  *
  * 当前状态: 工具已写好,FileTree 已 useMemo 派生 flatItems,
