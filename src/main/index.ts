@@ -26,8 +26,8 @@ import { registerMaintainHandlers } from './ipc/maintainHandlers'
 
 import { registerFileHandlers } from './ipc/fileHandlers'
 import { registerVaultHandlers } from './ipc/vaultHandlers'
+import { registerSkillHandlers } from './ipc/skillHandlers'
 // 不要在 index.ts 重复注册，否则会报 "Attempted to register a second handler"
-
 
 // Config file for persisting app state
 const configPath = join(app.getPath('userData'), 'vault-config.json')
@@ -37,7 +37,9 @@ async function readConfig(): Promise<Record<string, unknown>> {
     if (existsSync(configPath)) {
       return JSON.parse(await readFile(configPath, 'utf-8')) as Record<string, unknown>
     }
-  } catch (err) { log.error('[App] startup error:', err) }
+  } catch (err) {
+    log.error('[App] startup error:', err)
+  }
   return {}
 }
 
@@ -69,7 +71,7 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false,
+      nodeIntegration: false
     }
   })
 
@@ -92,8 +94,6 @@ function createWindow(): void {
   setMainWindowRef(mainWindow)
 }
 
-
-
 // IPC Handlers
 function setupIpcHandlers(): void {
   // Modular IPC handlers (split by domain)
@@ -103,6 +103,8 @@ function setupIpcHandlers(): void {
   registerSettingsHandlers()
   registerMiscHandlers()
   registerMaintainHandlers()
+  // 开源版：Skill.md 插件是核心入口（不是 Pro 专属）
+  registerSkillHandlers()
   // AI Chat IPC handlers 由 clipboard.ts 的 ensureIPC() 统一注册
 }
 
@@ -130,14 +132,17 @@ void app.whenReady().then(() => {
   createWindow()
   createTray(mainWindow!)
 
-// Helper: ensure main window exists
+  // Helper: ensure main window exists
   const ensureMainWindow = (): BrowserWindow | null => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       createWindow()
       createTray(mainWindow!)
     }
     if (mainWindow?.isMinimized()) mainWindow.restore()
-    if (mainWindow) { mainWindow.show(); mainWindow.focus() }
+    if (mainWindow) {
+      mainWindow.show()
+      mainWindow.focus()
+    }
     return mainWindow
   }
 
@@ -154,12 +159,19 @@ void app.whenReady().then(() => {
     if (win) openImportWindow(win)
   })
   // AI Chat shortcut — Pro 版专属
-  
-  log.info(`[GlobalShortcut] Cmd+Shift+O (show), Cmd+Shift+F (search), Cmd+Shift+I (import)${IS_PRO ? ', Cmd+I (AI Chat)' : ''} registered`)
+
+  log.info(
+    `[GlobalShortcut] Cmd+Shift+O (show), Cmd+Shift+F (search), Cmd+Shift+I (import)${IS_PRO ? ', Cmd+I (AI Chat)' : ''} registered`
+  )
 
   app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
-    log.info('[App] activate event, windows:', allWindows.length, 'mainWindow:', !!mainWindow && !mainWindow.isDestroyed())
+    log.info(
+      '[App] activate event, windows:',
+      allWindows.length,
+      'mainWindow:',
+      !!mainWindow && !mainWindow.isDestroyed()
+    )
     // Always restore/create main window
     if (!mainWindow || mainWindow.isDestroyed()) {
       createWindow()

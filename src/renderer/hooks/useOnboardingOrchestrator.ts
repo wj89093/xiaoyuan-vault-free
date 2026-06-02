@@ -1,14 +1,14 @@
 /**
- * useOnboardingOrchestrator — AI welcome guide after vault creation
+ * useOnboardingOrchestrator — vault 创建后的引导流程控制
  *
- * Fires once per vault: shows AI welcome message in aiChat after onboarding completes.
+ * Fires once per vault: 引导用户打开使用说明文档。
  */
 import { useEffect, useRef } from 'react'
 
 export function useOnboardingOrchestrator(
   vaultPath: string | null,
   showOnboarding: boolean,
-  onOpenAIChat: (msg: string) => void,
+  onOpenAIChat: (msg: string) => void
 ): void {
   const firedRef = useRef(false)
 
@@ -20,7 +20,8 @@ export function useOnboardingOrchestrator(
     sessionStorage.setItem(key, '1')
     const name = vaultPath.split('/').pop() ?? '新知识库'
     setTimeout(() => {
-      onOpenAIChat(`你好！我是 ${name} 的知识管理助手
+      onOpenAIChat(
+        `你好！我是 ${name} 的知识管理助手
 
 请先把你的第一批文件拖进来（文档、笔记、网页、图片都可以），我会：
 
@@ -29,7 +30,9 @@ export function useOnboardingOrchestrator(
 3. 为每个领域设计 Schema 规范
 4. 整理为结构化 Wiki 页面
 
-拖拽文件到窗口就可以开始`, true)
+拖拽文件到窗口就可以开始`,
+        true
+      )
     }, 600)
   }, [vaultPath, showOnboarding, onOpenAIChat])
 }

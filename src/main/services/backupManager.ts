@@ -18,9 +18,9 @@ import { existsSync } from 'fs'
 const BACKUP_DIR = '_briefing/backups'
 
 export interface BackupEntry {
-  timestamp: string  // ISO string, also used as filename key
+  timestamp: string // ISO string, also used as filename key
   size: number
-  isoTime: string   // human-readable
+  isoTime: string // human-readable
 }
 
 /** Create a timestamped backup of the current file.
@@ -29,7 +29,7 @@ export interface BackupEntry {
 export async function createBackup(vaultPath: string, relPath: string): Promise<string> {
   if (!relPath || relPath.includes('..')) return ''
   const targetPath = join(vaultPath, relPath)
-  if (!existsSync(targetPath)) return ''  // no file to backup
+  if (!existsSync(targetPath)) return '' // no file to backup
 
   try {
     const raw = await readFile(targetPath, 'utf-8')
@@ -53,7 +53,9 @@ export async function listBackups(vaultPath: string, relPath: string): Promise<B
   let entries: string[]
   try {
     entries = await readdir(backupDir)
-  } catch { return [] }
+  } catch {
+    return []
+  }
 
   const backups: BackupEntry[] = []
   for (const entry of entries) {
@@ -61,34 +63,49 @@ export async function listBackups(vaultPath: string, relPath: string): Promise<B
     const ts = entry.replace('.bak', '')
     try {
       const st = await stat(join(backupDir, entry))
-      const isoTime = new Date(parseInt(ts)).toISOString()
       backups.push({
         timestamp: ts,
         size: st.size,
         isoTime: new Date(parseInt(ts)).toLocaleString('zh-CN', {
           timeZone: 'Asia/Shanghai',
-          year: 'numeric', month: '2-digit', day: '2-digit',
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-        }),
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        })
       })
-    } catch { /* skip unreadable */ }
+    } catch {
+      /* skip unreadable */
+    }
   }
 
   return backups.sort((a, b) => parseInt(b.timestamp) - parseInt(a.timestamp))
 }
 
 /** Read the content of a specific backup. */
-export async function previewBackup(vaultPath: string, relPath: string, ts: string): Promise<string> {
+export async function previewBackup(
+  vaultPath: string,
+  relPath: string,
+  ts: string
+): Promise<string> {
   const bakPath = join(vaultPath, BACKUP_DIR, relPath, ts + '.bak')
   if (!existsSync(bakPath)) return ''
   try {
     return await readFile(bakPath, 'utf-8')
-  } catch { return '' }
+  } catch {
+    return ''
+  }
 }
 
 /** Restore a backup — copies the backup over the current file.
  * Returns true on success. */
-export async function restoreBackup(vaultPath: string, relPath: string, ts: string): Promise<boolean> {
+export async function restoreBackup(
+  vaultPath: string,
+  relPath: string,
+  ts: string
+): Promise<boolean> {
   const bakPath = join(vaultPath, BACKUP_DIR, relPath, ts + '.bak')
   if (!existsSync(bakPath)) return false
   try {
@@ -98,17 +115,25 @@ export async function restoreBackup(vaultPath: string, relPath: string, ts: stri
     if (parent) await mkdir(parent, { recursive: true })
     await writeFile(targetPath, content, 'utf-8')
     return true
-  } catch { return false }
+  } catch {
+    return false
+  }
 }
 
 /** Delete a specific backup. */
-export async function deleteBackup(vaultPath: string, relPath: string, ts: string): Promise<boolean> {
+export async function deleteBackup(
+  vaultPath: string,
+  relPath: string,
+  ts: string
+): Promise<boolean> {
   const bakPath = join(vaultPath, BACKUP_DIR, relPath, ts + '.bak')
   if (!existsSync(bakPath)) return false
   try {
     await unlink(bakPath)
     return true
-  } catch { return false }
+  } catch {
+    return false
+  }
 }
 
 /** Get backup count for a file. */

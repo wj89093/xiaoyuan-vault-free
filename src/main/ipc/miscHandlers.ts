@@ -12,14 +12,14 @@ import { queryVault } from '../services/search/query'
 import { resolveContentType } from '../services/utils/resolver'
 import { rebuildGraph, loadGraph } from '../services/graph/graph'
 import { getVaultPath } from '../services/database/database'
-import { IS_PRO, IS_OPEN_SOURCE } from '../buildFeatures'
+import { IS_PRO } from '../buildFeatures'
 
 export function registerMiscHandlers(): void {
   // ── Build info (Pro/OpenSource detection for renderer) ─────────
   ipcMain.handle('app:buildInfo', () => ({
     isPro: IS_PRO,
-    isOpenSource: IS_OPEN_SOURCE,
-    buildTarget: process.env.BUILD_TARGET || 'pro',
+    isOpenSource: !IS_PRO,
+    buildTarget: process.env.BUILD_TARGET ?? 'pro'
   }))
   // ── Query ─────────────────────────────────────────────────────────
   ipcMain.handle('query:vault', async (_, question: string) => {
@@ -44,7 +44,9 @@ export function registerMiscHandlers(): void {
   ipcMain.handle('vault:openFile', async (_, filePath: string) => {
     const vaultPath = getVaultPath()
     const fullPath = vaultPath
-      ? filePath.startsWith(vaultPath) ? filePath : join(vaultPath, filePath)
+      ? filePath.startsWith(vaultPath)
+        ? filePath
+        : join(vaultPath, filePath)
       : filePath
 
     // Ensure .system directory exists

@@ -11,8 +11,6 @@ import type { FileRecord } from '../database/database'
 import { parseFrontmatter, extractWikiLinks } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 export interface MaintainReport {
   timestamp: number
   totalFiles: number
@@ -29,8 +27,8 @@ export interface MaintainReport {
 }
 
 export interface ConceptGap {
-  mentionedAs: string   // the link text that has no target page
-  foundIn: string[]     // pages that mention this concept
+  mentionedAs: string // the link text that has no target page
+  foundIn: string[] // pages that mention this concept
   severity: 'high' | 'medium' | 'low'
 }
 
@@ -61,7 +59,9 @@ export async function runMaintenance(): Promise<MaintainReport> {
   if (!vaultPath) return emptyReport('未打开知识库')
 
   const files = await listVaultFiles()
-  const mdFiles = flattenFiles(files).filter((f: FileRecord) => !f.isDirectory && f.path.endsWith('.md'))
+  const mdFiles = flattenFiles(files).filter(
+    (f: FileRecord) => !f.isDirectory && f.path.endsWith('.md')
+  )
 
   const orphanPages: MaintainReport['orphanPages'] = []
   const stalePages: MaintainReport['stalePages'] = []
@@ -80,13 +80,14 @@ export async function runMaintenance(): Promise<MaintainReport> {
       allTitles.add(title)
 
       // Missing fields
-      const missing = REQUIRED_FIELDS.filter(f => !frontmatter[f])
+      const missing = REQUIRED_FIELDS.filter((f) => !frontmatter[f])
       if (missing.length > 0) missingFields.push({ path: file.path, title, missing })
 
       // Staleness
       if (frontmatter.updated) {
         const daysSince = (Date.now() - new Date(frontmatter.updated).getTime()) / 86400000
-        if (daysSince > STALE_DAYS) stalePages.push({ path: file.path, title, daysSinceUpdate: Math.round(daysSince) })
+        if (daysSince > STALE_DAYS)
+          stalePages.push({ path: file.path, title, daysSinceUpdate: Math.round(daysSince) })
       }
 
       // Links
@@ -95,7 +96,9 @@ export async function runMaintenance(): Promise<MaintainReport> {
         if (!linkMap.has(link)) linkMap.set(link, [])
         linkMap.get(link)!.push(title)
       }
-    } catch { log.warn('[Maintain] iteration skipped') }
+    } catch {
+      log.warn('[Maintain] iteration skipped')
+    }
   }
 
   // Second pass: orphans + dead links
@@ -104,7 +107,11 @@ export async function runMaintenance(): Promise<MaintainReport> {
     if (allTitles.has(target)) linkedTitles.add(target)
     else {
       for (const source of sources) {
-        deadLinks.push({ fromPath: mdFiles.find(f => f.title === source || f.name === source)?.path ?? '', fromTitle: source, deadTarget: target })
+        deadLinks.push({
+          fromPath: mdFiles.find((f) => f.title === source || f.name === source)?.path ?? '',
+          fromTitle: source,
+          deadTarget: target
+        })
       }
     }
   }
@@ -119,29 +126,34 @@ export async function runMaintenance(): Promise<MaintainReport> {
     const detected = await detectContradictions(mdFiles)
     contradictions.push(...detected)
   } catch (err) {
-    log.warn('[Maintain] contradiction detection failed:', String((err as unknown) instanceof Error ? (err as Error).message : err))
+    log.warn(
+      '[Maintain] contradiction detection failed:',
+      String((err as unknown) instanceof Error ? (err as Error).message : err)
+    )
   }
 
-  const summary = [
-    orphanPages.length > 0 ? `${orphanPages.length}个孤儿页面` : '',
-    stalePages.length > 0 ? `${stalePages.length}个过期页面(>${STALE_DAYS}天)` : '',
-    deadLinks.length > 0 ? `${deadLinks.length}个死链接` : '',
-    missingFields.length > 0 ? `${missingFields.length}个缺字段` : '',
-    contradictions.length > 0 ? `${contradictions.length}个矛盾` : '',
-  ].filter(Boolean).join('，') || '一切正常 ✅'
+  const summary =
+    [
+      orphanPages.length > 0 ? `${orphanPages.length}个孤儿页面` : '',
+      stalePages.length > 0 ? `${stalePages.length}个过期页面(>${STALE_DAYS}天)` : '',
+      deadLinks.length > 0 ? `${deadLinks.length}个死链接` : '',
+      missingFields.length > 0 ? `${missingFields.length}个缺字段` : '',
+      contradictions.length > 0 ? `${contradictions.length}个矛盾` : ''
+    ]
+      .filter(Boolean)
+      .join('，') || '一切正常 ✅'
 
-  const wikiHealth = contradictions.length === 0
-    ? '✅ 健康'
-    : `⚠️ ${contradictions.length}个矛盾待处理`
+  const wikiHealth =
+    contradictions.length === 0 ? '✅ 健康' : `⚠️ ${contradictions.length}个矛盾待处理`
 
   log.info(`[Maintain] ${summary}`)
 
-    // ── Concept Gap Detection ──────────────────────────────────────────────
+  // ── Concept Gap Detection ──────────────────────────────────────────────
   // A concept gap: a [[wiki link]] target has no corresponding page
   const conceptGaps: ConceptGap[] = []
   for (const [linkTarget, pagesThatMention] of linkMap.entries()) {
     const normalizedTarget = linkTarget.toLowerCase().replace(/\s+/g, '-')
-    const hasPage = mdFiles.some(f => {
+    const hasPage = mdFiles.some((f) => {
       const fn = f.name.toLowerCase().replace(/\s+/g, '-').replace('.md', '')
       return fn === normalizedTarget || fn === linkTarget.toLowerCase()
     })
@@ -149,7 +161,8 @@ export async function runMaintenance(): Promise<MaintainReport> {
       conceptGaps.push({
         mentionedAs: linkTarget,
         foundIn: pagesThatMention,
-        severity: pagesThatMention.length >= 3 ? 'high' : pagesThatMention.length >= 2 ? 'medium' : 'low',
+        severity:
+          pagesThatMention.length >= 3 ? 'high' : pagesThatMention.length >= 2 ? 'medium' : 'low'
       })
     }
   }
@@ -167,23 +180,38 @@ export async function runMaintenance(): Promise<MaintainReport> {
     if (files.length < 2) continue
     for (let i = 0; i < files.length; i++) {
       for (let j = i + 1; j < files.length; j++) {
-        const fa = files[i], fb = files[j]
-        const titleA = fa.name.replace('.md', ''), titleB = fb.name.replace('.md', '')
+        const fa = files[i],
+          fb = files[j]
+        const titleA = fa.name.replace('.md', ''),
+          titleB = fb.name.replace('.md', '')
         const linksA = linkMap.get(titleA) ?? []
         const linksB = linkMap.get(titleB) ?? []
         if (!linksA.includes(titleB) && !linksB.includes(titleA)) {
           suggestedLinks.push({
-            fromPath: fa.path, fromTitle: titleA,
+            fromPath: fa.path,
+            fromTitle: titleA,
             toTitle: titleB,
             reason: `同文件夹 "${folder}" 内的 ${titleA} 和 ${titleB} 可能相关`,
-            severity: folder === '_wiki' ? 'medium' : 'low',
+            severity: folder === '_wiki' ? 'medium' : 'low'
           })
         }
       }
     }
   }
 
-  return { timestamp: Date.now(), totalFiles: mdFiles.length, orphanPages, stalePages, deadLinks, missingFields, summary, contradictions, wikiHealth, conceptGaps, suggestedLinks }
+  return {
+    timestamp: Date.now(),
+    totalFiles: mdFiles.length,
+    orphanPages,
+    stalePages,
+    deadLinks,
+    missingFields,
+    summary,
+    contradictions,
+    wikiHealth,
+    conceptGaps,
+    suggestedLinks
+  }
 }
 
 // ─── LLM-first: Contradiction Detection ──────────────────────────────
@@ -192,14 +220,18 @@ export async function runMaintenance(): Promise<MaintainReport> {
 // maintain.ts 的矛盾检测是定期兜底扫描：
 // 找到所有有 summary 的页面，随机抽样检查新旧信息是否有矛盾。
 
-async function detectContradictions(mdFiles: { path: string; name: string; title?: string }[]): Promise<Contradiction[]> {
+async function detectContradictions(
+  mdFiles: { path: string; name: string; title?: string }[]
+): Promise<Contradiction[]> {
   // 只检查有 summary 的页面（已有一定信息量）
-  const candidates = mdFiles.filter(f => {
+  const candidates = mdFiles.filter((f) => {
     try {
       const raw = readFileSync(f.path, 'utf-8')
       const { frontmatter } = parseFrontmatter(raw)
       return !!frontmatter.summary && !!frontmatter.updated
-    } catch { return false }
+    } catch {
+      return false
+    }
   })
 
   if (candidates.length === 0) return []
@@ -219,7 +251,9 @@ async function detectContradictions(mdFiles: { path: string; name: string; title
         raw
       )
       if (result) results.push(result)
-    } catch { log.warn('[Maintain] iteration skipped') }
+    } catch {
+      log.warn('[Maintain] iteration skipped')
+    }
   }
 
   return results
@@ -235,7 +269,9 @@ async function checkPageContradictions(
   const timelineMatch = pageRaw.match(/##\s*时间线[\s\S]*$/i)
   if (!timelineMatch) return null
 
-  const timelineLines = timelineMatch[0].split('\n').filter(l => l.startsWith('- ') || l.startsWith('## ['))
+  const timelineLines = timelineMatch[0]
+    .split('\n')
+    .filter((l) => l.startsWith('- ') || l.startsWith('## ['))
   const recentEntries = timelineLines.slice(-3).join('\n')
 
   if (!recentEntries.trim()) return null
@@ -275,9 +311,13 @@ ${recentEntries}
       oldValue: contradiction.oldValue,
       newValue: contradiction.newValue,
       source: contradiction.source,
-      severity: 'medium',
+      severity: 'medium'
     }
-  } catch (err) { log.warn('[maintain] lintGraph: failed, returning null', err instanceof Error ? err.message : String(err))
+  } catch (err) {
+    log.warn(
+      '[maintain] lintGraph: failed, returning null',
+      err instanceof Error ? err.message : String(err)
+    )
     return null
   }
 }
@@ -294,5 +334,17 @@ function flattenFiles(files: FileRecord[]): FileRecord[] {
 }
 
 function emptyReport(reason: string): MaintainReport {
-  return { timestamp: Date.now(), totalFiles: 0, orphanPages: [], stalePages: [], deadLinks: [], missingFields: [], summary: reason, contradictions: [], wikiHealth: '未知', conceptGaps: [], suggestedLinks: [] }
+  return {
+    timestamp: Date.now(),
+    totalFiles: 0,
+    orphanPages: [],
+    stalePages: [],
+    deadLinks: [],
+    missingFields: [],
+    summary: reason,
+    contradictions: [],
+    wikiHealth: '未知',
+    conceptGaps: [],
+    suggestedLinks: []
+  }
 }

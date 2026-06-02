@@ -1,4 +1,9 @@
 {
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "strict": true,
+    "types": ["node", "vitest/globals"]
+  },
   "files": [
     "src/test-setup.ts"
   ],

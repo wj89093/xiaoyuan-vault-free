@@ -14,10 +14,7 @@ import log from 'electron-log/main'
  *
  * 任何 type 的调用都返回 null。调用方应检查 null 并跳过相应功能。
  */
-export async function callAI(
-  _type: string,
-  _args: Record<string, unknown>
-): Promise<unknown> {
+export async function callAI(_type: string, _args: Record<string, unknown>): Promise<unknown> {
   log.info('[AI] callAI called but open-source build has no built-in LLM. Use Skill.md plugin.')
   return null
 }

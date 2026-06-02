@@ -15,11 +15,11 @@
   --color-primary-hover: #15447d;
   --color-primary-active: #103866;
   --color-primary-light: #e5eff9;
-  --color-primary-10: rgba(26, 86, 168, 0.10);
+  --color-primary-10: rgba(26, 86, 168, 0.1);
   --color-primary-15: rgba(26, 86, 168, 0.15);
-  --color-primary-20: rgba(26, 86, 168, 0.20);
+  --color-primary-20: rgba(26, 86, 168, 0.2);
   --color-primary-25: rgba(26, 86, 168, 0.25);
-  --color-primary-40: rgba(26, 86, 168, 0.40);
+  --color-primary-40: rgba(26, 86, 168, 0.4);
   --color-primary-rgb: 26, 86, 168;
 
   /* 强调色 Accent */
@@ -27,20 +27,20 @@
   --color-accent-hover: #165e3a;
   --color-accent-active: #104d2e;
   --color-accent-light: #d1f0e1;
-  --color-accent-10: rgba(30, 122, 77, 0.10);
+  --color-accent-10: rgba(30, 122, 77, 0.1);
   --color-accent-25: rgba(30, 122, 77, 0.25);
 
   /* 系统色 System（状态/图标/交互） */
   /* ⚠️ 这些是 JSX 内联 hardcoded 重灾区，需要逐个替换 */
-  --color-blue: #007aff;        /* iOS system blue */
-  --color-green: #22c55e;       /* success / 完成 */
-  --color-red: #ef4444;        /* error / 警告 / 死链 */
-  --color-orange: #f59e0b;     /* warning / 警告 */
-  --color-orange-light: #fff8e1;  /* warning 浅色背景 */
-  --color-purple: #5856d6;     /* AI / special */
-  --color-gray: #6b7280;       /* neutral text */
+  --color-blue: #007aff; /* iOS system blue */
+  --color-green: #22c55e; /* success / 完成 */
+  --color-red: #ef4444; /* error / 警告 / 死链 */
+  --color-orange: #f59e0b; /* warning / 警告 */
+  --color-orange-light: #fff8e1; /* warning 浅色背景 */
+  --color-purple: #5856d6; /* AI / special */
+  --color-gray: #6b7280; /* neutral text */
   --color-gray-light: #a1a1a6; /* tertiary text */
-  --color-gray-dark: #1d1d1f;  /* primary text (light mode) */
+  --color-gray-dark: #1d1d1f; /* primary text (light mode) */
 
   /* 背景色 Background */
   --color-bg: #fafafa;
@@ -134,12 +134,12 @@
   /* ========================================================
      5. 阴影 Shadows
      ======================================================== */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.08), 0 10px 10px rgba(0,0,0,0.04);
-  --shadow-panel: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06), 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.12);
 
   /* ========================================================
      6. 动效 Transitions
@@ -174,7 +174,7 @@
 /* ========================================================
    深色主题（Dark Mode）
    ======================================================== */
-[data-theme="dark"] {
+[data-theme='dark'] {
   /* 背景色 */
   --color-bg: #1a1a1c;
   --color-bg-code: #1e1e2e;
@@ -205,7 +205,7 @@
   --color-green: #30d158;
   --color-red: #ff453a;
   --color-orange: #ff9f0a;
-  --color-orange-light: #2d2010;  /* warning 浅色背景 (dark) */
+  --color-orange-light: #2d2010; /* warning 浅色背景 (dark) */
   --color-purple: #bf5af2;
   --color-gray: #8e8e93;
   --color-gray-light: #636366;
@@ -216,11 +216,11 @@
   --color-primary-hover: #77b0f0;
   --color-primary-active: #88c3f5;
   --color-primary-light: #1a2d4a;
-  --color-primary-10: rgba(85, 153, 232, 0.10);
+  --color-primary-10: rgba(85, 153, 232, 0.1);
   --color-primary-15: rgba(85, 153, 232, 0.15);
-  --color-primary-20: rgba(85, 153, 232, 0.20);
+  --color-primary-20: rgba(85, 153, 232, 0.2);
   --color-primary-25: rgba(85, 153, 232, 0.25);
-  --color-primary-40: rgba(85, 153, 232, 0.40);
+  --color-primary-40: rgba(85, 153, 232, 0.4);
   --color-primary-rgb: 85, 153, 232;
 
   /* 强调色 */
@@ -228,7 +228,7 @@
   --color-accent-hover: #55cc85;
   --color-accent-active: #66d993;
   --color-accent-light: #1a3d2a;
-  --color-accent-10: rgba(61, 184, 114, 0.10);
+  --color-accent-10: rgba(61, 184, 114, 0.1);
   --color-accent-25: rgba(61, 184, 114, 0.25);
 
   /* 图表色 */
@@ -244,39 +244,38 @@
   --color-graph-link: #7c7c80;
 
   /* 阴影 */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.20);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.24), 0 1px 2px rgba(0,0,0,0.20);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.22), 0 2px 4px rgba(0,0,0,0.18);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.26), 0 4px 6px rgba(0,0,0,0.18);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.30), 0 10px 10px rgba(0,0,0,0.22);
-  --shadow-panel: 0 8px 32px rgba(0,0,0,0.40);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.26), 0 4px 6px rgba(0, 0, 0, 0.18);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.3), 0 10px 10px rgba(0, 0, 0, 0.22);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 /* ========================================================
    重要：CM Editor 深色模式保证（防止黑屏）
    ======================================================== */
-[data-theme="dark"] .cm-editor {
+[data-theme='dark'] .cm-editor {
   background: var(--color-surface) !important;
   color: var(--color-text-primary) !important;
 }
-[data-theme="dark"] .cm-editor .cm-content {
+[data-theme='dark'] .cm-editor .cm-content {
   caret-color: var(--color-primary) !important;
 }
-[data-theme="dark"] .cm-editor .cm-cursor {
+[data-theme='dark'] .cm-editor .cm-cursor {
   border-left-color: var(--color-primary) !important;
 }
-[data-theme="dark"] .cm-editor .cm-selectionBackground {
+[data-theme='dark'] .cm-editor .cm-selectionBackground {
   background: var(--color-primary-25) !important;
 }
-[data-theme="dark"] .cm-editor .cm-focused .cm-selectionBackground {
+[data-theme='dark'] .cm-editor .cm-focused .cm-selectionBackground {
   background: var(--color-primary-20) !important;
 }
-[data-theme="dark"] .cm-editor .cm-line {
+[data-theme='dark'] .cm-editor .cm-line {
   color: var(--color-text-primary) !important;
 }
 /* ========================================================
    AI Chat Window 专用变量
-   （这些变量也在 src/main/templates/aiChat.html 中通过 <style> 使用）
    ======================================================== */
 :root {
   /* Chat bubbles */
@@ -313,7 +312,7 @@
   --chat-placeholder: #a1a1a6;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --chat-assistant-bubble: #2a2a2e;
   --chat-titlebar-bg: #242426;
   --chat-input-bg: #2a2a2e;

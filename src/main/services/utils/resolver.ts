@@ -9,18 +9,31 @@ import { basename, extname } from 'path'
 
 // ─── 规则化分类 ─────────────────────────────────────────────────────
 
-const RESEARCH_KEYWORDS = ['研究', '论文', '实验', '论文', '报告', 'review', 'research', 'paper', 'study']
+const RESEARCH_KEYWORDS = [
+  '研究',
+  '论文',
+  '实验',
+  '论文',
+  '报告',
+  'review',
+  'research',
+  'paper',
+  'study'
+]
 const MEETING_KEYWORDS = ['会议', 'meeting', '纪要', 'minutes']
 const NOTE_KEYWORDS = ['随笔', 'note', '想法', 'idea', '思考']
 const REFERENCE_KEYWORDS = ['参考', 'reference', '手册', 'manual', 'guide']
 
-function inferType(title: string, content: string): 'research' | 'document' | 'meeting' | 'note' | 'reference' | 'idea' {
+function inferType(
+  title: string,
+  content: string
+): 'research' | 'document' | 'meeting' | 'note' | 'reference' | 'idea' {
   const text = (title + ' ' + content.slice(0, 500)).toLowerCase()
 
-  if (RESEARCH_KEYWORDS.some(k => text.includes(k))) return 'research'
-  if (MEETING_KEYWORDS.some(k => text.includes(k))) return 'meeting'
-  if (NOTE_KEYWORDS.some(k => text.includes(k))) return 'note'
-  if (REFERENCE_KEYWORDS.some(k => text.includes(k))) return 'reference'
+  if (RESEARCH_KEYWORDS.some((k) => text.includes(k))) return 'research'
+  if (MEETING_KEYWORDS.some((k) => text.includes(k))) return 'meeting'
+  if (NOTE_KEYWORDS.some((k) => text.includes(k))) return 'note'
+  if (REFERENCE_KEYWORDS.some((k) => text.includes(k))) return 'reference'
   return 'document'
 }
 
@@ -44,16 +57,13 @@ export interface ResolverResult {
 /**
  * 分类内容（开源版规则版）
  */
-export async function resolveContentType(
-  content: string,
-  title?: string
-): Promise<ResolverResult> {
-  const t = title || basename(content, extname(content))
+export async function resolveContentType(content: string, title?: string): Promise<ResolverResult> {
+  const t = title ?? basename(content, extname(content))
   return {
     intent: inferIntent(t),
     type: inferType(t, content),
     confiance: 'medium',
-    reason: '开源版：基于关键词的简单规则分类（无 LLM）',
+    reason: '开源版：基于关键词的简单规则分类（无 LLM）'
   }
 }
 

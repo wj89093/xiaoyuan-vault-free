@@ -1,4 +1,3 @@
- 
 import React from 'react'
 import { Sidebar } from './Sidebar'
 import { IconSidebar } from './IconSidebar'
@@ -42,17 +41,32 @@ export function VaultRouter({
   handleDeleteVault,
   handleEditorWikiLink,
   handleReference,
-  handleViewChange,
+  handleViewChange
 }: VaultRouterProps): JSX.Element {
   const {
-    vaultPath, files, selectedFile, content, isDirty,
-    setVaultPath: _setVaultPath, setSelectedFile, setContent,
-    handleNewVault, handleOpenVault, handleSelectFile,
-    handleSave, handleNewFile, handleNewFolder, handleRefresh,
-    handleSearch, handleCloseSearch, handleContentChange,
+    vaultPath,
+    files,
+    selectedFile,
+    content,
+    isDirty,
+    setVaultPath: _setVaultPath,
+    setSelectedFile,
+    setContent,
+    handleNewVault,
+    handleOpenVault,
+    handleSelectFile,
+    handleSave,
+    handleNewFile,
+    handleNewFolder,
+    handleRefresh,
+    handleSearch,
+    handleCloseSearch,
+    handleContentChange
   } = vaultState
 
-  const wikiFiles = files.filter((f: any) => (f.path as string).startsWith('_wiki/') || f.path === '_wiki')
+  const wikiFiles = files.filter(
+    (f: any) => (f.path as string).startsWith('_wiki/') || f.path === '_wiki'
+  )
   const displayFiles = vaultState.showSearchResults ? vaultState.searchResults : files
 
   if (!vaultPath || ui.showOnboarding) {
@@ -67,14 +81,6 @@ export function VaultRouter({
             setTimeout(() => {
               if (vaultPath) handleSelectFile(vaultPath + '/_wiki/使用说明.md')
             }, 1000)
-            setTimeout(() => {
-              ;(window.api as any).aiChatSend?.(
-                `你好！新知识库已就绪
-
-我已经创建了使用说明文档。现在请把文件拖进来，我会分析内容并建议目录结构。`,
-                true
-              )
-            }, 400)
           }}
           vaults={ui.vaultList}
           onOpenVaultItem={handleOpenVaultItem}
@@ -109,12 +115,18 @@ export function VaultRouter({
       <IconSidebar
         activeView={ui.activeView}
         onViewChange={handleViewChange}
-        onSearchFocus={() => ui.setShowSearchFloat(v => !v)}
-        onBriefingClick={() => { ui.setActiveView('review'); ui.setShowBriefing(v => !v) }}
-        onSchemaClick={() => ui.setShowSchema(v => !v)}
-        onOpenTrash={() => ui.setShowTrash(v => !v)}
-        onOpenOutput={() => ui.setShowOutput(v => !v)}
-        onIndexClick={() => { ui.setShowIndexFloat(v => !v); ui.setActiveView('index') }}
+        onSearchFocus={() => ui.setShowSearchFloat((v) => !v)}
+        onBriefingClick={() => {
+          ui.setActiveView('review')
+          ui.setShowBriefing((v) => !v)
+        }}
+        onSchemaClick={() => ui.setShowSchema((v) => !v)}
+        onOpenTrash={() => ui.setShowTrash((v) => !v)}
+        onOpenOutput={() => ui.setShowOutput((v) => !v)}
+        onIndexClick={() => {
+          ui.setShowIndexFloat((v) => !v)
+          ui.setActiveView('index')
+        }}
       />
       <Sidebar
         vaultPath={vaultPath}
@@ -146,7 +158,10 @@ export function VaultRouter({
         {ui.showBacklinks && (
           <BacklinksPanel
             selectedFile={selectedFile}
-            onNavigate={(path) => { handleSelectFile(path); ui.setShowBacklinks(false) }}
+            onNavigate={(path) => {
+              handleSelectFile(path)
+              ui.setShowBacklinks(false)
+            }}
             onClose={() => ui.setShowBacklinks(false)}
           />
         )}
@@ -157,8 +172,12 @@ export function VaultRouter({
               <EditorHeader
                 selectedFile={selectedFile}
                 isDirty={isDirty}
-                onSave={() => { void handleSave() }}
-                onShowHistory={() => { ui.openVersionHistory() }}
+                onSave={() => {
+                  void handleSave()
+                }}
+                onShowHistory={() => {
+                  ui.openVersionHistory()
+                }}
               />
               <Editor
                 key={selectedFile ?? '__empty__'}
@@ -173,7 +192,9 @@ export function VaultRouter({
           ) : (
             <div className="welcome-screen">
               <span className="welcome-title">选择或创建文件</span>
-              <span className="welcome-desc">在左侧选择一个文件进行编辑，或点击工具栏创建新文件</span>
+              <span className="welcome-desc">
+                在左侧选择一个文件进行编辑，或点击工具栏创建新文件
+              </span>
             </div>
           )}
         </div>
@@ -183,12 +204,22 @@ export function VaultRouter({
         <VersionHistoryPanel
           filePath={selectedFile}
           fileName={selectedFile.split('/').pop() ?? '文件'}
-          onClose={() => { ui.setShowVersionHistory(false) }}
-          onRestore={() => { void vaultState.handleSelectFile(selectedFile) }}
+          onClose={() => {
+            ui.setShowVersionHistory(false)
+          }}
+          onRestore={() => {
+            void vaultState.handleSelectFile(selectedFile)
+          }}
         />
       )}
 
-      {ui.showSettings && <SettingsPanel onClose={() => ui.setShowSettings(false)} vaultPath={vaultPath} onSelectFile={handleSelectFile} />}
+      {ui.showSettings && (
+        <SettingsPanel
+          onClose={() => ui.setShowSettings(false)}
+          vaultPath={vaultPath}
+          onSelectFile={handleSelectFile}
+        />
+      )}
       {ui.showIndexFloat && (
         <IndexFloat
           vaultPath={vaultPath}
@@ -200,16 +231,28 @@ export function VaultRouter({
       {ui.showSearchFloat && (
         <SearchPanel
           onClose={() => ui.setShowSearchFloat(false)}
-          onSelectFile={(path) => { handleSelectFile(path); ui.setShowSearchFloat(false) }}
+          onSelectFile={(path) => {
+            handleSelectFile(path)
+            ui.setShowSearchFloat(false)
+          }}
         />
       )}
       {ui.showOutput && <OutputPanel onClose={() => ui.setShowOutput(false)} />}
       {ui.showTrash && vaultPath && (
-        <TrashPanel vaultPath={vaultPath} onNavigate={(path) => { handleSelectFile(path); ui.setShowTrash(false) }} onClose={() => ui.setShowTrash(false)} />
+        <TrashPanel
+          vaultPath={vaultPath}
+          onNavigate={(path) => {
+            handleSelectFile(path)
+            ui.setShowTrash(false)
+          }}
+          onClose={() => ui.setShowTrash(false)}
+        />
       )}
       {ui.showLint && <LintPanel onClose={() => ui.setShowLint(false)} vaultPath={vaultPath} />}
       {ui.showSchema && <SchemaPanel onClose={() => ui.setShowSchema(false)} />}
-      {ui.showLog && <LogPanel onClose={() => ui.setShowLog(false)} onSelectFile={handleSelectFile} />}
+      {ui.showLog && (
+        <LogPanel onClose={() => ui.setShowLog(false)} onSelectFile={handleSelectFile} />
+      )}
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </>

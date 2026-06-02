@@ -5,7 +5,7 @@
  */
 import { ipcMain } from 'electron'
 import { existsSync } from 'fs'
-import { createBackup, listBackups, previewBackup, restoreBackup } from '../../services/backupManager'
+import { listBackups, previewBackup, restoreBackup } from '../../services/backupManager'
 
 import { getVaultPath } from '../../services/database/database'
 
@@ -21,7 +21,11 @@ export function registerMiscHandlers(): void {
       if (entry.isDirectory() && !entry.name.startsWith('.')) domains.add(entry.name)
     }
     const schemas: Array<{
-      folder: string; title: string; description: string; body: string; confirmed: boolean
+      folder: string
+      title: string
+      description: string
+      body: string
+      confirmed: boolean
     }> = []
     for (const domain of domains) {
       const confirmedPath = join(schemaDir, domain, 'confirmed.md')
@@ -37,7 +41,9 @@ export function registerMiscHandlers(): void {
           const bodyStart = fmMatch ? fmMatch[0].length : 0
           const rest = content.slice(bodyStart).trim()
           schemas.push({ folder: domain, title, description: '', body: rest, confirmed: true })
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       } else {
         schemas.push({ folder: domain, title: domain, description: '', body: '', confirmed: false })
       }
@@ -67,15 +73,24 @@ export function registerMiscHandlers(): void {
           totalMarkdown++
         }
       }
-    } catch { /* ignore */ }
-    return { entities: entities.size, concepts: concepts.size, sources: sources.size, totalMarkdown }
+    } catch {
+      /* ignore */
+    }
+    return {
+      entities: entities.size,
+      concepts: concepts.size,
+      sources: sources.size,
+      totalMarkdown
+    }
   })
 
   // ── Backup / version history ─────────────────────────────────
   ipcMain.handle('file:listBackups', async (_, filePath: string) => {
     const vaultPath = getVaultPath()
     if (!vaultPath) return []
-    const relPath = filePath.startsWith(vaultPath) ? filePath.replace(vaultPath + '/', '') : filePath
+    const relPath = filePath.startsWith(vaultPath)
+      ? filePath.replace(vaultPath + '/', '')
+      : filePath
     const backups = await listBackups(vaultPath, relPath)
     return backups
   })
@@ -83,14 +98,18 @@ export function registerMiscHandlers(): void {
   ipcMain.handle('file:previewBackup', async (_, filePath: string, timestamp: string) => {
     const vaultPath = getVaultPath()
     if (!vaultPath) return ''
-    const relPath = filePath.startsWith(vaultPath) ? filePath.replace(vaultPath + '/', '') : filePath
+    const relPath = filePath.startsWith(vaultPath)
+      ? filePath.replace(vaultPath + '/', '')
+      : filePath
     return await previewBackup(vaultPath, relPath, timestamp)
   })
 
   ipcMain.handle('file:restoreBackup', async (_, filePath: string, timestamp: string) => {
     const vaultPath = getVaultPath()
     if (!vaultPath) return false
-    const relPath = filePath.startsWith(vaultPath) ? filePath.replace(vaultPath + '/', '') : filePath
+    const relPath = filePath.startsWith(vaultPath)
+      ? filePath.replace(vaultPath + '/', '')
+      : filePath
     return await restoreBackup(vaultPath, relPath, timestamp)
   })
 }

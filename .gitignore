@@ -18,10 +18,9 @@ src/**/*.js
 src/**/*.mjs
 src/**/*.cjs
 # Build artifacts - never commit compiled JS alongside TS source
-src/**/*.js
 
 # Compiled preloads (build artifacts, already in out/preload/)
-preload/
+/preload/
 # Test temp directories
 test-tmp-*/
 # Old bubble.html (now in src/main/)

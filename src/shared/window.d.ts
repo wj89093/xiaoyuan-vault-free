@@ -132,7 +132,12 @@ export interface XyVaultAPI {
   autoAIListSchemas(): Promise<unknown[]>
   autoAIGetPendingSchemas(): Promise<unknown[]>
   autoAIGetLintReports(): Promise<unknown[]>
-  autoAIFixLintIssue(issue: { type: string; pagePath?: string; deadTarget?: string; orphanTarget?: string }): Promise<boolean>
+  autoAIFixLintIssue(issue: {
+    type: string
+    pagePath?: string
+    deadTarget?: string
+    orphanTarget?: string
+  }): Promise<boolean>
   autoAIRunLint(): Promise<unknown>
   getLintReports(): Promise<unknown[]>
   // convertFile
@@ -150,13 +155,22 @@ export interface XyVaultAPI {
   createFolder(folderPath: string): Promise<boolean>
   renameFile(oldPath: string, newName: string): Promise<boolean>
   deleteFile(filePath: string): Promise<boolean>
-  trashList(vaultPath: string): Promise<Array<{ originalPath: string; trashPath: string; deletedAt: number; name: string }>>
+  trashList(
+    vaultPath: string
+  ): Promise<Array<{ originalPath: string; trashPath: string; deletedAt: number; name: string }>>
   trashRestore(vaultPath: string, originalPath: string): Promise<boolean>
   trashDelete(vaultPath: string, originalPath: string): Promise<boolean>
   trashClean(vaultPath: string): Promise<number>
-  listRawFiles(vaultPath: string): Promise<Array<{ month: string; files: Array<{ name: string; path: string; converted: boolean }> }>>
+  listRawFiles(
+    vaultPath: string
+  ): Promise<
+    Array<{ month: string; files: Array<{ name: string; path: string; converted: boolean }> }>
+  >
   archiveRawFile(rawPath: string): Promise<{ success: boolean }>
-  convertRawFile(rawPath: string, vaultPath: string): Promise<{ success: boolean; mdPath?: string; error?: string }>
+  convertRawFile(
+    rawPath: string,
+    vaultPath: string
+  ): Promise<{ success: boolean; mdPath?: string; error?: string }>
   deleteFolder(folderPath: string): Promise<boolean>
   moveFile(filePath: string, newParentDir: string): Promise<boolean>
   getVaultPath(): Promise<string | null>
@@ -165,8 +179,14 @@ export interface XyVaultAPI {
   getBuildInfo(): Promise<{ isPro: boolean; isOpenSource: boolean; buildTarget: string }>
 
   generateBriefing(): Promise<{
-    date: string; period: string; newPages: number; updatedPages: number;
-    entities: string[]; highlights: string[]; health: string; raw: string;
+    date: string
+    period: string
+    newPages: number
+    updatedPages: number
+    entities: string[]
+    highlights: string[]
+    health: string
+    raw: string
   }>
 
   // Clipboard watch
@@ -186,7 +206,7 @@ export interface XyVaultAPI {
 
   // Nested chat API
   chat: {
-    // Legacy non-streaming ask (aiChat.html uses this)
+    // Legacy non-streaming ask
     ask(question: string, history?: ChatMessage[]): Promise<AskResult>
     // Main entry: single-session streaming chat
     sessionAsk(question: string, history: any[], vaultPath?: string): Promise<any>
@@ -195,7 +215,9 @@ export interface XyVaultAPI {
     onStreamChunk(cb: (data: { chunk: string; partial: string }) => void): () => void
     onStreamDone(cb: (data: AskResult) => void): () => void
     onStreamError(cb: (data: { error: string }) => void): () => void
-    onToolUpdate(cb: (data: { name: string; args: unknown; status: string; result?: string }) => void): () => void
+    onToolUpdate(
+      cb: (data: { name: string; args: unknown; status: string; result?: string }) => void
+    ): () => void
   }
 
   // Auth
@@ -210,8 +232,20 @@ export interface XyVaultAPI {
   providerSet(provider: string): Promise<boolean>
 
   // Agent Plugin (open-source build)
-  settingsGetAgentPlugin(): Promise<{ enabled: boolean; endpoint: string; apiKey: string; protocol: 'ws' | 'http'; name: string }>
-  settingsSetAgentPlugin(config: { enabled: boolean; endpoint: string; apiKey: string; protocol: 'ws' | 'http'; name: string }): Promise<void>
+  settingsGetAgentPlugin(): Promise<{
+    enabled: boolean
+    endpoint: string
+    apiKey: string
+    protocol: 'ws' | 'http'
+    name: string
+  }>
+  settingsSetAgentPlugin(config: {
+    enabled: boolean
+    endpoint: string
+    apiKey: string
+    protocol: 'ws' | 'http'
+    name: string
+  }): Promise<void>
   settingsSetAgentPluginEnabled(enabled: boolean): Promise<boolean>
 
   // Folder map
@@ -231,7 +265,30 @@ export interface XyVaultAPI {
     onBashDone(cb: (data: { result: string }) => void): () => void
   }
 
-  agentCallTool(toolName: string, args: Record<string, unknown>): Promise<{ok: boolean; result?: string; error?: string}>
+  agentCallTool(
+    toolName: string,
+    args: Record<string, unknown>
+  ): Promise<{ ok: boolean; result?: string; error?: string }>
+
+  // ─── Skill.md plugin (open-source 核心入口) ───
+  skillList(): Promise<Array<{ name: string; path: string }>>
+  skillLoadDefault(): Promise<string>
+  skillRead(name: string): Promise<string>
+  skillSave(name: string, content: string): Promise<boolean>
+  skillDelete(name: string): Promise<boolean>
+  skillListTemplates(): Promise<Array<{ name: string; description: string; filename: string }>>
+  skillLoadTemplate(name: string): Promise<string>
+  skillGetEndpoint(): Promise<{
+    url: string
+    protocol: 'http' | 'ws' | 'skill'
+    note?: string
+    updatedAt: number
+  }>
+  skillSetEndpoint(config: {
+    url?: string
+    protocol?: 'http' | 'ws' | 'skill'
+    note?: string
+  }): Promise<boolean>
 }
 
 declare global {

@@ -33,9 +33,22 @@
 
 ## Skill.md 插件
 
-打开 **设置 → Skill.md** → 复制全文 → 发给你的 Agent（OpenClaw / Claude Code / 自建 LLM）。
+打开 **设置 → Skill.md** → 配置 endpoint → 复制全文 → 发给你的 Agent（OpenClaw / Claude Code / 自建 LLM）。
 
-你的 Agent 只需实现 HTTP `/agent/run` 端点（30 行 Python）：
+**Endpoint 配置**：在 Skill.md 设置面板填入 Agent 服务地址，保存后点「测试」可验证连接。
+
+### 协议支持
+
+| 协议 | 状态 | 说明 |
+|------|------|------|
+| HTTP | ✅ 可用 | POST `/agent/run` + SSE 流式响应 |
+| HTTPS | ✅ 可用 | 同上，TLS 加密 |
+| WebSocket | 🚧 TODO | 计划中 |
+| Skill 协议 | 🚧 TODO | 计划中 |
+
+**注意**：连接非本地 host（`localhost` / `127.0.0.1` / `::1`）会弹窗二次确认。
+
+### 示例 Agent 服务（HTTP + SSE）
 
 ```python
 from fastapi import FastAPI
@@ -66,6 +79,23 @@ async def run(req: dict):
 晓园设置 → Skill.md 旁的 endpoint 填 `http://localhost:8080`。
 
 **OpenClaw 用户**：`http://127.0.0.1:18789` 直接接入，零代码。
+
+### 预置 Skill 模板
+
+8 个常用场景，可直接加载使用或作参考写自己的：
+
+- `ingest` — 文件摄入（读 _raw/ 写到 _wiki/）
+- `query` — FTS5 全文搜索
+- `recall` — 跨会话/笔记回忆
+- `lint` — 质量检查
+- `write-note` — 写/更新 markdown
+- `conversation-summary` — 对话摘要
+- `self-improvement` — 自我改进
+- `stats` — vault 统计
+
+### 自己的 Skill
+
+可以保存自己的 Skill.md 到本地（`~/Library/Application Support/xiaoyuan-vault/skills/`），在 Skill.md 区块选择使用。
 
 详细：[`docs/SKILL_WORKFLOW.md`](docs/SKILL_WORKFLOW.md)
 

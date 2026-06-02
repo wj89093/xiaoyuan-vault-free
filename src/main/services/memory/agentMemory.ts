@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 /**
  * agentMemory.ts — Agent 记忆系统
  *
@@ -36,17 +37,25 @@ export async function buildMemoryContext(date: string): Promise<string> {
   // 1. 加载增量记忆（每轮对话自动提取的事实/决策/偏好）
   const facts = await loadIncrementalFacts(date)
   if (facts.length > 0) {
-    parts.push(`## 🟣 ${date} 增量记忆\n\n${facts.map(f => `- ${f}`).join('\n')}`)
+    parts.push(`## 🟣 ${date} 增量记忆\n\n${facts.map((f) => `- ${f}`).join('\n')}`)
   }
 
   // 2. 加载对话存档
   const convs = await loadConversationSummaries(date)
   if (convs.length > 0) {
-    const convText = convs.map(c => {
-      const decisions = c.decisions.length > 0 ? '\n  决策:\n' + c.decisions.map(d => `    - ${d}`).join('\n') : ''
-      const nextSteps = c.nextSteps.length > 0 ? '\n  下一步:\n' + c.nextSteps.map(s => `    - ${s}`).join('\n') : ''
-      return `## [${c.time}] ${c.title}（${c.topic}）${decisions}${nextSteps}`
-    }).join('\n\n')
+    const convText = convs
+      .map((c) => {
+        const decisions =
+          c.decisions.length > 0
+            ? '\n  决策:\n' + c.decisions.map((d) => `    - ${d}`).join('\n')
+            : ''
+        const nextSteps =
+          c.nextSteps.length > 0
+            ? '\n  下一步:\n' + c.nextSteps.map((s) => `    - ${s}`).join('\n')
+            : ''
+        return `## [${c.time}] ${c.title}（${c.topic}）${decisions}${nextSteps}`
+      })
+      .join('\n\n')
     parts.push(`## 📅 ${date} 对话记录\n\n${convText}`)
   }
 
@@ -58,7 +67,9 @@ export async function buildMemoryContext(date: string): Promise<string> {
     if (logLines.trim()) {
       parts.push(`## 📋 最近操作日志\n\n${logLines}`)
     }
-  } catch { /* ignore missing log */ }
+  } catch {
+    /* ignore missing log */
+  }
 
   // 4. 加载工具学习经验（self-improvement）
   try {
@@ -67,7 +78,9 @@ export async function buildMemoryContext(date: string): Promise<string> {
     if (learnRaw.trim()) {
       parts.push(`## 🧠 工具优化经验\n\n${learnRaw.slice(0, 3000)}`)
     }
-  } catch { /* ignore missing learnings */ }
+  } catch {
+    /* ignore missing learnings */
+  }
 
   if (parts.length === 0) return ''
 
@@ -78,7 +91,7 @@ export async function buildMemoryContext(date: string): Promise<string> {
     ...parts,
     '',
     '---',
-    '以上为记忆上下文，当前对话中如需参考可使用 tool 读取相关文件。',
+    '以上为记忆上下文，当前对话中如需参考可使用 tool 读取相关文件。'
   ].join('\n')
 }
 
@@ -86,14 +99,29 @@ export async function buildMemoryContext(date: string): Promise<string> {
 
 async function processRetryQueue(vaultPath: string, retryQueuePath: string): Promise<void> {
   try {
-    const { access, constants, readFile, appendFile, unlink } = await import('fs/promises')
+    const {
+      access,
+      constants,
+      readFile: _readFile,
+      appendFile: _appendFile,
+      unlink: _unlink
+    } = await import('fs/promises')
     await access(retryQueuePath, constants.F_OK)
-  } catch { return }  // no queue
+  } catch {
+    return
+  } // no queue
 
   try {
     const raw = await readFile(retryQueuePath, 'utf-8')
-    const lines = raw.split('\n').filter(l => l.trim())
-    if (lines.length === 0) { try { await unlink(retryQueuePath) } catch { /* */ }; return }
+    const lines = raw.split('\n').filter((l) => l.trim())
+    if (lines.length === 0) {
+      try {
+        await unlink(retryQueuePath)
+      } catch {
+        /* */
+      }
+      return
+    }
 
     const failed: string[] = []
     for (const line of lines) {
@@ -101,10 +129,21 @@ async function processRetryQueue(vaultPath: string, retryQueuePath: string): Pro
         const entry = JSON.parse(line)
         const fp = join(vaultPath, '_briefing', 'memory-facts', entry.date + '.md')
         let exists = false
-        try { await access(fp, constants.F_OK); exists = true } catch { /* */ }
+        try {
+          await access(fp, constants.F_OK)
+          exists = true
+        } catch {
+          /* */
+        }
         const time = entry.time ?? new Date(entry.ts).toISOString().slice(11, 16)
         const lines2 = (entry.facts as string[]).map((f: string) => `- [${time}] ${f}`)
-        if (!exists) lines2.unshift(`# 增量记忆 ${entry.date}`, '', '> 每轮对话自动提取的关键事实、决策、偏好', '')
+        if (!exists)
+          lines2.unshift(
+            `# 增量记忆 ${entry.date}`,
+            '',
+            '> 每轮对话自动提取的关键事实、决策、偏好',
+            ''
+          )
         await appendFile(fp, lines2.join('\n') + '\n', 'utf-8')
         log.info('[processRetryQueue] retry succeeded:', entry.date)
       } catch {
@@ -116,7 +155,9 @@ async function processRetryQueue(vaultPath: string, retryQueuePath: string): Pro
     } else {
       await unlink(retryQueuePath)
     }
-  } catch { /* queue read failed, skip */ }
+  } catch {
+    /* queue read failed, skip */
+  }
 }
 
 // ─── Incremental Memory Extraction ───────────────────────────────────
@@ -127,7 +168,10 @@ async function processRetryQueue(vaultPath: string, retryQueuePath: string): Pro
  * 提取 2-3 条简洁的事实，追加到每日记忆文件。
  * 不创建新文件，不阻塞主流程。
  */
-export async function extractIncrementalFacts(messages: AgentMessage[], opts?: { retryQueue?: boolean }): Promise<void> {
+export async function extractIncrementalFacts(
+  messages: AgentMessage[],
+  opts?: { retryQueue?: boolean }
+): Promise<void> {
   const vaultPath = getVaultPath()
   if (!vaultPath) return
 
@@ -147,31 +191,35 @@ export async function extractIncrementalFacts(messages: AgentMessage[], opts?: {
     let foundUser = false
     for (const m of recent) {
       if (m.role === 'assistant' && pair.length === 0) pair.push(m)
-      else if (m.role === 'user' && !foundUser) { pair.push(m); foundUser = true; break }
+      else if (m.role === 'user' && !foundUser) {
+        pair.push(m)
+        foundUser = true
+        break
+      }
     }
     if (pair.length < 2) return
     pair.reverse()
 
     const sample = pair
-      .map(m => `**${m.role}**: ${String(m.content ?? '').slice(0, 600)}`)
+      .map((m) => `**${m.role}**: ${String(m.content ?? '').slice(0, 600)}`)
       .join('\n\n')
 
-    const result = await callAI('resolve', {
+    const result = (await callAI('resolve', {
       prompt: `你是记忆提取助手。从以下对话中提取 2-3 条关键事实（偏好/决策/修正/发现）。
 每条约 15-30 字，用 - 开头列表返回。
 
 对话：
 ${sample}
 
-只返回列表，不要解释：`,
-    }) as string
+只返回列表，不要解释：`
+    })) as string
 
     // Parse bullet points
     const facts = String(result)
       .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.startsWith('-'))
-      .map(l => l.slice(1).trim())
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith('-'))
+      .map((l) => l.slice(1).trim())
       .filter(Boolean)
       .slice(0, 3)
 
@@ -185,9 +233,14 @@ ${sample}
 
     // Check if file exists — if not, create header
     let exists = false
-    try { await access(fp, constants.F_OK); exists = true } catch { /* doesn't exist */ }
+    try {
+      await access(fp, constants.F_OK)
+      exists = true
+    } catch {
+      /* doesn't exist */
+    }
 
-    const lines = facts.map(f => `- [${time}] ${f}`)
+    const lines = facts.map((f) => `- [${time}] ${f}`)
     if (!exists) {
       lines.unshift(`# 增量记忆 ${date}`, '', '> 每轮对话自动提取的关键事实、决策、偏好', '')
     }
@@ -201,8 +254,14 @@ ${sample}
       const { appendFile, mkdir } = await import('fs/promises')
       const dir = join(vaultPath, '_briefing', 'memory-facts')
       await mkdir(dir, { recursive: true })
-      await appendFile(retryQueuePath, JSON.stringify({ facts, time, date, ts: Date.now(), error: err.message }) + '\n', 'utf-8')
-    } catch { /* queue write failed, give up */ }
+      await appendFile(
+        retryQueuePath,
+        JSON.stringify({ facts, time, date, ts: Date.now(), error: err.message }) + '\n',
+        'utf-8'
+      )
+    } catch {
+      /* queue write failed, give up */
+    }
   }
 }
 async function loadIncrementalFacts(date: string): Promise<string[]> {
@@ -213,10 +272,12 @@ async function loadIncrementalFacts(date: string): Promise<string[]> {
     const raw = await readFile(fp, 'utf-8')
     return raw
       .split('\n')
-      .filter(l => l.startsWith('- ['))
-      .map(l => l.slice(l.indexOf('] ') + 2).trim())
+      .filter((l) => l.startsWith('- ['))
+      .map((l) => l.slice(l.indexOf('] ') + 2).trim())
       .filter(Boolean)
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 /** Search tool-call log (_briefing/tool-calls.jsonl) for matching entries */
@@ -239,16 +300,26 @@ async function searchToolLog(query: string, days: number): Promise<string[]> {
         const tool = String(entry.tool ?? '')
         const args = String(entry.args ?? '')
         const result = String(entry.result ?? '')
-        if (tool.toLowerCase().includes(q) || args.toLowerCase().includes(q) || result.toLowerCase().includes(q)) {
+        if (
+          tool.toLowerCase().includes(q) ||
+          args.toLowerCase().includes(q) ||
+          result.toLowerCase().includes(q)
+        ) {
           const dur = entry.dur_ms ? ` (${entry.dur_ms}ms)` : ''
           const err = entry.error ? ' ❌' : ''
-          results.push(`[${String(entry.ts ?? '').slice(0, 16)}] ${tool}${dur}${err}\n  ${args.slice(0, 120)}`)
+          results.push(
+            `[${String(entry.ts ?? '').slice(0, 16)}] ${tool}${dur}${err}\n  ${args.slice(0, 120)}`
+          )
         }
-      } catch { continue }
+      } catch {
+        continue
+      }
       if (results.length >= 5) break
     }
     return results
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 // ─── Self-Improvement: Extract learnings from tool logs ─────────────
@@ -268,7 +339,11 @@ export async function extractToolLearnings(): Promise<{ entries: number; ok: boo
     // 1. Read tool-calls.jsonl
     const fp = join(vaultPath, '_briefing', 'tool-calls.jsonl')
     let raw: string
-    try { raw = await readFile(fp, 'utf-8') } catch { return { entries: 0, ok: false } }
+    try {
+      raw = await readFile(fp, 'utf-8')
+    } catch {
+      return { entries: 0, ok: false }
+    }
 
     const lines = raw.trim().split('\n')
     if (lines.length < 3) return { entries: 0, ok: true }
@@ -281,13 +356,15 @@ export async function extractToolLearnings(): Promise<{ entries: number; ok: boo
         const entry = JSON.parse(line) as Record<string, unknown>
         const ts = Date.parse(String(entry.ts ?? ''))
         if (ts > cutoff) entries.push(entry)
-      } catch { continue }
+      } catch {
+        continue
+      }
     }
     if (entries.length === 0) return { entries: 0, ok: true }
 
     // 3. Extract patterns
-    const errorEntries = entries.filter(e => e.error === true)
-    const slowEntries = entries.filter(e => Number(e.dur_ms ?? 0) > 3000)
+    const errorEntries = entries.filter((e) => e.error === true)
+    const slowEntries = entries.filter((e) => Number(e.dur_ms ?? 0) > 3000)
     const toolCounts: Record<string, number> = {}
     for (const e of entries) {
       const t = String(e.tool ?? '')
@@ -297,14 +374,22 @@ export async function extractToolLearnings(): Promise<{ entries: number; ok: boo
     // 4. Build prompt for LLM to analyze
     const summary = [
       `最近工具调用 ${entries.length} 次。`,
-      errorEntries.length > 0 ? `失败 ${errorEntries.length} 次: ${errorEntries.map(e => `${e.tool}(${String(e.args).slice(0, 60)}) → ${String(e.result).slice(0, 60)}`).join('; ')}` : '',
-      slowEntries.length > 0 ? `慢调用 ${slowEntries.length} 次 (>3s): ${slowEntries.map(e => `${e.tool} (${e.dur_ms}ms)`).join(', ')}` : '',
-      `工具分布: ${Object.entries(toolCounts).map(([k, v]) => `${k}×${v}`).join(', ')}`,
-    ].filter(Boolean).join('\n')
+      errorEntries.length > 0
+        ? `失败 ${errorEntries.length} 次: ${errorEntries.map((e) => `${e.tool}(${String(e.args).slice(0, 60)}) → ${String(e.result).slice(0, 60)}`).join('; ')}`
+        : '',
+      slowEntries.length > 0
+        ? `慢调用 ${slowEntries.length} 次 (>3s): ${slowEntries.map((e) => `${e.tool} (${e.dur_ms}ms)`).join(', ')}`
+        : '',
+      `工具分布: ${Object.entries(toolCounts)
+        .map(([k, v]) => `${k}×${v}`)
+        .join(', ')}`
+    ]
+      .filter(Boolean)
+      .join('\n')
 
     const today = new Date().toISOString().slice(0, 10)
 
-    const result = await callAI('resolve', {
+    const result = (await callAI('resolve', {
       prompt: `你是工具优化分析助手。从以下工具调用摘要中提取 1-3 条可操作的优化建议。
 
 ${summary}
@@ -312,25 +397,32 @@ ${summary}
 格式（严格）：
 - ${today} | {场景} | {优化前问题} → {优化后做法} | 效果: {简述}
 
-每条约 20-50 字。只返回列表，不要解释。如果无明显优化点，返回空。`,
-    }) as string
+每条约 20-50 字。只返回列表，不要解释。如果无明显优化点，返回空。`
+    })) as string
 
     // 5. Parse and dedup
     const newEntries = String(result)
       .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.startsWith('- ') && l.includes('|'))
-      .map(l => l.slice(2).trim())
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith('- ') && l.includes('|'))
+      .map((l) => l.slice(2).trim())
 
     if (newEntries.length === 0) return { entries: 0, ok: true }
 
     // Read existing learnings for dedup
     const learnPath = join(vaultPath, '_briefing', 'tool-learnings.md')
     let existing = ''
-    try { existing = await readFile(learnPath, 'utf-8') } catch { /* new file */ }
+    try {
+      existing = await readFile(learnPath, 'utf-8')
+    } catch {
+      /* new file */
+    }
 
     const existingSet = new Set(
-      existing.split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2, l.indexOf(' | ')))
+      existing
+        .split('\n')
+        .filter((l) => l.startsWith('- '))
+        .map((l) => l.slice(2, l.indexOf(' | ')))
     )
 
     const added: string[] = []
@@ -349,7 +441,11 @@ ${summary}
       existing = '# 工具优化经验\n\n> AI 自动从工具调用日志中提取的优化建议。\n\n'
     }
     await mkdir(join(vaultPath, '_briefing'), { recursive: true })
-    await writeFile(learnPath, existing.trimEnd() + '\n' + added.map(e => `- ${e}`).join('\n') + '\n', 'utf-8')
+    await writeFile(
+      learnPath,
+      existing.trimEnd() + '\n' + added.map((e) => `- ${e}`).join('\n') + '\n',
+      'utf-8'
+    )
 
     return { entries: added.length, ok: true }
   } catch {
@@ -384,8 +480,12 @@ export async function queryMemory(query: string, date?: string): Promise<string>
       const matched: string[] = []
       if (c.title.toLowerCase().includes(q)) matched.push(`标题: ${c.title}`)
       if (c.topic.toLowerCase().includes(q)) matched.push(`话题: ${c.topic}`)
-      if (c.decisions.some(dd => dd.toLowerCase().includes(q))) matched.push(`决策: ${c.decisions.filter(dd => dd.toLowerCase().includes(q)).join('; ')}`)
-      if (c.nextSteps.some(ss => ss.toLowerCase().includes(q))) matched.push(`下一步: ${c.nextSteps.filter(ss => ss.toLowerCase().includes(q)).join('; ')}`)
+      if (c.decisions.some((dd) => dd.toLowerCase().includes(q)))
+        matched.push(`决策: ${c.decisions.filter((dd) => dd.toLowerCase().includes(q)).join('; ')}`)
+      if (c.nextSteps.some((ss) => ss.toLowerCase().includes(q)))
+        matched.push(
+          `下一步: ${c.nextSteps.filter((ss) => ss.toLowerCase().includes(q)).join('; ')}`
+        )
       if (matched.length > 0) {
         results.push(`[${d} ${c.time}] ${c.title}（${c.topic}）\n  ${matched.join('\n  ')}`)
       }
@@ -393,9 +493,9 @@ export async function queryMemory(query: string, date?: string): Promise<string>
 
     // 搜索增量记忆
     const facts = await loadIncrementalFacts(d)
-    const matchingFacts = facts.filter(f => f.toLowerCase().includes(q))
+    const matchingFacts = facts.filter((f) => f.toLowerCase().includes(q))
     if (matchingFacts.length > 0) {
-      results.push(`[${d}] 增量记忆:\n  ${matchingFacts.map(f => `- ${f}`).join('\n  ')}`)
+      results.push(`[${d}] 增量记忆:\n  ${matchingFacts.map((f) => `- ${f}`).join('\n  ')}`)
     }
   }
 
@@ -416,14 +516,15 @@ export async function queryMemory(query: string, date?: string): Promise<string>
  * 由 sessionManager 在 session 结束（reset / 新日期）时调用。
  */
 export async function saveSessionSummary(params: {
-  date: string      // session 对应的日期（YYYY-MM-DD）
+  date: string // session 对应的日期（YYYY-MM-DD）
   sessionId: string
   messages: AgentMessage[]
   vaultPath?: string
 }): Promise<{ path: string; ok: boolean; error?: string }> {
   const vaultPath = params.vaultPath ?? getVaultPath()
   if (!vaultPath) return { path: '', ok: false, error: 'No vault open' }
-  if (!params.messages || params.messages.length === 0) return { path: '', ok: false, error: 'No messages' }
+  if (!params.messages || params.messages.length === 0)
+    return { path: '', ok: false, error: 'No messages' }
 
   try {
     const now = new Date()
@@ -444,7 +545,7 @@ export async function saveSessionSummary(params: {
       `time: ${time}`,
       `session: ${params.sessionId}`,
       `tags: [conversation]`,
-      '---',
+      '---'
     ].join('\n')
 
     const body = [
@@ -456,13 +557,13 @@ export async function saveSessionSummary(params: {
       raw.discussion,
       '',
       '## 关键决策',
-      ...decisions.map(d => `- ${d}`),
+      ...decisions.map((d) => `- ${d}`),
       '',
       '## 相关文件',
-      ...(raw.files || []).map(f => `- ${f}`),
+      ...(raw.files || []).map((f) => `- ${f}`),
       '',
       '## 下一步',
-      ...nextSteps.map(s => `- ${s}`),
+      ...nextSteps.map((s) => `- ${s}`)
     ].join('\n')
 
     const filePath = join(dir, `conv-${hhmm}.md`)
@@ -492,7 +593,7 @@ async function loadConversationSummaries(date: string): Promise<ConversationSumm
   const summaries: ConversationSummary[] = []
   try {
     const files = await readdir(dir)
-    const convFiles = files.filter(f => f.startsWith('conv-') && f.endsWith('.md')).sort()
+    const convFiles = files.filter((f) => f.startsWith('conv-') && f.endsWith('.md')).sort()
     for (const file of convFiles) {
       try {
         const raw = await readFile(join(dir, file), 'utf-8')
@@ -502,9 +603,20 @@ async function loadConversationSummaries(date: string): Promise<ConversationSumm
         let inDecisions = false
         let inNext = false
         for (const line of raw.split('\n')) {
-          if (line.trim() === '## 关键决策') { inDecisions = true; inNext = false; continue }
-          if (line.trim() === '## 下一步') { inNext = true; inDecisions = false; continue }
-          if (line.startsWith('## ')) { inDecisions = false; inNext = false }
+          if (line.trim() === '## 关键决策') {
+            inDecisions = true
+            inNext = false
+            continue
+          }
+          if (line.trim() === '## 下一步') {
+            inNext = true
+            inDecisions = false
+            continue
+          }
+          if (line.startsWith('## ')) {
+            inDecisions = false
+            inNext = false
+          }
           if ((inDecisions || inNext) && line.startsWith('- ')) {
             const text = line.slice(2).trim()
             if (inDecisions) decisions.push(text)
@@ -521,12 +633,16 @@ async function loadConversationSummaries(date: string): Promise<ConversationSumm
           raw: {
             discussion: '',
             title: frontmatter.title ?? file,
-            files: (frontmatter.sources as string[]) ?? [],
-          },
+            files: (frontmatter.sources as string[]) ?? []
+          }
         })
-      } catch { /* skip unreadable file */ }
+      } catch {
+        /* skip unreadable file */
+      }
     }
-  } catch { /* dir doesn't exist */ }
+  } catch {
+    /* dir doesn't exist */
+  }
   return summaries
 }
 
@@ -537,18 +653,18 @@ async function summarizeConversation(messages: AgentMessage[]): Promise<{
   raw: { discussion: string; title: string; files: string[] }
 }> {
   // 过滤掉 system 消息，只留 user + assistant
-  const userMsgs = messages.filter(m => m.role === 'user')
-  const assistantMsgs = messages.filter(m => m.role === 'assistant')
+  const userMsgs = messages.filter((m) => m.role === 'user')
+  const assistantMsgs = messages.filter((m) => m.role === 'assistant')
 
   // 取前 10 条摘要样本（避免 token 过多）
   const sample = [...userMsgs, ...assistantMsgs]
     .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
     .slice(-10)
-    .map(m => `**${m.role}**: ${String(m.content ?? '').slice(0, 500)}`)
+    .map((m) => `**${m.role}**: ${String(m.content ?? '').slice(0, 500)}`)
     .join('\n\n')
 
   try {
-    const result = await callAI('resolve', {
+    const result = (await callAI('resolve', {
       prompt: `你是晓园 Vault 的记忆整理助手。请从以下对话记录中提取关键信息。
 
 对话记录：
@@ -564,21 +680,24 @@ ${sample}
     "title": "对话标题（20字内）",
     "files": ["提及的相关文件1", "相关文件2"]
   }
-}`,
-    }) as string
+}`
+    })) as string
 
     const match = String(result).match(/\{[\s\S]*\}/)
     if (!match) return makeEmpty()
     const p = JSON.parse(match[0]) as Record<string, unknown>
     return {
       topic: String(p.topic ?? ''),
-      decisions: (p.decisions as unknown[] || []).slice(0, 5) as string[],
-      nextSteps: (p.nextSteps as unknown[] || []).slice(0, 5) as string[],
+      decisions: ((p.decisions as unknown[]) || []).slice(0, 5) as string[],
+      nextSteps: ((p.nextSteps as unknown[]) || []).slice(0, 5) as string[],
       raw: {
         discussion: String((p.raw as Record<string, unknown>)?.discussion ?? ''),
         title: String((p.raw as Record<string, unknown>)?.title ?? ''),
-        files: ((p.raw as Record<string, unknown>)?.files as unknown[] || []).slice(0, 10) as string[],
-      },
+        files: (((p.raw as Record<string, unknown>)?.files as unknown[]) || []).slice(
+          0,
+          10
+        ) as string[]
+      }
     }
   } catch {
     return makeEmpty()
@@ -590,7 +709,7 @@ function makeEmpty() {
     topic: '对话',
     decisions: [] as string[],
     nextSteps: [] as string[],
-    raw: { discussion: '', title: '对话记录', files: [] as string[] },
+    raw: { discussion: '', title: '对话记录', files: [] as string[] }
   }
 }
 
@@ -610,7 +729,7 @@ export async function generateWeeklyDigest(): Promise<{ path: string; ok: boolea
   try {
     // 取上一周的日期范围
     const now = new Date()
-    const dayOfWeek = now.getDay() || 7  // 0=周日 → 7
+    const dayOfWeek = now.getDay() || 7 // 0=周日 → 7
     const weekStart = new Date(now.getTime() - (dayOfWeek - 1) * 86400000)
     const weekEnd = new Date(weekStart.getTime() + 6 * 86400000)
     const fmt = (d: Date) => d.toISOString().slice(0, 10)
@@ -663,7 +782,7 @@ export async function generateWeeklyDigest(): Promise<{ path: string; ok: boolea
       '',
       `> 本周共 ${dailySummaries.length} 天有对话记录，${totalDecisions} 项决策，${totalActions} 项待办。`,
       '',
-      ...summaryLines,
+      ...summaryLines
     ].join('\n')
 
     await writeFile(weeklyFp, body, 'utf-8')

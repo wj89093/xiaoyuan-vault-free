@@ -1,27 +1,34 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { ipcMain, shell, BrowserWindow } from 'electron'
 import Store from 'electron-store'
 import log from 'electron-log/main'
 
 const store = new Store<{ authToken?: string; authEmail?: string; authState?: string }>({
   name: 'auth',
-  encryptionKey: 'xyvault-auth-v1',
+  encryptionKey: 'xyvault-auth-v1'
 })
 
 // ─── JWT Validation ─────────────────────────────────────────────────────────
 // Strict format + payload check (signature is validated by auth-gateway)
-function isValidJWTPayload(token: string): { sub?: string; email?: string; userId?: string; exp?: number } | null {
+function isValidJWTPayload(
+  token: string
+): { sub?: string; email?: string; userId?: string; exp?: number } | null {
   try {
     const parts = token.split('.')
     if (parts.length !== 3) return null
     // Base64url → base64 (replace - with + and _ with /)
     const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
     const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4)
-    const decoded = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8')) as { sub?: string; email?: string; exp?: number }
-    if (!decoded.sub && !decoded.email && !decoded.userId) return null         // must have identity
-    if (decoded.exp !== undefined && decoded.exp < Date.now() / 1000) return null  // expired
+    const decoded = JSON.parse(Buffer.from(padded, 'base64').toString('utf-8')) as {
+      sub?: string
+      email?: string
+      exp?: number
+    }
+    if (!decoded.sub && !decoded.email && !decoded.userId) return null // must have identity
+    if (decoded.exp !== undefined && decoded.exp < Date.now() / 1000) return null // expired
     return decoded
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 export function handleAuthCallback(url: string): void {
@@ -38,7 +45,7 @@ export function handleAuthCallback(url: string): void {
       store.set('authToken', token)
       store.set('authEmail', email ?? payload.email ?? null)
       log.info('[Auth] Token saved from OAuth callback')
-      BrowserWindow.getAllWindows().forEach(win => {
+      BrowserWindow.getAllWindows().forEach((win) => {
         win.webContents.send('auth:tokenReceived', { token, email: email ?? payload.email })
       })
     }
@@ -52,19 +59,23 @@ export function registerAuthHandlers(): void {
   ipcMain.handle('auth:getToken', () => store.get('authToken') ?? null)
   ipcMain.handle('auth:getEmail', () => store.get('authEmail') ?? null)
   ipcMain.handle('auth:getState', () => store.get('authState') ?? null)
-  ipcMain.handle('auth:saveState', (_, state: string) => { store.set('authState', state) })
+  ipcMain.handle('auth:saveState', (_, state: string) => {
+    store.set('authState', state)
+  })
   ipcMain.handle('auth:clear', () => {
     store.delete('authToken')
     store.delete('authEmail')
-    BrowserWindow.getAllWindows().forEach(win => {
+    BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('auth:cleared')
     })
   })
   ipcMain.handle('auth:openLogin', async (_, loginUrl?: string) => {
-    const url = loginUrl ?? (() => {
-      const gw = process.env.AUTH_GATEWAY_URL ?? 'http://localhost:3000'
-      return `${gw.replace(/\/+$/, '')}/auth/email/login`
-    })()
+    const url =
+      loginUrl ??
+      (() => {
+        const gw = process.env.AUTH_GATEWAY_URL ?? 'http://localhost:3000'
+        return `${gw.replace(/\/+$/, '')}/auth/email/login`
+      })()
     log.info('[Auth] Opening login URL:', url)
     await shell.openExternal(url)
   })
@@ -73,13 +84,13 @@ export function registerAuthHandlers(): void {
   ipcMain.handle('auth:debugLogin', async (_, email: string, code: string) => {
     const gw = process.env.AUTH_GATEWAY_URL ?? 'http://localhost:3000'
     log.info('[Auth] Debug login for:', email)
-    
+
     const res = await fetch(`${gw}/auth/email/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code }),
+      body: JSON.stringify({ email, code })
     })
-    const data = await res.json() as { token?: string; user?: { email?: string }; error?: string }
+    const data = (await res.json()) as { token?: string; user?: { email?: string }; error?: string }
     if (!res.ok || !data.token) {
       throw new Error(data.error ?? `API error: ${res.status}`)
     }
@@ -94,7 +105,7 @@ export function registerAuthHandlers(): void {
     store.set('authEmail', userEmail)
     log.info('[Auth] Debug login success:', userEmail)
 
-    BrowserWindow.getAllWindows().forEach(win => {
+    BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('auth:tokenReceived', { token: data.token, email: userEmail })
     })
 
