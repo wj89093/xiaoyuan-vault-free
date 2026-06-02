@@ -20,7 +20,10 @@ function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T 
   let timer: ReturnType<typeof setTimeout> | null = null
   return ((...args: unknown[]) => {
     if (timer) clearTimeout(timer)
-    timer = setTimeout(() => { fn(...args); timer = null }, ms)
+    timer = setTimeout(() => {
+      fn(...args)
+      timer = null
+    }, ms)
   }) as T
 }
 
@@ -34,7 +37,7 @@ class CSSVariableManagerClass {
     lastVars: Record<string, string>
   } = {
     theme: null,
-    lastVars: {},
+    lastVars: {}
   }
 
   constructor() {
@@ -150,7 +153,7 @@ class CSSVariableManagerClass {
       [`${prefix}-20`]: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.20)`,
       [`${prefix}-25`]: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`,
       [`${prefix}-40`]: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.40)`,
-      [`${prefix}-60`]: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.60)`,
+      [`${prefix}-60`]: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.60)`
     }
   }
 
@@ -180,6 +183,6 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   return {
     r: parseInt(match[1], 16),
     g: parseInt(match[2], 16),
-    b: parseInt(match[3], 16),
+    b: parseInt(match[3], 16)
   }
 }

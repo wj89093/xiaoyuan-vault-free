@@ -30,12 +30,16 @@ describe('Import pipeline', () => {
   it('copies binary file without corruption (simulating docx)', async () => {
     const src = join(TEST_DIR, 'document.docx')
     const dest = join(TEST_DIR, '_raw', 'document.docx')
-    const data = Buffer.from([0x50, 0x4B, 0x03, 0x04, ...Array(1000).fill(0xAB)])
+    const data = Buffer.from([0x50, 0x4b, 0x03, 0x04, ...Array(1000).fill(0xab)])
     await writeFile(src, data)
     await copyFile(src, dest)
-    
-    const origHash = createHash('sha256').update(await readFile(src)).digest('hex')
-    const copyHash = createHash('sha256').update(await readFile(dest)).digest('hex')
+
+    const origHash = createHash('sha256')
+      .update(await readFile(src))
+      .digest('hex')
+    const copyHash = createHash('sha256')
+      .update(await readFile(dest))
+      .digest('hex')
     expect(origHash).toBe(copyHash)
     expect(existsSync(src)).toBe(true)
   })
@@ -58,7 +62,7 @@ describe('Import pipeline', () => {
     await writeFile(src, 'important', 'utf-8')
     const dest = join(TEST_DIR, '_raw', 'keep-me.md')
     await copyFile(src, dest)
-    
+
     expect(existsSync(src)).toBe(true)
     expect(existsSync(dest)).toBe(true)
     // Both should be identical
@@ -92,7 +96,7 @@ describe('Wiki file enrichment safety', () => {
 
   it('binary files produce garbage when read as UTF-8', async () => {
     const f = join(TEST_DIR, '_wiki', 'not-real.docx')
-    const bin = Buffer.from([0x50, 0x4B, 0x03, 0x04])
+    const bin = Buffer.from([0x50, 0x4b, 0x03, 0x04])
     await writeFile(f, bin)
     const readAsUtf8 = await readFile(f, 'utf-8')
     expect(readAsUtf8).not.toBe('PK')

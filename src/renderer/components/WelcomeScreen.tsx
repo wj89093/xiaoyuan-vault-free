@@ -1,5 +1,24 @@
 import { useState, useEffect } from 'react'
-import { Library, FolderPlus, FolderOpen, Sparkles, FileText, Upload, Check, Clock, Trash2, Layers, Bot, ArrowDownToLine, User, LogIn, LogOut, Loader2, Copy, Download } from 'lucide-react'
+import {
+  Library,
+  FolderPlus,
+  FolderOpen,
+  Sparkles,
+  FileText,
+  Upload,
+  Check,
+  Clock,
+  Trash2,
+  Layers,
+  Bot,
+  ArrowDownToLine,
+  User,
+  LogIn,
+  LogOut,
+  Loader2,
+  Copy,
+  Download
+} from 'lucide-react'
 
 export interface VaultItem {
   path: string
@@ -21,10 +40,15 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({
-  onOpenVault: _onOpenVault, onNewVault,
-  showOnboarding, onCompleteOnboarding,
-  recentVaults: _recentVaults, onOpenRecent: _onOpenRecent,
-  vaults = [], onOpenVaultItem, onDeleteVault,
+  onOpenVault: _onOpenVault,
+  onNewVault,
+  showOnboarding,
+  onCompleteOnboarding,
+  recentVaults: _recentVaults,
+  onOpenRecent: _onOpenRecent,
+  vaults = [],
+  onOpenVaultItem,
+  onDeleteVault
 }: WelcomeScreenProps): JSX.Element {
   const [mounted, setMounted] = useState(false)
   const [skillCopied, setSkillCopied] = useState(false)
@@ -49,11 +73,17 @@ export function WelcomeScreen({
       try {
         const e = await window.api.authGetEmail?.()
         setAuthEmail(e)
-      } catch { /* ignore */ }
-      const unsub = (window.api as any).onAuthTokenReceived?.((data: { token: string; email: string }) => {
-        setAuthEmail(data.email)
-      })
-      return () => { unsub?.() }
+      } catch {
+        /* ignore */
+      }
+      const unsub = (window.api as any).onAuthTokenReceived?.(
+        (data: { token: string; email: string }) => {
+          setAuthEmail(data.email)
+        }
+      )
+      return () => {
+        unsub?.()
+      }
     })()
     void (async () => {
       const counts: Record<string, number> = {}
@@ -62,10 +92,14 @@ export function WelcomeScreen({
           const files = await window.api.listFiles?.()
           if (files) {
             // count files under this vault path
-            const count = files.filter((f: { path: string }) => f.path.startsWith(vault.path + '/')).length
+            const count = files.filter((f: { path: string }) =>
+              f.path.startsWith(vault.path + '/')
+            ).length
             counts[vault.path] = count
           }
-        } catch { counts[vault.path] = 0 }
+        } catch {
+          counts[vault.path] = 0
+        }
       }
       setDocCounts(counts)
     })()
@@ -93,7 +127,7 @@ export function WelcomeScreen({
   if (showOnboarding) {
     const handleCopySkill = async () => {
       try {
-        const content = await window.api.skillLoadDefault?.() || ''
+        const content = (await window.api.skillLoadDefault?.()) || ''
         await navigator.clipboard.writeText(content)
         setSkillCopied(true)
         setTimeout(() => setSkillCopied(false), 2000)
@@ -104,7 +138,7 @@ export function WelcomeScreen({
 
     const handleDownloadSkill = async () => {
       try {
-        const content = await window.api.skillLoadDefault?.() || ''
+        const content = (await window.api.skillLoadDefault?.()) || ''
         const blob = new Blob([content], { type: 'text/markdown' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -122,7 +156,7 @@ export function WelcomeScreen({
         className="welcome-screen"
         style={{
           opacity: mounted ? 1 : 0,
-          transition: 'opacity 300ms ease',
+          transition: 'opacity 300ms ease'
         }}
       >
         <div className="onboarding-card">
@@ -142,40 +176,69 @@ export function WelcomeScreen({
                 title: '三层架构',
                 desc: '来源(原始文件) → 知识(AI整理) → 规范(协作约定)',
                 tag: '已就绪',
-                color: 'var(--color-green)',
+                color: 'var(--color-green)'
               },
               {
                 icon: <Bot size={18} strokeWidth={1.5} color="var(--color-purple)" />,
                 title: '接入你的 AI',
                 desc: '支持 OpenClaw / Claude Code / Ollama / 自建 LLM — 拷一份 Skill.md 给它当系统提示词',
                 tag: '下一步',
-                color: 'var(--color-blue)',
+                color: 'var(--color-blue)'
               },
               {
                 icon: <ArrowDownToLine size={18} strokeWidth={1.5} color="var(--color-accent)" />,
                 title: '导入第一批文件',
                 desc: '把文件拖到窗口 · 粘贴链接 · 或从系统选择文件夹 — AI 会自动整理',
                 tag: '之后',
-                color: 'var(--color-purple)',
-              },
+                color: 'var(--color-purple)'
+              }
             ].map((step, i) => (
-              <div key={i} style={{
-                display: 'flex', gap: 12, alignItems: 'flex-start',
-                padding: '10px 14px', borderRadius: 10,
-                background: 'var(--color-surface-hover)',
-                border: '1px solid var(--color-border)',
-              }}>
-                <div style={{ flexShrink: 0, marginTop: 2, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{step.icon}</div>
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  alignItems: 'flex-start',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  background: 'var(--color-surface-hover)',
+                  border: '1px solid var(--color-border)'
+                }}
+              >
+                <div
+                  style={{
+                    flexShrink: 0,
+                    marginTop: 2,
+                    width: 24,
+                    height: 24,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  {step.icon}
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                     <span style={{ fontWeight: 600, fontSize: 13 }}>{step.title}</span>
-                    <span style={{
-                      fontSize: 10, padding: '1px 6px', borderRadius: 4,
-                      background: step.color + '18', color: step.color,
-                      fontWeight: 600,
-                    }}>{step.tag}</span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        background: step.color + '18',
+                        color: step.color,
+                        fontWeight: 600
+                      }}
+                    >
+                      {step.tag}
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{step.desc}</div>
+                  <div
+                    style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}
+                  >
+                    {step.desc}
+                  </div>
                 </div>
               </div>
             ))}
@@ -188,9 +251,15 @@ export function WelcomeScreen({
               onClick={handleCopySkill}
               style={{ flex: 1, justifyContent: 'center' }}
             >
-              {skillCopied
-                ? <><Check size={18} /> 已复制</>
-                : <><Copy size={18} /> 复制 Skill.md</>}
+              {skillCopied ? (
+                <>
+                  <Check size={18} /> 已复制
+                </>
+              ) : (
+                <>
+                  <Copy size={18} /> 复制 Skill.md
+                </>
+              )}
             </button>
             <button
               className="btn btn-ghost btn-lg"
@@ -203,10 +272,13 @@ export function WelcomeScreen({
           <button
             onClick={onCompleteOnboarding}
             style={{
-              width: '100%', padding: '6px',
-              background: 'none', border: 'none',
+              width: '100%',
+              padding: '6px',
+              background: 'none',
+              border: 'none',
               color: 'var(--color-text-tertiary)',
-              fontSize: 12, cursor: 'pointer',
+              fontSize: 12,
+              cursor: 'pointer'
             }}
           >
             稍后再说，直接进入
@@ -221,18 +293,20 @@ export function WelcomeScreen({
       className="welcome-screen"
       style={{
         opacity: mounted ? 1 : 0,
-        transition: 'opacity 300ms ease',
+        transition: 'opacity 300ms ease'
       }}
     >
       {/* ── 账户状态栏 ── */}
-      <div style={{
-        position: 'absolute',
-        top: 16,
-        right: 20,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-      }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 16,
+          right: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
+        }}
+      >
         {authEmail ? (
           <div style={{ position: 'relative' }}>
             <button
@@ -244,26 +318,28 @@ export function WelcomeScreen({
                 gap: 6,
                 fontSize: 12,
                 padding: '4px 10px',
-                color: 'var(--color-accent)',
+                color: 'var(--color-accent)'
               }}
             >
               <User size={14} />
               <span>{authEmail.split('@')[0]}</span>
             </button>
             {userMenuOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: 4,
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 8,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                overflow: 'hidden',
-                minWidth: 140,
-                zIndex: 100,
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 4,
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 8,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                  overflow: 'hidden',
+                  minWidth: 140,
+                  zIndex: 100
+                }}
+              >
                 <button
                   className="btn btn-ghost"
                   onClick={async () => {
@@ -281,7 +357,7 @@ export function WelcomeScreen({
                     padding: '8px 14px',
                     fontSize: 12,
                     borderRadius: 0,
-                    border: 'none',
+                    border: 'none'
                   }}
                 >
                   <User size={13} /> 切换账号
@@ -302,7 +378,7 @@ export function WelcomeScreen({
                     fontSize: 12,
                     borderRadius: 0,
                     border: 'none',
-                    color: 'var(--color-red)',
+                    color: 'var(--color-red)'
                   }}
                 >
                   <LogOut size={13} /> 退出登录
@@ -328,31 +404,31 @@ export function WelcomeScreen({
             </button>
           </>
         )}
-        {loginHint && (
-          <span style={{ fontSize: 10, color: 'var(--color-red)' }}>{loginHint}</span>
-        )}
+        {loginHint && <span style={{ fontSize: 10, color: 'var(--color-red)' }}>{loginHint}</span>}
       </div>
 
       {/* ── 登录/注册弹窗 ── */}
       {loginOpen && !authEmail && (
-        <div style={{
-          position: 'absolute',
-          top: 48,
-          right: 20,
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 10,
-          padding: 16,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          zIndex: 100,
-          minWidth: 280,
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 48,
+            right: 20,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 10,
+            padding: 16,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            zIndex: 100,
+            minWidth: 280
+          }}
+        >
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>邮箱登录</div>
           <input
             type="email"
             placeholder="邮箱地址"
             value={loginEmail}
-            onChange={e => setLoginEmail(e.target.value)}
+            onChange={(e) => setLoginEmail(e.target.value)}
             autoFocus
             style={{
               width: '100%',
@@ -362,16 +438,18 @@ export function WelcomeScreen({
               background: 'var(--color-bg-secondary)',
               color: 'var(--color-text)',
               fontSize: 12,
-              marginBottom: 8,
+              marginBottom: 8
             }}
           />
           <input
             type="text"
             placeholder="验证码 (调试: 123456)"
             value={loginCode}
-            onChange={e => setLoginCode(e.target.value)}
+            onChange={(e) => setLoginCode(e.target.value)}
             maxLength={6}
-            onKeyDown={e => { if (e.key === 'Enter') void handleLogin() }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void handleLogin()
+            }}
             style={{
               width: '100%',
               padding: '6px 10px',
@@ -380,12 +458,14 @@ export function WelcomeScreen({
               background: 'var(--color-bg-secondary)',
               color: 'var(--color-text)',
               fontSize: 12,
-              marginBottom: 10,
+              marginBottom: 10
             }}
           />
           <button
             className="btn btn-primary"
-            onClick={() => { void handleLogin() }}
+            onClick={() => {
+              void handleLogin()
+            }}
             disabled={authLoading}
             style={{ width: '100%', fontSize: 13, padding: '6px 0' }}
           >
@@ -419,7 +499,12 @@ export function WelcomeScreen({
       </div>
 
       <div className="welcome-actions">
-        <button className="btn btn-primary btn-lg" onClick={() => { void onNewVault() }}>
+        <button
+          className="btn btn-primary btn-lg"
+          onClick={() => {
+            void onNewVault()
+          }}
+        >
           <FolderPlus size={18} />
           创建新知识库
         </button>
@@ -447,65 +532,95 @@ export function WelcomeScreen({
       {/* 知识库列表 */}
       {vaults.length > 0 && (
         <div className="welcome-recent" style={{ marginTop: 12 }}>
-          <div className="welcome-recent-title" aria-live="polite">知识库列表</div>
+          <div className="welcome-recent-title" aria-live="polite">
+            知识库列表
+          </div>
           <div role="list" aria-live="polite">
-          {vaults.map((vault, index) => {
-            const ago = vault.lastOpened
-              ? (() => {
-                  const diff = Date.now() - vault.lastOpened
-                  if (diff < 60000) return '刚刚'
-                  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
-                  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
-                  return `${Math.floor(diff / 86400000)} 天前`
-                })()
-              : null
-            const docCount = docCounts[vault.path]
-            return (
-              <div
-                key={vault.path}
-                role="listitem"
-                className="welcome-recent-item"
-                style={{
-                  display: 'flex', alignItems: 'center',
-                  opacity: mounted ? 1 : 0,
-                  transform: mounted ? 'translateY(0)' : 'translateY(8px)',
-                  transition: `opacity 300ms ease ${index * 60}ms, transform 300ms ease ${index * 60}ms`,
-                }}
-              >
-                <FolderOpen size={14} style={{ flexShrink: 0 }} />
-                <button
-                  style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '4px 8px', borderRadius: 6, overflow: 'hidden' }}
-                  onClick={() => onOpenVaultItem?.(vault.path)}
-                  title={vault.path}
+            {vaults.map((vault, index) => {
+              const ago = vault.lastOpened
+                ? (() => {
+                    const diff = Date.now() - vault.lastOpened
+                    if (diff < 60000) return '刚刚'
+                    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`
+                    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`
+                    return `${Math.floor(diff / 86400000)} 天前`
+                  })()
+                : null
+              const docCount = docCounts[vault.path]
+              return (
+                <div
+                  key={vault.path}
+                  role="listitem"
+                  className="welcome-recent-item"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    opacity: mounted ? 1 : 0,
+                    transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+                    transition: `opacity 300ms ease ${index * 60}ms, transform 300ms ease ${index * 60}ms`
+                  }}
                 >
-                  <span style={{ fontWeight: vault.path === lastVault?.path ? 600 : 400 }}>{vault.name}</span>
-                  <span className="welcome-recent-path">{vault.path}</span>
-                </button>
-                {/* P2-2: last-opened timestamp */}
-                {ago && <span className="welcome-recent-time">{ago}</span>}
-                {/* P2-3: document count estimate */}
-                {docCount !== undefined && docCount > 0 && (
-                  <span className="welcome-recent-count">{docCount} 篇</span>
-                )}
-                <button
-                  onClick={() => onDeleteVault?.(vault.path)}
-                  tabIndex={0}
-                  role="button"
-                  onKeyDown={(e) => { if (e.key === 'Enter') onDeleteVault?.(vault.path) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-red)', padding: 4, flexShrink: 0 }}
-                  title="从列表移除"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            )
-          })}
+                  <FolderOpen size={14} style={{ flexShrink: 0 }} />
+                  <button
+                    style={{
+                      flex: 1,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      overflow: 'hidden'
+                    }}
+                    onClick={() => onOpenVaultItem?.(vault.path)}
+                    title={vault.path}
+                  >
+                    <span style={{ fontWeight: vault.path === lastVault?.path ? 600 : 400 }}>
+                      {vault.name}
+                    </span>
+                    <span className="welcome-recent-path">{vault.path}</span>
+                  </button>
+                  {/* P2-2: last-opened timestamp */}
+                  {ago && <span className="welcome-recent-time">{ago}</span>}
+                  {/* P2-3: document count estimate */}
+                  {docCount !== undefined && docCount > 0 && (
+                    <span className="welcome-recent-count">{docCount} 篇</span>
+                  )}
+                  <button
+                    onClick={() => onDeleteVault?.(vault.path)}
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') onDeleteVault?.(vault.path)
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--color-red)',
+                      padding: 4,
+                      flexShrink: 0
+                    }}
+                    title="从列表移除"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
 
       {vaults.length === 0 && (
-        <div style={{ marginTop: 20, color: 'var(--color-text-tertiary)', fontSize: 12, textAlign: 'center' }}>
+        <div
+          style={{
+            marginTop: 20,
+            color: 'var(--color-text-tertiary)',
+            fontSize: 12,
+            textAlign: 'center'
+          }}
+        >
           还没有知识库，创建一个开始使用
         </div>
       )}

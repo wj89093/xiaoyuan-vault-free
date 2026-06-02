@@ -35,7 +35,10 @@ export function parseWikiLinks(text: Text, from: number, to: number): ParsedWiki
  * Check if cursor is currently inside an unclosed wiki link.
  * Returns the partial text if inside, null otherwise.
  */
-export function findPartialLinkAt(text: Text, cursorPos: number): { partial: string; from: number; to: number } | null {
+export function findPartialLinkAt(
+  text: Text,
+  cursorPos: number
+): { partial: string; from: number; to: number } | null {
   const line = text.lineAt(cursorPos)
   const lineText = line.text
   const offsetInLine = cursorPos - line.from
@@ -63,5 +66,5 @@ export function findLinkAtPos(text: Text, pos: number): ParsedWikiLink | null {
   const from = Math.max(0, pos - 200)
   const to = Math.min(text.length, pos + 50)
   const links = parseWikiLinks(text, from, to)
-  return links.find(l => pos >= l.from && pos <= l.to) ?? null
+  return links.find((l) => pos >= l.from && pos <= l.to) ?? null
 }

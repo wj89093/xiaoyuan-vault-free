@@ -16,7 +16,9 @@ export function registerTrashHandlers(): void {
     try {
       const raw = await readFile(join(trashDir, '.trash-meta.json'), 'utf-8')
       return JSON.parse(raw) as Record<string, string>
-    } catch { return {} }
+    } catch {
+      return {}
+    }
   }
 
   async function saveTrashMeta(trashDir: string, meta: Record<string, string>): Promise<void> {
@@ -24,7 +26,11 @@ export function registerTrashHandlers(): void {
     await writeFile(join(trashDir, '.trash-meta.json'), JSON.stringify(meta, null, 2), 'utf-8')
   }
 
-  async function _addTrashMeta(trashDir: string, trashName: string, originalPath: string): Promise<void> {
+  async function _addTrashMeta(
+    trashDir: string,
+    trashName: string,
+    originalPath: string
+  ): Promise<void> {
     const meta = await loadTrashMeta(trashDir)
     meta[trashName] = originalPath
     await saveTrashMeta(trashDir, meta)
@@ -40,10 +46,15 @@ export function registerTrashHandlers(): void {
     const { shell } = await import('electron')
     const vaultPath = getVaultPath()
     const fullPath = vaultPath
-      ? (filePath.startsWith(vaultPath) ? filePath : join(vaultPath, filePath))
+      ? filePath.startsWith(vaultPath)
+        ? filePath
+        : join(vaultPath, filePath)
       : filePath
     const errMsg = await shell.openPath(fullPath)
-    if (errMsg) { log.warn('[fileOpenExternal] failed:', fullPath, errMsg); return { ok: false, error: errMsg } }
+    if (errMsg) {
+      log.warn('[fileOpenExternal] failed:', fullPath, errMsg)
+      return { ok: false, error: errMsg }
+    }
     return { ok: true }
   })
 
@@ -59,7 +70,12 @@ export function registerTrashHandlers(): void {
     await mkdir(trashDir, { recursive: true })
     const meta = await loadTrashMeta(trashDir)
     const entries = await readdir(trashDir).catch(() => [])
-    const files: Array<{ originalPath: string; trashPath: string; deletedAt: number; name: string }> = []
+    const files: Array<{
+      originalPath: string
+      trashPath: string
+      deletedAt: number
+      name: string
+    }> = []
     for (const entry of entries) {
       if (entry.startsWith('.')) continue
       const fullPath = join(trashDir, entry)
@@ -69,7 +85,7 @@ export function registerTrashHandlers(): void {
         originalPath: meta[entry] ?? '',
         trashPath: fullPath,
         deletedAt: s.mtimeMs,
-        name: meta[entry]?.split('/').pop() ?? entry,
+        name: meta[entry]?.split('/').pop() ?? entry
       })
     }
     return files.sort((a, b) => b.deletedAt - a.deletedAt)
@@ -85,7 +101,9 @@ export function registerTrashHandlers(): void {
     try {
       await rename(trashPath, originalPath)
       await removeTrashMeta(trashDir, trashName)
-    } catch (e) { log.warn('[TrashRestore] failed:', e) }
+    } catch (e) {
+      log.warn('[TrashRestore] failed:', e)
+    }
     return true
   })
 
@@ -99,7 +117,9 @@ export function registerTrashHandlers(): void {
       if (s.isDirectory()) await rmdir(trashPath, { recursive: true })
       else await unlink(trashPath)
       await removeTrashMeta(trashDir, trashName)
-    } catch (e) { log.warn('[Trash] delete failed:', e) }
+    } catch (e) {
+      log.warn('[Trash] delete failed:', e)
+    }
     return true
   })
 
@@ -118,7 +138,9 @@ export function registerTrashHandlers(): void {
         if (s.isDirectory()) await rmdir(fullPath, { recursive: true })
         else await unlink(fullPath)
         count++
-      } catch (e) { log.warn('[Trash] clean error:', e) }
+      } catch (e) {
+        log.warn('[Trash] clean error:', e)
+      }
     }
     // Clear meta
     await saveTrashMeta(trashDir, {})

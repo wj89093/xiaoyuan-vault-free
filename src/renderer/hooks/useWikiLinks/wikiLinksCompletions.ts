@@ -1,7 +1,12 @@
 /**
  * wikiLinksCompletions.ts — Auto-completion for wiki links
  */
-import { autocompletion, type Completion, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete'
+import {
+  autocompletion,
+  type Completion,
+  type CompletionContext,
+  type CompletionResult
+} from '@codemirror/autocomplete'
 import type { WikiLinksConfig } from './types'
 import { findPartialLinkAt } from './wikiLinksParser'
 import { getWikiLinksSuggestionsProvider } from './useWikiLinksSuggestions'
@@ -42,7 +47,7 @@ export function wikiLinksCompletionSource(config: WikiLinksConfig) {
           label: f.name.replace(/\.md$/, ''),
           target: f.path,
           detail: f.path,
-          boost: 0,
+          boost: 0
         }))
         .filter((s: any) => s.label.toLowerCase().includes(q))
         .slice(0, 12)
@@ -62,16 +67,16 @@ export function wikiLinksCompletionSource(config: WikiLinksConfig) {
         const deleteFrom = lineStart + openIdx
         view.dispatch({
           changes: { from: deleteFrom, to, insert: rawText },
-          selection: { anchor: deleteFrom + rawText.length },
+          selection: { anchor: deleteFrom + rawText.length }
         })
-      },
+      }
     }))
 
     return {
       from,
       to,
       options,
-      validFor: /^[^\]]*$/,
+      validFor: /^[^\]]*$/
     }
   }
 }
@@ -81,6 +86,6 @@ export function wikiLinksCompletionSource(config: WikiLinksConfig) {
  */
 export function wikiLinksCompletionsExtension(config: WikiLinksConfig) {
   return autocompletion({
-    override: [wikiLinksCompletionSource(config)],
+    override: [wikiLinksCompletionSource(config)]
   })
 }

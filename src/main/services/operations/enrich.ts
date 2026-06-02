@@ -8,8 +8,14 @@ import { parseFrontmatter, applyFrontmatter, extractTypedLinks } from '../frontm
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 const FOLDER_MAP_DEFAULTS: Record<string, string> = {
-  person: '1-人物', company: '2-公司', project: '3-项目', meeting: '4-会议',
-  deal: '5-交易', concept: '6-概念', research: '7-研究', collection: '0-收集',
+  person: '1-人物',
+  company: '2-公司',
+  project: '3-项目',
+  meeting: '4-会议',
+  deal: '5-交易',
+  concept: '6-概念',
+  research: '7-研究',
+  collection: '0-收集'
 }
 let _folderMap: Record<string, string> | null = null
 
@@ -26,7 +32,9 @@ export async function loadFolderMap(): Promise<Record<string, string>> {
       _folderMap = JSON.parse(raw)
       return _folderMap
     }
-  } catch { /* use defaults */ }
+  } catch {
+    /* use defaults */
+  }
   _folderMap = { ...FOLDER_MAP_DEFAULTS }
   return _folderMap
 }
@@ -39,7 +47,9 @@ export async function saveFolderMap(map: Record<string, string>): Promise<void> 
   try {
     if (!existsSync(dir)) await mkdir(dir, { recursive: true })
     await writeFile(join(dir, 'folder-map.json'), JSON.stringify(map, null, 2), 'utf-8')
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ─── Bidirectional Links ────────────────────────────────────────────
@@ -54,7 +64,11 @@ export async function scanAllMarkdownFiles(vaultPath: string): Promise<string[]>
   async function scan(dir: string) {
     const { readdir, stat } = await import('fs/promises')
     let entries: string[]
-    try { entries = await readdir(dir) } catch { return }
+    try {
+      entries = await readdir(dir)
+    } catch {
+      return
+    }
     for (const name of entries.sort()) {
       if (name.startsWith('.')) continue
       const fullPath = join(dir, name)
@@ -63,9 +77,14 @@ export async function scanAllMarkdownFiles(vaultPath: string): Promise<string[]>
         if (fstat.isDirectory()) {
           await scan(fullPath)
         } else if (name.endsWith('.md')) {
-          if (!seen.has(fullPath)) { seen.add(fullPath); results.push(fullPath) }
+          if (!seen.has(fullPath)) {
+            seen.add(fullPath)
+            results.push(fullPath)
+          }
         }
-      } catch (e) { log.warn(`[scanAllMarkdownFiles] `, e) }
+      } catch (e) {
+        log.warn(`[scanAllMarkdownFiles] `, e)
+      }
     }
   }
 
@@ -76,10 +95,7 @@ export async function scanAllMarkdownFiles(vaultPath: string): Promise<string[]>
 /**
  * Find all files that mention a given entity name (case-insensitive)
  */
-async function findFilesMentioningEntity(
-  vaultPath: string,
-  entityName: string
-): Promise<string[]> {
+async function findFilesMentioningEntity(vaultPath: string, entityName: string): Promise<string[]> {
   const files = await scanAllMarkdownFiles(vaultPath)
   const results: string[] = []
 
@@ -91,7 +107,9 @@ async function findFilesMentioningEntity(
       if (plainRe.test(raw) || typedRe.test(raw)) {
         results.push(filePath)
       }
-    } catch (e) { log.warn(`[findFilesMentioningEntity] `, e) }
+    } catch (e) {
+      log.warn(`[findFilesMentioningEntity] `, e)
+    }
   }
   return results
 }
@@ -110,10 +128,12 @@ async function addBacklink(
     const { frontmatter } = parseFrontmatter(raw)
     const seeAlso: string[] = Array.isArray(frontmatter.seeAlso) ? frontmatter.seeAlso : []
 
-    const alreadyLinked = seeAlso.some(s => {
+    const alreadyLinked = seeAlso.some((s) => {
       const norm = s.replace(/\s+/g, '').toLowerCase()
-      return norm === sourceTitle.replace(/\s+/g, '').toLowerCase() ||
-             norm === sourcePath.replace(/\s+/g, '').toLowerCase()
+      return (
+        norm === sourceTitle.replace(/\s+/g, '').toLowerCase() ||
+        norm === sourcePath.replace(/\s+/g, '').toLowerCase()
+      )
     })
     if (alreadyLinked) return false
 
@@ -123,7 +143,12 @@ async function addBacklink(
     const { writeFile } = await import('fs/promises')
     await writeFile(targetPath, newContent, 'utf-8')
     return true
-  } catch (err) { log.warn('[enrich] writeFile failed, returning false', targetPath, err instanceof Error ? err.message : String(err))
+  } catch (err) {
+    log.warn(
+      '[enrich] writeFile failed, returning false',
+      targetPath,
+      err instanceof Error ? err.message : String(err)
+    )
     return false
   }
 }

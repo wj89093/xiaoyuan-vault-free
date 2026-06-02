@@ -11,17 +11,34 @@
  */
 import { syntaxTree, ensureSyntaxTree } from '@codemirror/language'
 import type { SyntaxNode } from '@codemirror/language'
-import { Decoration, WidgetType, type EditorView, type Rect, type DecorationSet } from '@codemirror/view'
+import {
+  Decoration,
+  WidgetType,
+  type EditorView,
+  type Rect,
+  type DecorationSet
+} from '@codemirror/view'
 import type { EditorState, Range } from '@codemirror/state'
 import { registerMermaidBuilder, blockDecorationsField } from './blockDecorationsField'
 
 // ── Supported diagram languages ─────────────────────────────────────────────
 
 const SUPPORTED_LANGS = new Set([
-  'mermaid', 'graph', 'flowchart',
-  'architecture', 'sequenceDiagram', 'classDiagram', 'stateDiagram',
-  'erDiagram', 'gantt', 'pie', 'requirementDiagram',
-  'journey', 'gitGraph', 'pie', 'mindmap',
+  'mermaid',
+  'graph',
+  'flowchart',
+  'architecture',
+  'sequenceDiagram',
+  'classDiagram',
+  'stateDiagram',
+  'erDiagram',
+  'gantt',
+  'pie',
+  'requirementDiagram',
+  'journey',
+  'gitGraph',
+  'pie',
+  'mindmap'
 ])
 
 // ── MermaidWidget ─────────────────────────────────────────────────────────────
@@ -43,8 +60,12 @@ class MermaidWidget extends WidgetType {
     this._code = code
   }
 
-  get from(): number { return this._from }
-  get to(): number { return this._to }
+  get from(): number {
+    return this._from
+  }
+  get to(): number {
+    return this._to
+  }
 
   getValue(): string {
     // Return the full fenced code block text
@@ -73,7 +94,7 @@ class MermaidWidget extends WidgetType {
     void renderMermaidWidget(wrapper, container, this._code, this._lang)
 
     wrapper.addEventListener('dblclick', (_e) => {
-      (window as any).__mermaidEdit?.(this, wrapper, view)
+      ;(window as any).__mermaidEdit?.(this, wrapper, view)
     })
     return wrapper
   }
@@ -95,9 +116,13 @@ class MermaidWidget extends WidgetType {
     return this._view.coordsAt(abs, side) ?? dom.getBoundingClientRect()
   }
 
-  ignoreEvent(): boolean { return true }
+  ignoreEvent(): boolean {
+    return true
+  }
 
-  destroy(): void { /* no cleanup needed */ }
+  destroy(): void {
+    /* no cleanup needed */
+  }
 }
 
 // ── Mermaid Renderer (client-side) ──────────────────────────────────────────
@@ -110,7 +135,11 @@ function isDarkMode(): boolean {
   return bg === 'transparent' || bg === '' ? false : parseInt(bg) < 128
 }
 
-async function renderMermaidInWidget(container: HTMLElement, code: string, lang: string): Promise<void> {
+async function renderMermaidInWidget(
+  container: HTMLElement,
+  code: string,
+  lang: string
+): Promise<void> {
   if (!code.trim()) {
     container.innerHTML = '<div class="mermaid-empty">Diagram code is empty</div>'
     return
@@ -125,7 +154,7 @@ async function renderMermaidInWidget(container: HTMLElement, code: string, lang:
     mermaid.initialize({
       startOnLoad: false,
       theme: dark ? 'dark' : 'default',
-      securityLevel: 'loose',
+      securityLevel: 'loose'
     })
 
     // Unique ID per render
@@ -152,14 +181,17 @@ async function renderMermaidWidget(
   wrapper: HTMLElement,
   container: HTMLElement,
   code: string,
-  lang: string,
+  lang: string
 ): Promise<void> {
   await renderMermaidInWidget(container, code, lang)
 }
 
 // ── StateField ───────────────────────────────────────────────────────────────
 
-function getFencedCodeInfo(tree: ReturnType<typeof syntaxTree>, doc: string): Array<{
+function getFencedCodeInfo(
+  tree: ReturnType<typeof syntaxTree>,
+  doc: string
+): Array<{
   node: SyntaxNode
   lang: string
   code: string
@@ -183,7 +215,7 @@ function getFencedCodeInfo(tree: ReturnType<typeof syntaxTree>, doc: string): Ar
       const code = textNode ? doc.slice(textNode.from, textNode.to) : ''
 
       results.push({ node: fcNode.node, lang, code })
-    },
+    }
   })
 
   return results
@@ -199,11 +231,17 @@ function buildMermaidDecorations(state: EditorState): DecorationSet {
 
   for (const { node, lang, code } of diagrams) {
     decorations.push(
-      Decoration.replace({ widget: new MermaidWidget(node.from, node.to, getDoc, lang, code), block: true }).range(node.from, node.to),
+      Decoration.replace({
+        widget: new MermaidWidget(node.from, node.to, getDoc, lang, code),
+        block: true
+      }).range(node.from, node.to)
     )
   }
 
-  return Decoration.set(decorations.sort((a, b) => a.from - b.from), true)
+  return Decoration.set(
+    decorations.sort((a, b) => a.from - b.from),
+    true
+  )
 }
 
 const mermaidFieldImpl = (() => {

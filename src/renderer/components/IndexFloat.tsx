@@ -11,10 +11,7 @@ interface IndexFloatProps {
 
 function renderIndexMd(md: string): string {
   // Convert [[link]] or [[title|path]] to clickable spans
-  let html = md
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  let html = md.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
   // Wiki links: [[target]] or [[title|target]] — P2-1: use <a> so they're Tab-navigable
   html = html.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_m, target, title) => {
@@ -49,14 +46,35 @@ function renderIndexMd(md: string): string {
   html = html.replace(/^---+/gm, '<hr>')
 
   // Tables: markdown → HTML
-  html = html.replace(/^\|(.+)\|\s*\n\|[ \-:]+\|[ \-:\|]*\n((?:\|[^\n]+\|\s*\n?)+)/gm, (_m, header, body) => {
-    const headerCells = header.split('|').filter((c: string) => c.trim()).map((c: string) => '<th>' + c.trim() + '</th>').join('')
-    const rows = body.trim().split('\n').map((row: string) => {
-      const cells = row.split('|').filter((c: string, i: number, arr: string[]) => i > 0 && i < arr.length - 1).map((c: string) => '<td>' + c.trim() + '</td>').join('')
-      return '<tr>' + cells + '</tr>'
-    }).join('')
-    return '<table class="index-table"><thead><tr>' + headerCells + '</tr></thead><tbody>' + rows + '</tbody></table>'
-  })
+  html = html.replace(
+    /^\|(.+)\|\s*\n\|[ \-:]+\|[ \-:\|]*\n((?:\|[^\n]+\|\s*\n?)+)/gm,
+    (_m, header, body) => {
+      const headerCells = header
+        .split('|')
+        .filter((c: string) => c.trim())
+        .map((c: string) => '<th>' + c.trim() + '</th>')
+        .join('')
+      const rows = body
+        .trim()
+        .split('\n')
+        .map((row: string) => {
+          const cells = row
+            .split('|')
+            .filter((c: string, i: number, arr: string[]) => i > 0 && i < arr.length - 1)
+            .map((c: string) => '<td>' + c.trim() + '</td>')
+            .join('')
+          return '<tr>' + cells + '</tr>'
+        })
+        .join('')
+      return (
+        '<table class="index-table"><thead><tr>' +
+        headerCells +
+        '</tr></thead><tbody>' +
+        rows +
+        '</tbody></table>'
+      )
+    }
+  )
 
   // Paragraphs: blank lines separate paragraphs
   html = html.replace(/\n\n+/g, '\n<p></p>\n')
@@ -64,8 +82,14 @@ function renderIndexMd(md: string): string {
   const parts = html.split('\n')
   const result: string[] = []
   for (const line of parts) {
-    if (line.startsWith('<h') || line.startsWith('<ul') || line.startsWith('<li') || 
-        line.startsWith('</ul') || line.startsWith('<hr') || line.startsWith('<p>')) {
+    if (
+      line.startsWith('<h') ||
+      line.startsWith('<ul') ||
+      line.startsWith('<li') ||
+      line.startsWith('</ul') ||
+      line.startsWith('<hr') ||
+      line.startsWith('<p>')
+    ) {
       result.push(line)
     } else {
       result.push(line + '<br>')
@@ -76,7 +100,12 @@ function renderIndexMd(md: string): string {
   return `<div class="index-rendered">${html}</div>`
 }
 
-export function IndexFloat({ vaultPath, files, onSelectFile, onClose }: IndexFloatProps): JSX.Element {
+export function IndexFloat({
+  vaultPath,
+  files,
+  onSelectFile,
+  onClose
+}: IndexFloatProps): JSX.Element {
   const [content, setContent] = useState<string>('')
 
   useEffect(() => {
@@ -85,11 +114,15 @@ export function IndexFloat({ vaultPath, files, onSelectFile, onClose }: IndexFlo
       try {
         const md = await window.api.readFile?.(vaultPath + '/index.md')
         if (md) setContent(md)
-      } catch { /* index.md may not exist */ }
+      } catch {
+        /* index.md may not exist */
+      }
     }
     void loadIndex()
     // Re-read when files change (agent writes to index.md)
-    const unsub = window.api?.onImportCompleted?.(() => { void loadIndex() })
+    const unsub = window.api?.onImportCompleted?.(() => {
+      void loadIndex()
+    })
     return unsub
   }, [vaultPath])
 
@@ -102,9 +135,14 @@ export function IndexFloat({ vaultPath, files, onSelectFile, onClose }: IndexFlo
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       const wikiTitle = target.getAttribute('data-path')!
-      const match = files.find(f => {
+      const match = files.find((f) => {
         const name = f.path.split('/').pop()?.replace(/\.md$/, '')
-        return name === wikiTitle || f.path === wikiTitle || f.path.endsWith('/' + wikiTitle) || f.path.endsWith('/' + wikiTitle + '.md')
+        return (
+          name === wikiTitle ||
+          f.path === wikiTitle ||
+          f.path.endsWith('/' + wikiTitle) ||
+          f.path.endsWith('/' + wikiTitle + '.md')
+        )
       })
       if (match) onSelectFile(match.path)
       else onSelectFile(wikiTitle.endsWith('.md') ? wikiTitle : `${wikiTitle}.md`)
@@ -118,9 +156,14 @@ export function IndexFloat({ vaultPath, files, onSelectFile, onClose }: IndexFlo
     if (!wikiTitle) return
 
     // Resolve wiki link to actual file path (same logic as Editor's onWikiLinkNavigate)
-    const match = files.find(f => {
+    const match = files.find((f) => {
       const name = f.path.split('/').pop()?.replace(/\.md$/, '')
-      return name === wikiTitle || f.path === wikiTitle || f.path.endsWith('/' + wikiTitle) || f.path.endsWith('/' + wikiTitle + '.md')
+      return (
+        name === wikiTitle ||
+        f.path === wikiTitle ||
+        f.path.endsWith('/' + wikiTitle) ||
+        f.path.endsWith('/' + wikiTitle + '.md')
+      )
     })
     if (match) {
       onSelectFile(match.path)

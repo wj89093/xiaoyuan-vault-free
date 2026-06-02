@@ -6,8 +6,14 @@ import log from 'electron-log/main'
 import type { GraphData } from './types'
 
 const FOLDER_MAP_DEFAULTS: Record<string, string> = {
-  person: '1-人物', company: '2-公司', project: '3-项目', meeting: '4-会议',
-  deal: '5-交易', concept: '6-概念', research: '7-研究', collection: '0-收集',
+  person: '1-人物',
+  company: '2-公司',
+  project: '3-项目',
+  meeting: '4-会议',
+  deal: '5-交易',
+  concept: '6-概念',
+  research: '7-研究',
+  collection: '0-收集'
 }
 
 async function loadFolderMapFromDisk(vaultPath: string): Promise<Record<string, string>> {
@@ -17,7 +23,9 @@ async function loadFolderMapFromDisk(vaultPath: string): Promise<Record<string, 
       const raw = await readFile(mapPath, 'utf-8')
       return JSON.parse(raw) as Record<string, string>
     }
-  } catch { /* use defaults */ }
+  } catch {
+    /* use defaults */
+  }
   return { ...FOLDER_MAP_DEFAULTS }
 }
 
@@ -73,8 +81,10 @@ export async function loadFolderToTypeMap(): Promise<Record<string, string>> {
     }
     return inverted
   } catch (err) {
-    log.warn('[graph] loadFolderToTypeMap: failed, returning empty map',
-      err instanceof Error ? err.message : String(err))
+    log.warn(
+      '[graph] loadFolderToTypeMap: failed, returning empty map',
+      err instanceof Error ? err.message : String(err)
+    )
     return {}
   }
 }

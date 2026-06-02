@@ -10,7 +10,7 @@ export function generateFileTemplate(title: string, type?: string): string {
     type: type ?? 'note',
     created: now,
     updated: now,
-    tags: [],
+    tags: []
   }
 
   // Override type for specific types
@@ -27,7 +27,7 @@ export function generateFileTemplate(title: string, type?: string): string {
     '- [ ] ',
     '',
     '## See Also',
-    '',
+    ''
   ]
   return `---\n${yaml}\n---\n\n# ${title}\n${sections.join('\n')}`
 }
@@ -58,6 +58,6 @@ function stringifyTemplateFrontmatter(fm: Frontmatter): string {
 export function touchFrontmatter(frontmatter: Frontmatter): Frontmatter {
   return {
     ...frontmatter,
-    updated: new Date().toISOString().slice(0, 10),
+    updated: new Date().toISOString().slice(0, 10)
   }
 }

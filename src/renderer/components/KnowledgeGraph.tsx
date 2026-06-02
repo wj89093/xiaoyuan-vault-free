@@ -5,7 +5,13 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Settings, X } from 'lucide-react'
-import { KnowledgeGraphViz, buildLegend, folderColor, type GNode, type GLink } from './KnowledgeGraphViz'
+import {
+  KnowledgeGraphViz,
+  buildLegend,
+  folderColor,
+  type GNode,
+  type GLink
+} from './KnowledgeGraphViz'
 
 interface KnowledgeGraphProps {
   files: unknown[]
@@ -37,7 +43,8 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
   const folderGroups = new Map<string, string[]>()
   const nodeMap = new Map<string, GNode>()
 
-  const isThemeFile = (name: string) => ['index.md', 'log.md', 'schema.md', 'README.md'].includes(name)
+  const isThemeFile = (name: string) =>
+    ['index.md', 'log.md', 'schema.md', 'README.md'].includes(name)
 
   for (const n of rawNodes) {
     const id = String(n.id ?? '')
@@ -49,7 +56,13 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
       const wikiMatch = id.match(/\/_wiki\/([^/]+)\//)
       if (wikiMatch) subfolder = wikiMatch[1]
       const nodeColor = subfolder ? folderColor(subfolder) : '#a0b4cf'
-      nodeMap.set(id, { id, name: title.slice(0, 25), folder, color: nodeColor, edge_count: n.edge_count } as GNode)
+      nodeMap.set(id, {
+        id,
+        name: title.slice(0, 25),
+        folder,
+        color: nodeColor,
+        edge_count: n.edge_count
+      } as GNode)
       if (folder) {
         if (!folderGroups.has(folder)) folderGroups.set(folder, [])
         folderGroups.get(folder)!.push(id)
@@ -59,7 +72,7 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
 
   const links: GLink[] = []
   const seen = new Set<string>()
-  const edgeKey = (a: string, b: string) => a < b ? `${a}|${b}` : `${b}|${a}`
+  const edgeKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`)
 
   for (const e of rawEdges) {
     const source = String(e.source ?? '')
@@ -69,7 +82,12 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
     if (seen.has(key)) continue
     seen.add(key)
     if (nodeMap.has(source) && nodeMap.has(target)) {
-      links.push({ source, target, type: relation === 'folder' ? 'folder' : 'typed_link', weight: Number(e.weight ?? 1) } as GLink)
+      links.push({
+        source,
+        target,
+        type: relation === 'folder' ? 'folder' : 'typed_link',
+        weight: Number(e.weight ?? 1)
+      } as GLink)
     }
   }
 
@@ -82,7 +100,16 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
     for (let i = 0; i < members.length && folderLinkCount < MAX_FOLDER_LINKS; i++) {
       for (let j = i + 1; j < members.length && folderLinkCount < MAX_FOLDER_LINKS; j++) {
         const key = edgeKey(members[i], members[j])
-        if (!seen.has(key)) { seen.add(key); links.push({ source: members[i], target: members[j], type: 'folder', weight: 0.3 } as GLink); folderLinkCount++ }
+        if (!seen.has(key)) {
+          seen.add(key)
+          links.push({
+            source: members[i],
+            target: members[j],
+            type: 'folder',
+            weight: 0.3
+          } as GLink)
+          folderLinkCount++
+        }
       }
     }
   }
@@ -93,9 +120,11 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
     linkedIds.add(typeof l.source === 'string' ? l.source : (l.source as GNode).id)
     linkedIds.add(typeof l.target === 'string' ? l.target : (l.target as GNode).id)
   }
-  for (const [id, n] of nodeMap) { if (n.edge_count > 0) linkedIds.add(id) }
+  for (const [id, n] of nodeMap) {
+    if (n.edge_count > 0) linkedIds.add(id)
+  }
 
-  const nodes = [...nodeMap.values()].filter(n => linkedIds.has(n.id))
+  const nodes = [...nodeMap.values()].filter((n) => linkedIds.has(n.id))
   if (nodes.length === 0) {
     const sorted = [...nodeMap.values()].sort((a, b) => (b.edge_count ?? 0) - (a.edge_count ?? 0))
     nodes.push(...sorted.slice(0, 20))
@@ -106,18 +135,32 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
 
 // ─── Component ──────────────────────────────────────────────────────
 
-export function KnowledgeGraph({ files: _files, selectedFile, onSelect, onClose }: KnowledgeGraphProps): JSX.Element {
+export function KnowledgeGraph({
+  files: _files,
+  selectedFile,
+  onSelect,
+  onClose
+}: KnowledgeGraphProps): JSX.Element {
   const [loading, setLoading] = useState(true)
   const [graph, setGraph] = useState<{ nodes: GNode[]; links: GLink[] }>({ nodes: [], links: [] })
   const [error, setError] = useState<string | null>(null)
-  const [tooltip, _setTooltip] = useState<{ id: string; name: string; folder?: string; x: number; y: number; links: number } | null>(null)
+  const [tooltip, _setTooltip] = useState<{
+    id: string
+    name: string
+    folder?: string
+    x: number
+    y: number
+    links: number
+  } | null>(null)
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null)
   const [d3Error, setD3Error] = useState<string | null>(null)
   const [showFolderEdges, setShowFolderEdges] = useState(false)
   const [showLabels, setShowLabels] = useState(false)
   const [nodeSizeMode, setNodeSizeMode] = useState<'degree' | 'uniform'>('degree')
   const [showSettings, setShowSettings] = useState(false)
-  const [linkFilters, setLinkFilters] = useState<Set<string>>(new Set(['typed_link', 'shared_tag', 'similar_content']))
+  const [linkFilters, setLinkFilters] = useState<Set<string>>(
+    new Set(['typed_link', 'shared_tag', 'similar_content'])
+  )
   // P2-1: store last node positions for deterministic layout
   const lastPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map())
 
@@ -136,79 +179,147 @@ export function KnowledgeGraph({ files: _files, selectedFile, onSelect, onClose 
         if (!cancelled) setLoading(false)
       }
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const toggleLinkFilter = (type: string) => {
-    setLinkFilters(prev => {
+    setLinkFilters((prev) => {
       const next = new Set(prev)
-      if (next.has(type)) { next.delete(type) } else { next.add(type) }
+      if (next.has(type)) {
+        next.delete(type)
+      } else {
+        next.add(type)
+      }
       return next
     })
   }
 
-  const typedLinks = graph.links.filter(l => l.type !== 'folder').length
-  const folderLinks = graph.links.filter(l => l.type === 'folder').length
+  const typedLinks = graph.links.filter((l) => l.type !== 'folder').length
+  const folderLinks = graph.links.filter((l) => l.type === 'folder').length
 
-  const handleSelect = useCallback((id: string) => { onSelect(id) }, [onSelect])
+  const handleSelect = useCallback(
+    (id: string) => {
+      onSelect(id)
+    },
+    [onSelect]
+  )
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!graph.nodes.length) return
-    const ids = graph.nodes.map(n => n.id)
-    let idx = focusedNodeId ? ids.indexOf(focusedNodeId) : -1
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault()
-      idx = idx < 0 ? 0 : (idx + 1) % ids.length
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault()
-      idx = idx < 0 ? ids.length - 1 : (idx - 1 + ids.length) % ids.length
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      if (idx >= 0) onSelect(ids[idx])
-      return
-    } else {
-      return
-    }
-    setFocusedNodeId(ids[idx])
-  }, [graph.nodes, focusedNodeId, onSelect])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!graph.nodes.length) return
+      const ids = graph.nodes.map((n) => n.id)
+      let idx = focusedNodeId ? ids.indexOf(focusedNodeId) : -1
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        idx = idx < 0 ? 0 : (idx + 1) % ids.length
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        idx = idx < 0 ? ids.length - 1 : (idx - 1 + ids.length) % ids.length
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        if (idx >= 0) onSelect(ids[idx])
+        return
+      } else {
+        return
+      }
+      setFocusedNodeId(ids[idx])
+    },
+    [graph.nodes, focusedNodeId, onSelect]
+  )
 
   return (
-    <div className="knowledge-graph" onKeyDown={handleKeyDown} tabIndex={0} style={{ outline: 'none' }}>
+    <div
+      className="knowledge-graph"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      style={{ outline: 'none' }}
+    >
       <div className="kg-header">
         <span className="kg-title">知识图谱</span>
-        <span className="kg-stats">{graph.nodes.length} 节点 · {typedLinks} 关系 · {folderLinks} 同夹</span>
-        <span className="kg-zoom-level" id="kg-zoom-level" aria-live="polite" aria-label="当前缩放" />
+        <span className="kg-stats">
+          {graph.nodes.length} 节点 · {typedLinks} 关系 · {folderLinks} 同夹
+        </span>
+        <span
+          className="kg-zoom-level"
+          id="kg-zoom-level"
+          aria-live="polite"
+          aria-label="当前缩放"
+        />
         <div className="kg-header-actions">
-          <button className="btn btn-icon" title="图谱设置" onClick={() => setShowSettings(v => !v)} aria-disabled={loading}><Settings size={14} /></button>
-          <button className="btn btn-icon" onClick={onClose} aria-disabled={loading}><X size={14} /></button>
+          <button
+            className="btn btn-icon"
+            title="图谱设置"
+            onClick={() => setShowSettings((v) => !v)}
+            aria-disabled={loading}
+          >
+            <Settings size={14} />
+          </button>
+          <button className="btn btn-icon" onClick={onClose} aria-disabled={loading}>
+            <X size={14} />
+          </button>
         </div>
       </div>
 
       {showSettings && (
         <div className="kg-settings">
           <label className="kg-settings-item">
-            <input type="checkbox" checked={showFolderEdges} onChange={e => setShowFolderEdges(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showFolderEdges}
+              onChange={(e) => setShowFolderEdges(e.target.checked)}
+            />
             显示同文件夹边
           </label>
-          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary, #8e8e93)', padding: '2px 0', fontWeight: 500 }}>关系类型过滤</div>
+          <div
+            style={{
+              fontSize: 11,
+              color: 'var(--color-text-tertiary, #8e8e93)',
+              padding: '2px 0',
+              fontWeight: 500
+            }}
+          >
+            关系类型过滤
+          </div>
           {[
             ['typed_link', '#a0b4cf', 'Wiki 链接'],
             ['shared_tag', '#b8c5d6', '共享标签'],
-            ['similar_content', '#b8c5d6', '相似内容'],
+            ['similar_content', '#b8c5d6', '相似内容']
           ].map(([type, color, label]) => (
             <label key={type} className="kg-settings-item">
-              <input type="checkbox" checked={linkFilters.has(type)} onChange={() => toggleLinkFilter(type)} />
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: color, display: 'inline-block', marginRight: 4 }} />
+              <input
+                type="checkbox"
+                checked={linkFilters.has(type)}
+                onChange={() => toggleLinkFilter(type)}
+              />
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  background: color,
+                  display: 'inline-block',
+                  marginRight: 4
+                }}
+              />
               {label}
             </label>
           ))}
           <label className="kg-settings-item">
-            <input type="checkbox" checked={showLabels} onChange={e => setShowLabels(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={showLabels}
+              onChange={(e) => setShowLabels(e.target.checked)}
+            />
             显示标签
           </label>
           <label className="kg-settings-item">
             <span style={{ marginRight: 8 }}>节点大小</span>
-            <select value={nodeSizeMode} onChange={e => setNodeSizeMode(e.target.value as 'degree' | 'uniform')}>
+            <select
+              value={nodeSizeMode}
+              onChange={(e) => setNodeSizeMode(e.target.value as 'degree' | 'uniform')}
+            >
               <option value="degree">按连接数</option>
               <option value="uniform">统一大小</option>
             </select>
@@ -235,15 +346,27 @@ export function KnowledgeGraph({ files: _files, selectedFile, onSelect, onClose 
           </div>
         </div>
       ) : error ? (
-        <div className="kg-empty" role="status" aria-live="polite"><span>{error}</span></div>
+        <div className="kg-empty" role="status" aria-live="polite">
+          <span>{error}</span>
+        </div>
       ) : graph.nodes.length === 0 ? (
-        <div className="kg-empty"><span>暂无关联文件，添加 [[链接]] 或 frontmatter 关系后出现</span></div>
+        <div className="kg-empty">
+          <span>暂无关联文件，添加 [[链接]] 或 frontmatter 关系后出现</span>
+        </div>
       ) : (
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {d3Error && (
             <div className="kg-error-banner">
               <span>{d3Error}</span>
-              <button className="btn" onClick={() => { setD3Error(null); setGraph({ nodes: graph.nodes, links: graph.links }) }}>重试</button>
+              <button
+                className="btn"
+                onClick={() => {
+                  setD3Error(null)
+                  setGraph({ nodes: graph.nodes, links: graph.links })
+                }}
+              >
+                重试
+              </button>
             </div>
           )}
           <KnowledgeGraphViz
@@ -261,7 +384,10 @@ export function KnowledgeGraph({ files: _files, selectedFile, onSelect, onClose 
             lastPositionsRef={lastPositionsRef}
           />
           {tooltip && (
-            <div className="kg-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y - 8, pointerEvents: 'none' }}>
+            <div
+              className="kg-tooltip"
+              style={{ left: tooltip.x + 14, top: tooltip.y - 8, pointerEvents: 'none' }}
+            >
               <div className="kg-tooltip-name">{tooltip.name}</div>
               <div className="kg-tooltip-meta">
                 {tooltip.folder && <span className="kg-tooltip-folder">{tooltip.folder}</span>}
@@ -277,8 +403,14 @@ export function KnowledgeGraph({ files: _files, selectedFile, onSelect, onClose 
         {buildLegend(graph.nodes)}
         <span className="kg-legend-hint kg-legend-hint-right">滚轮缩放 · 拖拽 · 点击打开</span>
         <span className="kg-legend-size-hint" title="节点大小表示连接数（度）">
-          <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="3" cy="5" r="2.5" fill="#a0b4cf" opacity="0.8"/></svg> 连接数
-          <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="3" cy="5" r="4" fill="#1a56a8" opacity="0.8"/></svg> 高连接
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <circle cx="3" cy="5" r="2.5" fill="#a0b4cf" opacity="0.8" />
+          </svg>{' '}
+          连接数
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <circle cx="3" cy="5" r="4" fill="#1a56a8" opacity="0.8" />
+          </svg>{' '}
+          高连接
         </span>
       </div>
     </div>

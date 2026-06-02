@@ -1,10 +1,22 @@
- 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import {
-  Scissors, ClipboardPaste, Trash2,
-  Heading1, Heading2, Heading3, Bold, Italic, Code, Link, Quote,
-  SquareCode, Image, Table, Minus,
-  Copy, CheckSquare,
+  Scissors,
+  ClipboardPaste,
+  Trash2,
+  Heading1,
+  Heading2,
+  Heading3,
+  Bold,
+  Italic,
+  Code,
+  Link,
+  Quote,
+  SquareCode,
+  Image,
+  Table,
+  Minus,
+  Copy,
+  CheckSquare
 } from 'lucide-react'
 
 export interface EditorContextMenuAction {
@@ -17,13 +29,7 @@ export interface EditorContextMenuAction {
   disabled?: boolean
 }
 
-function MenuItem({
-  item,
-  onClose,
-}: {
-  item: EditorContextMenuAction
-  onClose: () => void
-}) {
+function MenuItem({ item, onClose }: { item: EditorContextMenuAction; onClose: () => void }) {
   if (item.separatorBefore) {
     return <div className="context-menu-separator" role="separator" />
   }
@@ -49,9 +55,7 @@ function MenuItem({
     >
       {item.icon}
       <span>{item.label}</span>
-      {item.shortcut && (
-        <span className="context-menu-kbd">{item.shortcut}</span>
-      )}
+      {item.shortcut && <span className="context-menu-kbd">{item.shortcut}</span>}
     </div>
   )
 }
@@ -65,7 +69,11 @@ export interface EditorContextMenuProps {
 }
 
 export function EditorContextMenu({
-  x, y, editorView, onClose, onFormat,
+  x,
+  y,
+  editorView,
+  onClose,
+  onFormat
 }: EditorContextMenuProps): JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
@@ -77,7 +85,7 @@ export function EditorContextMenu({
     const menuH = 460
     return {
       left: Math.min(x, vw - menuW - 8),
-      top: Math.min(y, vh - menuH - 8),
+      top: Math.min(y, vh - menuH - 8)
     }
   })
 
@@ -98,14 +106,14 @@ export function EditorContextMenu({
       if (e.key !== 'Tab') return
       const el = menuRef.current
       if (!el) return
-      const items = Array.from(el.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])'))
+      const items = Array.from(
+        el.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])')
+      )
       if (items.length === 0) return
       e.preventDefault()
       const focused = document.activeElement
       const idx = items.indexOf(focused as HTMLElement)
-      const next = e.shiftKey
-        ? (idx - 1 + items.length) % items.length
-        : (idx + 1) % items.length
+      const next = e.shiftKey ? (idx - 1 + items.length) % items.length : (idx + 1) % items.length
       items[next]?.focus()
     }
     document.addEventListener('keydown', handleTab)
@@ -130,14 +138,17 @@ export function EditorContextMenu({
         action: () => {
           if (!hasSelection) return
           const text = state.sliceDoc(from, to)
-          navigator.clipboard.writeText(text).then(() => {
-            view.dispatch({ changes: { from, to, insert: '' }, selection: { anchor: from } })
-          }).catch(err => {
-            console.warn('[context-menu] cut failed:', err)
-            showToast('error', '剪切失败')
-          })
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              view.dispatch({ changes: { from, to, insert: '' }, selection: { anchor: from } })
+            })
+            .catch((err) => {
+              console.warn('[context-menu] cut failed:', err)
+              showToast('error', '剪切失败')
+            })
         },
-        separatorBefore: true,
+        separatorBefore: true
       },
       {
         label: '复制',
@@ -146,11 +157,11 @@ export function EditorContextMenu({
         disabled: !hasSelection,
         action: () => {
           if (!hasSelection) return
-          navigator.clipboard.writeText(state.sliceDoc(from, to)).catch(err => {
+          navigator.clipboard.writeText(state.sliceDoc(from, to)).catch((err) => {
             console.warn('[context-menu] copy failed:', err)
             showToast('error', '复制失败')
           })
-        },
+        }
       },
       {
         label: '粘贴',
@@ -166,7 +177,7 @@ export function EditorContextMenu({
             console.warn('[context-menu] paste failed:', err)
             showToast('error', '粘贴失败，请检查浏览器权限')
           }
-        },
+        }
       },
       {
         label: '删除',
@@ -177,7 +188,7 @@ export function EditorContextMenu({
           if (!hasSelection) return
           view.dispatch({ changes: { from, to, insert: '' }, selection: { anchor: from } })
         },
-        danger: true,
+        danger: true
       },
 
       // ── 格式 ──
@@ -185,44 +196,44 @@ export function EditorContextMenu({
         label: '标题 1',
         icon: <Heading1 size={14} />,
         action: () => onFormat?.('heading', { level: 1 }),
-        separatorBefore: true,
+        separatorBefore: true
       },
       {
         label: '标题 2',
         icon: <Heading2 size={14} />,
-        action: () => onFormat?.('heading', { level: 2 }),
+        action: () => onFormat?.('heading', { level: 2 })
       },
       {
         label: '标题 3',
         icon: <Heading3 size={14} />,
-        action: () => onFormat?.('heading', { level: 3 }),
+        action: () => onFormat?.('heading', { level: 3 })
       },
       {
         label: '粗体',
         icon: <Bold size={14} />,
-        action: () => onFormat?.('bold'),
+        action: () => onFormat?.('bold')
       },
       {
         label: '斜体',
         icon: <Italic size={14} />,
-        action: () => onFormat?.('italic'),
+        action: () => onFormat?.('italic')
       },
       {
         label: '行内代码',
         icon: <Code size={14} />,
         shortcut: '⌘E',
-        action: () => onFormat?.('code'),
+        action: () => onFormat?.('code')
       },
       {
         label: '链接',
         icon: <Link size={14} />,
-        action: () => onFormat?.('link'),
+        action: () => onFormat?.('link')
       },
       {
         label: '引用',
         icon: <Quote size={14} />,
         shortcut: '⌘⇧Q',
-        action: () => onFormat?.('quote'),
+        action: () => onFormat?.('quote')
       },
 
       // ── 插入 ──
@@ -231,23 +242,23 @@ export function EditorContextMenu({
         icon: <SquareCode size={14} />,
         shortcut: '⌘⇧C',
         action: () => onFormat?.('codeblock'),
-        separatorBefore: true,
+        separatorBefore: true
       },
       {
         label: '图片',
         icon: <Image size={14} />,
         shortcut: '⌘⇧I',
-        action: () => onFormat?.('image'),
+        action: () => onFormat?.('image')
       },
       {
         label: '表格',
         icon: <Table size={14} />,
-        action: () => onFormat?.('table'),
+        action: () => onFormat?.('table')
       },
       {
         label: '分割线',
         icon: <Minus size={14} />,
-        action: () => onFormat?.('hr'),
+        action: () => onFormat?.('hr')
       },
 
       // ── 全选 ──
@@ -256,8 +267,8 @@ export function EditorContextMenu({
         icon: <CheckSquare size={14} />,
         shortcut: '⌘A',
         action: () => view.dispatch({ selection: { anchor: 0, head: state.doc.length } }),
-        separatorBefore: true,
-      },
+        separatorBefore: true
+      }
     ]
   }, [editorView, onFormat])
 
@@ -265,11 +276,7 @@ export function EditorContextMenu({
 
   return (
     <>
-      <div
-        className="context-menu-overlay"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="context-menu-overlay" onClick={onClose} aria-hidden="true" />
       <div
         ref={menuRef}
         role="menu"
@@ -280,9 +287,12 @@ export function EditorContextMenu({
           opacity: visible ? 1 : 0,
           transform: visible ? 'scale(1)' : 'scale(0.95)',
           transition: 'opacity 100ms ease, transform 100ms ease',
-          transformOrigin: 'top left',
+          transformOrigin: 'top left'
         }}
-        onClick={e => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          e.nativeEvent.stopImmediatePropagation()
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             e.stopPropagation()
@@ -291,16 +301,19 @@ export function EditorContextMenu({
           // Arrow key navigation between items
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault()
-            const items = menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])')
+            const items = menuRef.current?.querySelectorAll<HTMLElement>(
+              '[role="menuitem"]:not([aria-disabled="true"])'
+            )
             if (!items || items.length === 0) return
             const focused = document.activeElement
             const idx = Array.from(items).indexOf(focused as HTMLElement)
             if (idx === -1) {
               items[0]?.focus()
             } else {
-              const next = e.key === 'ArrowDown'
-                ? (idx + 1) % items.length
-                : (idx - 1 + items.length) % items.length
+              const next =
+                e.key === 'ArrowDown'
+                  ? (idx + 1) % items.length
+                  : (idx - 1 + items.length) % items.length
               items[next]?.focus()
             }
           }

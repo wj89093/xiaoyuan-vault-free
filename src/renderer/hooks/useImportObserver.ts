@@ -14,7 +14,7 @@ interface UseImportObserverOptions {
 
 export function useImportObserver({
   showOnboarding,
-  onFirstImportAnalyze,
+  onFirstImportAnalyze
 }: UseImportObserverOptions): { pendingImports: string[]; clearPending: () => void } {
   const [pendingImports, setPendingImports] = useState<string[]>([])
   const analyzedRef = useRef(false)
@@ -23,16 +23,19 @@ export function useImportObserver({
     if (!window.api) return
     return window.api.onImportCompleted?.(async (importedPaths?: string[]) => {
       if (importedPaths && importedPaths.length > 0) {
-        setPendingImports(prev => [...prev, ...importedPaths])
+        setPendingImports((prev) => [...prev, ...importedPaths])
         // Onboarding: first import triggers AI structure analysis
-        if (showOnboarding && !sessionStorage.getItem('onboarding_analyzed') && !analyzedRef.current) {
+        if (
+          showOnboarding &&
+          !sessionStorage.getItem('onboarding_analyzed') &&
+          !analyzedRef.current
+        ) {
           sessionStorage.setItem('onboarding_analyzed', '1')
           analyzedRef.current = true
           setTimeout(() => onFirstImportAnalyze(importedPaths), 1000)
         }
       }
     })
-
   }, [showOnboarding, onFirstImportAnalyze])
 
   return { pendingImports, clearPending: () => setPendingImports([]) }

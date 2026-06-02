@@ -4,7 +4,6 @@ import { join } from 'path'
 import { getVaultPath } from '../database/database'
 import log from 'electron-log/main'
 
-
 // ── Save text to vault ─────────────────────────────────────────────────
 
 export async function saveToVault(content: string): Promise<void> {
@@ -18,13 +17,20 @@ export async function saveToVault(content: string): Promise<void> {
   const prefix = isURL ? 'web' : 'clip'
   const filename = `${prefix}-${timestamp}.md`
 
-  const title = content.split('\n')[0].slice(0, 50).replace(/["#*`\[\]]/g, '')
+  const title = content
+    .split('\n')[0]
+    .slice(0, 50)
+    .replace(/["#*`\[\]]/g, '')
   const frontmatter = [
-    '---', `title: "${title || '快速捕获'}"`,
+    '---',
+    `title: "${title || '快速捕获'}"`,
     `type: ${isURL ? 'web-clip' : 'note'}`,
-    `source: bubble-card`, `created: ${new Date().toISOString().slice(0, 10)}`,
+    `source: bubble-card`,
+    `created: ${new Date().toISOString().slice(0, 10)}`,
     `tags: [quick-capture, ${isURL ? 'url' : 'note'}]`,
-    '---', '', content,
+    '---',
+    '',
+    content
   ].join('\n')
 
   const filePath = join(collectDir, filename)
@@ -36,12 +42,20 @@ export async function saveToVault(content: string): Promise<void> {
 
 export async function importFilesToVault(
   filePaths: string[],
-  vaultPath?: string,
+  vaultPath?: string
 ): Promise<{ imported: number; vaultPath: string; collectDir: string; errors: string[] }> {
   const effectiveVaultPath = vaultPath ?? getVaultPath()
   if (!effectiveVaultPath || !filePaths.length) {
-    log.info('[Bubble] importFilesToVault: no vaultPath or empty filePaths', { vaultPath: effectiveVaultPath, filePaths })
-    return { imported: 0, vaultPath: effectiveVaultPath, collectDir: '', errors: ['无 vaultPath 或文件列表为空'] }
+    log.info('[Bubble] importFilesToVault: no vaultPath or empty filePaths', {
+      vaultPath: effectiveVaultPath,
+      filePaths
+    })
+    return {
+      imported: 0,
+      vaultPath: effectiveVaultPath,
+      collectDir: '',
+      errors: ['无 vaultPath 或文件列表为空']
+    }
   }
 
   log.info('[Bubble] importFilesToVault: starting', { vaultPath: effectiveVaultPath, filePaths })

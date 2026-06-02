@@ -1,5 +1,3 @@
- 
-
 import type { Relationship } from './types'
 
 /**
@@ -10,8 +8,8 @@ export function extractWikiLinks(content: string): string[] {
   const matches = content.match(/\[\[([^\]]+)\]\]/g)
   if (!matches) return []
   return matches
-    .map(m => m.slice(2, -2).trim())
-    .map(m => m.split('|')[0].trim())  // Strip display title after |
+    .map((m) => m.slice(2, -2).trim())
+    .map((m) => m.split('|')[0].trim()) // Strip display title after |
     .filter(Boolean)
 }
 
@@ -45,7 +43,7 @@ export function addRelationship(
 ): Relationship[] {
   const rels = existing ?? []
   // Avoid duplicates
-  const exists = rels.some(r => r.type === type && r.target === target)
+  const exists = rels.some((r) => r.type === type && r.target === target)
   if (exists) return rels
   return [...rels, { type, target, confidence }]
 }

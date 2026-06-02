@@ -3,7 +3,6 @@ import { Search, FileText, Clock, ArrowRight, X, Hash } from 'lucide-react'
 import type { FileInfo } from '../types'
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
-
 interface QuickSwitchProps {
   files: FileInfo[]
   recentFiles: Array<{ path: string; name: string }>
@@ -31,7 +30,12 @@ function flattenFiles(items: FileInfo[], path = ''): FlatFile[] {
   return result
 }
 
-export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwitchProps): JSX.Element {
+export function QuickSwitch({
+  files,
+  recentFiles,
+  onSelect,
+  onClose
+}: QuickSwitchProps): JSX.Element {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [snippetMap, setSnippetMap] = useState<Record<string, string>>({})
@@ -56,63 +60,66 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
       return
     }
     const results = flatFiles
-      .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
+      .filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 5)
 
-    const needed = results.filter(r => !snippetMap[r.path] && !loadingSnippets.has(r.path))
+    const needed = results.filter((r) => !snippetMap[r.path] && !loadingSnippets.has(r.path))
     if (needed.length === 0) return
 
-    setLoadingSnippets(prev => new Set([...prev, ...needed.map(r => r.path)]))
+    setLoadingSnippets((prev) => new Set([...prev, ...needed.map((r) => r.path)]))
 
     // Load first 3 snippets concurrently
     Promise.all(
       needed.slice(0, 3).map(async (file) => {
         try {
-          const content = await (window.api).readFile?.(file.path) ?? ''
+          const content = (await window.api.readFile?.(file.path)) ?? ''
           const lines = content.split('\n')
           // Find first non-frontmatter, non-empty line as snippet
-          const snippet = lines.find(l => l.trim() && !l.trim().startsWith('---')) ?? lines[0] ?? ''
+          const snippet =
+            lines.find((l) => l.trim() && !l.trim().startsWith('---')) ?? lines[0] ?? ''
           return { path: file.path, snippet: snippet.slice(0, 80) }
         } catch {
           return { path: file.path, snippet: '' }
         }
       })
-    ).then(snippets => {
-      setSnippetMap(prev => {
-        const next = { ...prev }
-        for (const s of snippets) next[s.path] = s.snippet
-        return next
+    )
+      .then((snippets) => {
+        setSnippetMap((prev) => {
+          const next = { ...prev }
+          for (const s of snippets) next[s.path] = s.snippet
+          return next
+        })
+        setLoadingSnippets((prev) => {
+          const next = new Set(prev)
+          needed.slice(0, 3).forEach((r) => next.delete(r.path))
+          return next
+        })
       })
-      setLoadingSnippets(prev => {
-        const next = new Set(prev)
-        needed.slice(0, 3).forEach(r => next.delete(r.path))
-        return next
-      })
-    }).catch(() => {})
+      .catch(() => {})
   }, [query])
 
   // Recent files shown when query is empty
   const showRecent = !query.trim()
 
   // Recent items that are still in the file tree
-  const validRecent = recentFiles.filter(r => flatFiles.some(f => f.path === r.path))
+  const validRecent = recentFiles.filter((r) => flatFiles.some((f) => f.path === r.path))
 
   const results: Array<FlatFile & { snippet?: string }> = query.trim()
     ? flatFiles
-        .filter(f => f.name.toLowerCase().includes(query.toLowerCase()))
+        .filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 10)
-        .map(f => ({ ...f, snippet: snippetMap[f.path] }))
-    : validRecent.map(r => ({ name: r.name, path: r.path, isDirectory: false }))
+        .map((f) => ({ ...f, snippet: snippetMap[f.path] }))
+    : validRecent.map((r) => ({ name: r.name, path: r.path, isDirectory: false }))
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        setSelectedIndex(i => Math.min(i + 1, results.length - 1))
+        setSelectedIndex((i) => Math.min(i + 1, results.length - 1))
         break
       case 'ArrowUp':
         e.preventDefault()
-        setSelectedIndex(i => Math.max(i - 1, 0))
+        setSelectedIndex((i) => Math.max(i - 1, 0))
         break
       case 'Enter':
         e.preventDefault()
@@ -134,7 +141,9 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
     return (
       <>
         {text.slice(0, idx)}
-        <mark style={{ background: 'var(--color-primary-light)', fontWeight: 600 }}>{text.slice(idx, idx + q.length)}</mark>
+        <mark style={{ background: 'var(--color-primary-light)', fontWeight: 600 }}>
+          {text.slice(idx, idx + q.length)}
+        </mark>
         {text.slice(idx + q.length)}
       </>
     )
@@ -142,7 +151,7 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
 
   return (
     <div className="quick-switch-overlay" onClick={onClose}>
-      <div className="quick-switch" onClick={e => e.stopPropagation()}>
+      <div className="quick-switch" onClick={(e) => e.stopPropagation()}>
         <div className="quick-switch-header">
           <Search size={16} />
           <input
@@ -150,7 +159,7 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
             className="quick-switch-input"
             placeholder={showRecent ? '搜索文件…' : '搜索文件内容…'}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
           />
           <button className="quick-switch-close" onClick={onClose}>
@@ -189,10 +198,10 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
                 >
                   <FileText size={14} />
                   <div className="quick-switch-item-info">
-                    <span className="quick-switch-item-name">{highlightMatch(file.name, query)}</span>
-                    {file.path && (
-                      <span className="quick-switch-item-path">{file.path}</span>
-                    )}
+                    <span className="quick-switch-item-name">
+                      {highlightMatch(file.name, query)}
+                    </span>
+                    {file.path && <span className="quick-switch-item-path">{file.path}</span>}
                     {file.snippet && (
                       <span className="quick-switch-item-snippet">{file.snippet}</span>
                     )}
@@ -205,10 +214,15 @@ export function QuickSwitch({ files, recentFiles, onSelect, onClose }: QuickSwit
         </div>
 
         <div className="quick-switch-footer">
-          {showRecent
-            ? <span>输入关键词搜索文件</span>
-            : <><span>↑↓ 导航</span><span>Enter 选中</span><span>Esc 关闭</span></>
-          }
+          {showRecent ? (
+            <span>输入关键词搜索文件</span>
+          ) : (
+            <>
+              <span>↑↓ 导航</span>
+              <span>Enter 选中</span>
+              <span>Esc 关闭</span>
+            </>
+          )}
         </div>
       </div>
     </div>

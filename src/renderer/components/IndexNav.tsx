@@ -4,7 +4,7 @@ import { ChevronRight, List } from 'lucide-react'
 interface IndexNavProps {
   vaultPath: string | null
   onSelectFile: (path: string) => void
-  selectedFile?: string | null  // P2-1: current location indicator
+  selectedFile?: string | null // P2-1: current location indicator
 }
 
 interface IndexEntry {
@@ -24,14 +24,21 @@ function parseIndex(content: string): IndexEntry[] {
       const path = linkMatch[2] ?? linkMatch[1]
       // Get summary: text after the link
       const afterLink = line.slice(line.indexOf(linkMatch[0]) + linkMatch[0].length)
-      const summary = afterLink.replace(/^[\s\-–—|:：]+/, '').trim().slice(0, 60)
+      const summary = afterLink
+        .replace(/^[\s\-–—|:：]+/, '')
+        .trim()
+        .slice(0, 60)
       entries.push({ title, path: path.endsWith('.md') ? path : path + '.md', summary })
     }
   }
   return entries
 }
 
-export function IndexNav({ vaultPath, onSelectFile, selectedFile }: IndexNavProps): JSX.Element | null {
+export function IndexNav({
+  vaultPath,
+  onSelectFile,
+  selectedFile
+}: IndexNavProps): JSX.Element | null {
   const [entries, setEntries] = useState<IndexEntry[]>([])
   const [expanded, setExpanded] = useState(true)
 
@@ -41,7 +48,9 @@ export function IndexNav({ vaultPath, onSelectFile, selectedFile }: IndexNavProp
       try {
         const content = await window.api.readFile?.(vaultPath + '/index.md')
         if (content) setEntries(parseIndex(content))
-      } catch { /* index.md may not exist */ }
+      } catch {
+        /* index.md may not exist */
+      }
     })()
   }, [vaultPath])
 
@@ -52,10 +61,14 @@ export function IndexNav({ vaultPath, onSelectFile, selectedFile }: IndexNavProp
         try {
           const content = await window.api.readFile?.(vaultPath + '/index.md')
           if (content) setEntries(parseIndex(content))
-        } catch { /* index.md may not exist */ }
+        } catch {
+          /* index.md may not exist */
+        }
       })()
     })
-    return () => { unsub?.() }
+    return () => {
+      unsub?.()
+    }
   }, [vaultPath])
 
   if (entries.length === 0) return null
@@ -80,13 +93,24 @@ export function IndexNav({ vaultPath, onSelectFile, selectedFile }: IndexNavProp
 
   return (
     <div className="sidebar-index">
-      <button className="sidebar-index-header" onClick={() => setExpanded(v => !v)}>
+      <button className="sidebar-index-header" onClick={() => setExpanded((v) => !v)}>
         <span className="sidebar-index-title">
           <List size={12} />
           目录
         </span>
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', opacity: 0.5 }}>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{
+            transform: expanded ? 'rotate(90deg)' : 'none',
+            transition: 'transform 150ms',
+            opacity: 0.5
+          }}
+        >
           <polyline points="9 6 15 12 9 18" />
         </svg>
       </button>

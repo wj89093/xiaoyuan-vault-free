@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react'
 import type { ImportFileResult } from '../shared/chat'
 import { Upload, Link, X, CheckCircle } from 'lucide-react'
- 
-
 
 interface ImportResult {
   type: 'file' | 'url'
@@ -45,15 +43,36 @@ export function ImportApp(): JSX.Element {
   const handleFileImport = async (filePaths: string[]) => {
     setImporting(true)
     try {
-      const vaultPath = await (window.api).getVaultPath()
+      const vaultPath = await window.api.getVaultPath()
       if (!vaultPath) {
-        setResults(prev => [...prev, { type: 'file' as const, name: '错误', path: '', status: 'error' as const, error: '未打开知识库' }])
+        setResults((prev) => [
+          ...prev,
+          {
+            type: 'file' as const,
+            name: '错误',
+            path: '',
+            status: 'error' as const,
+            error: '未打开知识库'
+          }
+        ])
         return
       }
-      const res = await (window.api).importFiles(filePaths)
-      setResults(prev => [...prev, ...res.map((r: ImportFileResult) => ({ type: 'file' as const, ...r }))])
+      const res = await window.api.importFiles(filePaths)
+      setResults((prev) => [
+        ...prev,
+        ...res.map((r: ImportFileResult) => ({ type: 'file' as const, ...r }))
+      ])
     } catch (err) {
-      setResults(prev => [...prev, { type: 'file' as const, name: '错误', path: '', status: 'error' as const, error: (err as any)?.message ?? '导入失败' }])
+      setResults((prev) => [
+        ...prev,
+        {
+          type: 'file' as const,
+          name: '错误',
+          path: '',
+          status: 'error' as const,
+          error: (err as any)?.message ?? '导入失败'
+        }
+      ])
     } finally {
       setImporting(false)
     }
@@ -68,7 +87,7 @@ export function ImportApp(): JSX.Element {
     if (files.length === 0) return
 
     // Use webUtils.getPathForFile via preload (File.path is undefined under contextIsolation)
-    const paths = files.map(f => (window.api).getPathForFile?.(f)).filter(Boolean) as string[]
+    const paths = files.map((f) => window.api.getPathForFile?.(f)).filter(Boolean) as string[]
     if (paths.length > 0) {
       await handleFileImport(paths)
     }
@@ -80,7 +99,9 @@ export function ImportApp(): JSX.Element {
     input.multiple = true
     input.onchange = async () => {
       if (input.files) {
-        const paths = Array.from(input.files).map(f => (window.api).getPathForFile?.(f)).filter(Boolean) as string[]
+        const paths = Array.from(input.files)
+          .map((f) => window.api.getPathForFile?.(f))
+          .filter(Boolean) as string[]
         if (paths.length > 0) {
           await handleFileImport(paths)
         }
@@ -96,10 +117,10 @@ export function ImportApp(): JSX.Element {
     setFetching(true)
     setUrlError(null)
     try {
-      const { title, content } = await (window.api).fetchUrl(url)
-      const vaultPath = await (window.api).getVaultPath()
-      const path = await (window.api).saveUrlContent(vaultPath ?? '', title, content)
-      setResults(prev => [...prev, { type: 'url', name: title, path, status: 'ok' }])
+      const { title, content } = await window.api.fetchUrl(url)
+      const vaultPath = await window.api.getVaultPath()
+      const path = await window.api.saveUrlContent(vaultPath ?? '', title, content)
+      setResults((prev) => [...prev, { type: 'url', name: title, path, status: 'ok' }])
       setUrlInput('')
     } catch (err) {
       setUrlError(err.message ?? '获取失败')
@@ -109,7 +130,7 @@ export function ImportApp(): JSX.Element {
   }
 
   const removeResult = (idx: number) => {
-    setResults(prev => prev.filter((_, i) => i !== idx))
+    setResults((prev) => prev.filter((_, i) => i !== idx))
   }
 
   return (
@@ -127,7 +148,9 @@ export function ImportApp(): JSX.Element {
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
-        onDrop={e => { void handleDrop(e) }}
+        onDrop={(e) => {
+          void handleDrop(e)
+        }}
       >
         <Upload size={28} strokeWidth={1.5} />
         <div className="import-drop-title">
@@ -151,10 +174,18 @@ export function ImportApp(): JSX.Element {
             className="input"
             placeholder="粘贴网址，按回车获取内容..."
             value={urlInput}
-            onChange={e => setUrlInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') void handleFetchUrl() }}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void handleFetchUrl()
+            }}
           />
-          <button className="btn btn-primary" onClick={() => { void handleFetchUrl() }} disabled={!urlInput.trim() || fetching}>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              void handleFetchUrl()
+            }}
+            disabled={!urlInput.trim() || fetching}
+          >
             {fetching ? '获取...' : '获取'}
           </button>
         </div>
@@ -166,7 +197,10 @@ export function ImportApp(): JSX.Element {
         <div className="import-results">
           {results.map((r, i) => (
             <div key={i} className="import-result-item">
-              <CheckCircle size={14} style={{ color: r.status === 'ok' ? 'var(--color-accent)' : 'red', flexShrink: 0 }} />
+              <CheckCircle
+                size={14}
+                style={{ color: r.status === 'ok' ? 'var(--color-accent)' : 'red', flexShrink: 0 }}
+              />
               <div className="import-result-info">
                 <div className="import-result-name">{r.name}</div>
                 <div className="import-result-type">
@@ -174,7 +208,11 @@ export function ImportApp(): JSX.Element {
                   {r.error && <span className="import-result-error"> — {r.error}</span>}
                 </div>
               </div>
-              <button className="btn btn-icon" onClick={() => removeResult(i)} style={{ padding: 2, flexShrink: 0 }}>
+              <button
+                className="btn btn-icon"
+                onClick={() => removeResult(i)}
+                style={{ padding: 2, flexShrink: 0 }}
+              >
                 <X size={12} />
               </button>
             </div>

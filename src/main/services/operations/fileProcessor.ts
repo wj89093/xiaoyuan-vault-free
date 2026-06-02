@@ -54,10 +54,7 @@ interface ProcessContext {
  * 调用 AI 并写入 frontmatter 更新。
  * 返回是否实际做了修改。
  */
-export async function processFile(
-  filePath: string,
-  ctx: ProcessContext,
-): Promise<boolean> {
+export async function processFile(filePath: string, ctx: ProcessContext): Promise<boolean> {
   const vaultPath = getVaultPath()
   if (!vaultPath) return false
 
@@ -77,7 +74,7 @@ export async function processFile(
   const needsSchemaFields = ctx.settings.onSchemaDriven && folderSchema != null
 
   const missingSchemaFields = needsSchemaFields
-    ? folderSchema!.fields.filter(f => !frontmatter[f.key as keyof typeof frontmatter])
+    ? folderSchema!.fields.filter((f) => !frontmatter[f.key as keyof typeof frontmatter])
     : []
 
   if (!needsTags && !needsSummary && missingSchemaFields.length === 0) {
@@ -110,7 +107,6 @@ ${body.slice(0, 500)}
 - 示例: ["概念", "基础", "生物"]
 
 返回 JSON 数组：`
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const result = await callAI('suggestTags', { content: body.slice(0, 500) })
           const match = String(result).match(/\[[\s\S]*\]/)
           if (match) {
@@ -138,9 +134,8 @@ ${body.slice(0, 1000)}
 - 直接返回摘要文字，不要前缀
 
 摘要：`
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const result = await callAI('suggestSummary', { content: body.slice(0, 1000) })
-           
+
           const summary = String(result).trim().slice(0, 200)
           if (summary) updates.summary = summary
         } catch (err) {
@@ -151,7 +146,7 @@ ${body.slice(0, 1000)}
   }
 
   if (missingSchemaFields.length > 0) {
-    const fieldNames = missingSchemaFields.map(f => f.label).join('、')
+    const fieldNames = missingSchemaFields.map((f) => f.label).join('、')
     tasks.push(
       (async () => {
         try {
@@ -160,10 +155,12 @@ ${body.slice(0, 1000)}
             `页面内容（前 800 字）：`,
             body.slice(0, 800),
             '',
-            '返回严格 JSON，对象键为字段 key，值为提取的值。不要有解释。',
+            '返回严格 JSON，对象键为字段 key，值为提取的值。不要有解释。'
           ].join('\n')
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const result = await callAI('extractSchemaFields', { content: body.slice(0, 800), fields: missingSchemaFields })
+          const result = await callAI('extractSchemaFields', {
+            content: body.slice(0, 800),
+            fields: missingSchemaFields
+          })
           const match = String(result).match(/\{[\s\S]*\}/)
           if (match) {
             const extracted = JSON.parse(match[0]) as Record<string, unknown>

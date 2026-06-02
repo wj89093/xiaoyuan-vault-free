@@ -6,7 +6,7 @@ describe('XSS prevention', () => {
     const malicious = '<img src=x onerror=alert(1)>'
     // Simulate textContent assignment (safe)
     el.textContent = malicious
-    
+
     // textContent does NOT evaluate HTML
     expect(el.textContent).toBe(malicious)
     // The malicious HTML is stored as plain text, not parsed
@@ -28,7 +28,7 @@ describe('XSS prevention', () => {
   })
 })
 
-import { join } from 'path';
+import { join } from 'path'
 
 describe('Path construction safety', () => {
   it('join normalizes path separators', () => {

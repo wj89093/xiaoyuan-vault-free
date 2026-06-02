@@ -1,4 +1,4 @@
- 
+/* eslint-disable react-hooks/set-state-in-effect -- output panel: initial load pattern, expected */
 import { useState, useEffect } from 'react'
 import { FileOutput, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
@@ -15,7 +15,11 @@ export function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
     setLoading(true)
     try {
       const vaultPath = await (window.api as any).getVaultPath?.()
-      if (!vaultPath) { setContent(''); setLoading(false); return }
+      if (!vaultPath) {
+        setContent('')
+        setLoading(false)
+        return
+      }
       const resp = await (window.api as any).readFile(`${vaultPath}/_output/README.md`)
       setContent(resp ?? '')
     } catch {
@@ -26,8 +30,9 @@ export function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
     setLoading(false)
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { void loadOutput() }, [])
+  useEffect(() => {
+    void loadOutput()
+  }, [])
 
   return (
     <FloatingPanel
@@ -38,33 +43,93 @@ export function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
       height={520}
       bottomOffset={80}
     >
-      <div style={{ display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 8, borderBottom: '1px solid var(--color-border)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '6px 12px',
+          gap: 8,
+          borderBottom: '1px solid var(--color-border)'
+        }}
+      >
         <button
           onClick={() => void loadOutput()}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface)', cursor: 'pointer', color: 'var(--color-text-primary)' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 11,
+            padding: '4px 10px',
+            borderRadius: 6,
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-surface)',
+            cursor: 'pointer',
+            color: 'var(--color-text-primary)'
+          }}
         >
           <RefreshCw size={11} /> 刷新
         </button>
-        <span style={{ fontSize: 11, color: 'var(--color-text-tertiary, #8e8e93)', marginLeft: 'auto' }}>
+        <span
+          style={{ fontSize: 11, color: 'var(--color-text-tertiary, #8e8e93)', marginLeft: 'auto' }}
+        >
           {content ? content.split('\n').length + ' 行' : ''}
         </span>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 32, color: 'var(--color-text-tertiary)', fontSize: 13 }}>加载中...</div>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: 32,
+            color: 'var(--color-text-tertiary)',
+            fontSize: 13
+          }}
+        >
+          加载中...
+        </div>
       ) : !content ? (
-        <div style={{ textAlign: 'center', padding: 32, color: 'var(--color-text-tertiary)', fontSize: 13 }}>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: 32,
+            color: 'var(--color-text-tertiary)',
+            fontSize: 13
+          }}
+        >
           暂无输出内容
-          <div style={{ fontSize: 11, marginTop: 6, color: 'var(--color-text-tertiary)', lineHeight: 1.6 }}>
+          <div
+            style={{
+              fontSize: 11,
+              marginTop: 6,
+              color: 'var(--color-text-tertiary)',
+              lineHeight: 1.6
+            }}
+          >
             <div>Agent 运行后，导出的文档自动放在</div>
-            <code style={{ fontFamily: 'monospace', background: 'var(--color-surface-hover)', padding: '1px 5px', borderRadius: 3 }}>_output/README.md</code>
+            <code
+              style={{
+                fontFamily: 'monospace',
+                background: 'var(--color-surface-hover)',
+                padding: '1px 5px',
+                borderRadius: 3
+              }}
+            >
+              _output/README.md
+            </code>
           </div>
         </div>
       ) : (
-        <div style={{
-          flex: 1, overflowY: 'auto', padding: '12px 16px',
-          fontSize: 13, lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'var(--color-text-primary)',
-        }}>
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '12px 16px',
+            fontSize: 13,
+            lineHeight: 1.8,
+            whiteSpace: 'pre-wrap',
+            color: 'var(--color-text-primary)'
+          }}
+        >
           {content}
         </div>
       )}

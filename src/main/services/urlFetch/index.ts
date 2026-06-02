@@ -1,11 +1,29 @@
- 
-
 import log from 'electron-log/main'
-import { fetchViaJina, fetchDirectHTML, fetchWechat, fetchYouTube, fetchTwitter, fetchGitHub, fetchReddit, fetchBilibili, fetchZhihu } from './providers'
+import {
+  fetchViaJina,
+  fetchDirectHTML,
+  fetchWechat,
+  fetchYouTube,
+  fetchTwitter,
+  fetchGitHub,
+  fetchReddit,
+  fetchBilibili,
+  fetchZhihu
+} from './providers'
 import type { URLFetchResult } from './types'
 
 export type { URLFetchResult }
-export { fetchViaJina, fetchDirectHTML, fetchWechat, fetchYouTube, fetchTwitter, fetchGitHub, fetchReddit, fetchBilibili, fetchZhihu } from './providers'
+export {
+  fetchViaJina,
+  fetchDirectHTML,
+  fetchWechat,
+  fetchYouTube,
+  fetchTwitter,
+  fetchGitHub,
+  fetchReddit,
+  fetchBilibili,
+  fetchZhihu
+} from './providers'
 
 /**
  * 智能抓取：根据 URL 选择最佳抓取策略
@@ -16,8 +34,10 @@ export async function fetchURL(url: string): Promise<URLFetchResult> {
 
   // Platform-specific fetchers
   if (cleanUrl.includes('mp.weixin.qq.com')) return fetchWechat(cleanUrl)
-  if (cleanUrl.includes('youtube.com/') || cleanUrl.includes('youtu.be/')) return fetchYouTube(cleanUrl)
-  if (cleanUrl.includes('twitter.com/') || cleanUrl.includes('x.com/')) return fetchTwitter(cleanUrl)
+  if (cleanUrl.includes('youtube.com/') || cleanUrl.includes('youtu.be/'))
+    return fetchYouTube(cleanUrl)
+  if (cleanUrl.includes('twitter.com/') || cleanUrl.includes('x.com/'))
+    return fetchTwitter(cleanUrl)
   if (cleanUrl.includes('github.com/')) return fetchGitHub(cleanUrl)
   if (cleanUrl.includes('reddit.com/')) return fetchReddit(cleanUrl)
   if (cleanUrl.includes('bilibili.com/')) return fetchBilibili(cleanUrl)
@@ -42,7 +62,7 @@ export async function fetchURL(url: string): Promise<URLFetchResult> {
 export async function saveURLToVault(
   url: string,
   vaultPath: string,
-  fileName?: string,
+  fileName?: string
 ): Promise<string> {
   const { join } = await import('path')
   const { mkdir, writeFile } = await import('fs/promises')
@@ -64,8 +84,10 @@ export async function saveURLToVault(
     `url: "${url}"`,
     `archived: ${new Date().toISOString().slice(0, 10)}`,
     '---',
-    '',
-  ].filter((s): s is string => !!s).join('\n')
+    ''
+  ]
+    .filter((s): s is string => !!s)
+    .join('\n')
 
   const content = frontmatter + finalContent
   await writeFile(filePath, content, 'utf-8')

@@ -19,7 +19,7 @@ function _fileInfoToSuggestion(file: FileInfo): WikiLinkSuggestion {
     target: file.path,
     label,
     detail: file.path,
-    boost: 0,
+    boost: 0
   }
 }
 
@@ -29,13 +29,15 @@ export function updateVaultFiles(files: FileInfo[]): void {
 }
 
 export function registerWikiLinksSuggestionsProvider(
-  _suggestions: (query: string) => Promise<WikiLinkSuggestion[]>,
+  _suggestions: (query: string) => Promise<WikiLinkSuggestion[]>
 ): void {
   _getSuggestions = _suggestions
   ;(window as any).__wikiLinkSuggestions = _getSuggestions
 }
 
-export function getWikiLinksSuggestionsProvider(): (query: string) => Promise<WikiLinkSuggestion[]> | null {
+export function getWikiLinksSuggestionsProvider(): (
+  query: string
+) => Promise<WikiLinkSuggestion[]> | null {
   if (_getSuggestions) return _getSuggestions
   return (window as any).__wikiLinkSuggestions ?? null
 }

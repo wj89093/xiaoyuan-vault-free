@@ -20,7 +20,7 @@ const JS_CONVERTERS: Record<string, (filePath: string) => Promise<string>> = {
   '.csv': convertText,
   '.json': convertText,
   '.xml': convertText,
-  '.zip': convertZip,
+  '.zip': convertZip
 }
 
 // Text formats (direct read)
@@ -33,8 +33,13 @@ const AUDIO_FORMATS = new Set(['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', 
 const IMAGE_FORMATS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif', '.webp'])
 
 export function canConvertWithJS(filePath: string): boolean {
-  const ext = (filePath.toLowerCase().slice(filePath.lastIndexOf('.')))
-  return ext in JS_CONVERTERS || TEXT_FORMATS.has(ext) || IMAGE_FORMATS.has(ext) || AUDIO_FORMATS.has(ext)
+  const ext = filePath.toLowerCase().slice(filePath.lastIndexOf('.'))
+  return (
+    ext in JS_CONVERTERS ||
+    TEXT_FORMATS.has(ext) ||
+    IMAGE_FORMATS.has(ext) ||
+    AUDIO_FORMATS.has(ext)
+  )
 }
 
 export function canTranscribeAudio(filePath: string): boolean {
@@ -85,7 +90,7 @@ async function convertPdf(filePath: string): Promise<string> {
 
 async function convertDocx(filePath: string): Promise<string> {
   log.info(`[JS] converting DOCX: ${filePath}`)
-   
+
   const mammoth = await import('mammoth')
   const result = await mammoth.default.convertToMarkdown({ path: filePath })
   return result.value
@@ -93,7 +98,7 @@ async function convertDocx(filePath: string): Promise<string> {
 
 async function convertXlsx(filePath: string): Promise<string> {
   log.info(`[JS] converting XLSX: ${filePath}`)
-   
+
   const XLSX = await import('xlsx')
   const workbook = XLSX.default.readFile(filePath)
   const lines: string[] = []
@@ -101,7 +106,7 @@ async function convertXlsx(filePath: string): Promise<string> {
   for (const sheetName of workbook.SheetNames) {
     lines.push(`## ${sheetName}`)
     const sheet = workbook.Sheets[sheetName]
-    XLSX.default.utils.decode_range(sheet['!ref'] as string ?? 'A1')
+    XLSX.default.utils.decode_range((sheet['!ref'] as string) ?? 'A1')
     const data = XLSX.default.utils.sheet_to_json(sheet, { header: 1, defval: '' })
     for (const row of data as string[][]) {
       const filtered = row.filter((c: string) => c !== '')
@@ -118,8 +123,10 @@ async function convertXlsx(filePath: string): Promise<string> {
 async function convertPptx(filePath: string): Promise<string> {
   const AdmZip = await import('adm-zip')
   const zip = new AdmZip.default(filePath) as unknown as Record<string, unknown>
-  const slideEntries = zip.getEntries().filter(e => e.entryName.match(/ppt\/slides\/slide\d+\.xml$/))
-   
+  const slideEntries = zip
+    .getEntries()
+    .filter((e) => e.entryName.match(/ppt\/slides\/slide\d+\.xml$/))
+
   const lines: string[] = [`# ${basename(filePath).replace('.pptx', '').replace('.ppt', '')}`]
 
   for (const entry of (slideEntries as { entryName: string }[]).sort((a, b) => {
@@ -129,9 +136,9 @@ async function convertPptx(filePath: string): Promise<string> {
   })) {
     const xml = entry.getData().toString('utf-8')
     // Extract text from XML using regex (simple approach)
-    const texts = [...xml.matchAll(/<a:t>([^<]+)<\/a:t>/g)].map(m => m[1]).filter(t => t.trim())
+    const texts = [...xml.matchAll(/<a:t>([^<]+)<\/a:t>/g)].map((m) => m[1]).filter((t) => t.trim())
     if (texts.length > 0) {
-      lines.push(`\n### Slide ${lines.filter(l => l.startsWith('### ')).length + 1}`)
+      lines.push(`\n### Slide ${lines.filter((l) => l.startsWith('### ')).length + 1}`)
       lines.push(texts.join('\n'))
     }
   }
@@ -159,8 +166,8 @@ async function convertZip(filePath: string): Promise<string> {
   log.info(`[JS] extracting ZIP: ${filePath}`)
   const AdmZip = await import('adm-zip')
   const zip = new AdmZip.default(filePath) as unknown as Record<string, unknown>
-  const entries = zip.getEntries().filter(e => !e.isDirectory)
-  const names = entries.map(e => `- ${e.entryName}`).join('\n')
+  const entries = zip.getEntries().filter((e) => !e.isDirectory)
+  const names = entries.map((e) => `- ${e.entryName}`).join('\n')
   return `# ZIP Contents: ${basename(filePath)}\n\n${names}`
 }
 
@@ -168,7 +175,9 @@ async function convertImageOCR(filePath: string): Promise<string> {
   log.info(`[JS] OCR image: ${filePath}`)
   const { createWorker } = await import('tesseract.js')
   const worker = await createWorker('eng+chi_sim')
-  const { data: { text } } = await worker.recognize(filePath)
+  const {
+    data: { text }
+  } = await worker.recognize(filePath)
   await worker.terminate()
   return `# ${basename(filePath)}\n\n${text}`
 }
@@ -178,6 +187,6 @@ export function getSupportedExtensions(): string[] {
     ...Object.keys(JS_CONVERTERS),
     ...Array.from(TEXT_FORMATS),
     ...Array.from(AUDIO_FORMATS),
-    ...Array.from(IMAGE_FORMATS),
+    ...Array.from(IMAGE_FORMATS)
   ]
 }

@@ -8,7 +8,7 @@ import { join } from 'path'
 import { readFile, writeFile } from 'fs/promises'
 
 // ─── Log rotation constants (P1.6) ──────────────────────────────────────
-const LOG_MAX_LINES = 5000   // rotate when exceeded
+const LOG_MAX_LINES = 5000 // rotate when exceeded
 
 async function rotateLog(vaultPath: string): Promise<void> {
   try {
@@ -36,7 +36,7 @@ export async function appendToOperationLog(vaultPath: string, entries: string[])
   if (!entries.length) return
   const logPath = join(vaultPath, 'log.md')
   const ts = new Date().toISOString().slice(0, 19).replace('T', ' ')
-  const content = ['', `### ${ts}`, ...entries.map(e => `  - ${String(e)}`)].join('\n')
+  const content = ['', `### ${ts}`, ...entries.map((e) => `  - ${String(e)}`)].join('\n')
   try {
     const existing = await readFile(logPath, 'utf-8').catch(() => '')
     // P1.6: check line count before append, rotate if needed

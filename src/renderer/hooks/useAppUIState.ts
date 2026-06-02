@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react'
 
 export interface AppUIState {
@@ -55,7 +54,9 @@ export function useAppUIState(): AppUIState {
   const [showSearchFloat, setShowSearchFloat] = useState(false)
   const [showOutput, setShowOutput] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [vaultList, setVaultList] = useState<Array<{ path: string; name: string; lastOpened: number }>>([])
+  const [vaultList, setVaultList] = useState<
+    Array<{ path: string; name: string; lastOpened: number }>
+  >([])
   const [showVaultCreation, setShowVaultCreation] = useState(false)
   const [activeView, setActiveView] = useState('wiki')
 
@@ -78,38 +79,73 @@ export function useAppUIState(): AppUIState {
     setShowSettings(true)
   }, [])
 
-  const openLint = useCallback(() => { setShowLint(true) }, [])
-  const openLog = useCallback(() => { setShowLog(true) }, [])
-  const openSchema = useCallback(() => { setShowSchema(true) }, [])
-  const openVersionHistory = useCallback(() => { setShowVersionHistory(true) }, [])
+  const openLint = useCallback(() => {
+    setShowLint(true)
+  }, [])
+  const openLog = useCallback(() => {
+    setShowLog(true)
+  }, [])
+  const openSchema = useCallback(() => {
+    setShowSchema(true)
+  }, [])
+  const openVersionHistory = useCallback(() => {
+    setShowVersionHistory(true)
+  }, [])
 
-  const toggleBacklinks = useCallback(() => setShowBacklinks(v => !v), [])
-  const toggleTrash = useCallback(() => setShowTrash(v => !v), [])
-  const toggleQuickSwitch = useCallback(() => setShowQuickSwitch(v => !v), [])
-  const toggleGraph = useCallback(() => setShowGraph(v => !v), [])
-  const toggleShortcuts = useCallback(() => setShowShortcuts(v => !v), [])
+  const toggleBacklinks = useCallback(() => setShowBacklinks((v) => !v), [])
+  const toggleTrash = useCallback(() => setShowTrash((v) => !v), [])
+  const toggleQuickSwitch = useCallback(() => setShowQuickSwitch((v) => !v), [])
+  const toggleGraph = useCallback(() => setShowGraph((v) => !v), [])
+  const toggleShortcuts = useCallback(() => setShowShortcuts((v) => !v), [])
 
   return {
     // app shell
-    showSearchFloat, setShowSearchFloat,
-    showOutput, setShowOutput,
-    showOnboarding, setShowOnboarding,
-    vaultList, setVaultList,
-    showVaultCreation, setShowVaultCreation,
-    activeView, setActiveView,
+    showSearchFloat,
+    setShowSearchFloat,
+    showOutput,
+    setShowOutput,
+    showOnboarding,
+    setShowOnboarding,
+    vaultList,
+    setVaultList,
+    showVaultCreation,
+    setShowVaultCreation,
+    activeView,
+    setActiveView,
     // UI panels
-    showQuickSwitch, setShowQuickSwitch,
-    showGraph, setShowGraph,
-    showShortcuts, setShowShortcuts,
-    showBacklinks, setShowBacklinks, toggleBacklinks,
-    showTrash, setShowTrash, toggleTrash,
-    showSettings, setShowSettings, openSettings,
-    showLint, setShowLint, openLint,
-    showSchema, setShowSchema, openSchema,
-    showLog, setShowLog, openLog,
-    showBriefing, setShowBriefing,
-    showVersionHistory, setShowVersionHistory, openVersionHistory,
-    showIndexFloat, setShowIndexFloat,
-    toggleQuickSwitch, toggleGraph, toggleShortcuts,
+    showQuickSwitch,
+    setShowQuickSwitch,
+    showGraph,
+    setShowGraph,
+    showShortcuts,
+    setShowShortcuts,
+    showBacklinks,
+    setShowBacklinks,
+    toggleBacklinks,
+    showTrash,
+    setShowTrash,
+    toggleTrash,
+    showSettings,
+    setShowSettings,
+    openSettings,
+    showLint,
+    setShowLint,
+    openLint,
+    showSchema,
+    setShowSchema,
+    openSchema,
+    showLog,
+    setShowLog,
+    openLog,
+    showBriefing,
+    setShowBriefing,
+    showVersionHistory,
+    setShowVersionHistory,
+    openVersionHistory,
+    showIndexFloat,
+    setShowIndexFloat,
+    toggleQuickSwitch,
+    toggleGraph,
+    toggleShortcuts
   }
 }

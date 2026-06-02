@@ -21,13 +21,17 @@ export function useCodeMirror(
   containerRef: React.RefObject<HTMLDivElement | null>,
   value: string,
   onChange: (value: string) => void,
-  onWikiLinkNavigate?: (target: string) => void,
+  onWikiLinkNavigate?: (target: string) => void
 ) {
   const _viewRef = useRef<EditorView | null>(null)
   const _onChangeRef = useRef(onChange)
   const _onWikiLinkNavigateRef = useRef(onWikiLinkNavigate)
-  useEffect(() => { _onChangeRef.current = onChange }, [onChange])
-  useEffect(() => { _onWikiLinkNavigateRef.current = onWikiLinkNavigate }, [onWikiLinkNavigate])
+  useEffect(() => {
+    _onChangeRef.current = onChange
+  }, [onChange])
+  useEffect(() => {
+    _onWikiLinkNavigateRef.current = onWikiLinkNavigate
+  }, [onWikiLinkNavigate])
 
   useEffect(() => {
     const container = containerRef.current
@@ -44,11 +48,11 @@ export function useCodeMirror(
         indentOnInput(),
         history(),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        EditorView.updateListener.of(update => {
+        EditorView.updateListener.of((update) => {
           if (update.docChanged) _onChangeRef.current(update.state.doc.toString())
         }),
         ...editorExtensions(),
-        editorNavigationExtension((target: string) => _onWikiLinkNavigateRef.current?.(target)),
+        editorNavigationExtension((target: string) => _onWikiLinkNavigateRef.current?.(target))
       ]
     })
 
@@ -60,11 +64,16 @@ export function useCodeMirror(
     const updateTheme = () => {
       const isDark = document.documentElement.dataset.theme === 'dark'
       view.dispatch({
-        effects: themeCompartment.reconfigure(isDark ? editorDarkThemeExtension() : editorThemeExtension())
+        effects: themeCompartment.reconfigure(
+          isDark ? editorDarkThemeExtension() : editorThemeExtension()
+        )
       })
     }
     const observer = new MutationObserver(() => updateTheme())
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    })
     updateTheme()
     ;(view as any).__themeObserver = observer
 
@@ -82,7 +91,10 @@ export function useCodeMirror(
       startEdit(widget, dom, v)
     }
 
-    return () => { view.destroy(); _viewRef.current = null }
+    return () => {
+      view.destroy()
+      _viewRef.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

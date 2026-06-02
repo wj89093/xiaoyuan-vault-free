@@ -4,7 +4,7 @@ import Store from 'electron-store'
 const SETTINGS_STRUCT = {
   theme: {
     type: 'string' as const,
-    enum: ['light' as const, 'dark' as const, 'system' as const],
+    enum: ['light' as const, 'dark' as const, 'system' as const]
   },
   agentPlugin: {
     type: 'object' as const,
@@ -13,9 +13,9 @@ const SETTINGS_STRUCT = {
       endpoint: { type: 'string' },
       apiKey: { type: 'string' },
       protocol: { type: 'string', enum: ['ws', 'http'] },
-      name: { type: 'string' },
-    },
-  },
+      name: { type: 'string' }
+    }
+  }
 }
 
 type SettingsSchema = {
@@ -38,9 +38,9 @@ const settingsStore = new Store<SettingsSchema>({
       endpoint: 'ws://localhost:8080/agent',
       apiKey: '',
       protocol: 'ws',
-      name: '自定义 Agent',
-    },
-  },
+      name: '自定义 Agent'
+    }
+  }
 })
 
 export function registerSettingsHandlers(): void {

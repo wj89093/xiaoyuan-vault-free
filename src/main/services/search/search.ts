@@ -16,7 +16,7 @@ export function searchFiles(query: string): Promise<FileRecord[]> {
       ORDER BY modified_at DESC
       LIMIT 100
     `)
-    return Promise.resolve(stmt.all().map(r => normalizeRecord(r)))
+    return Promise.resolve(stmt.all().map((r) => normalizeRecord(r)))
   }
 
   // FTS search
@@ -31,15 +31,20 @@ export function searchFiles(query: string): Promise<FileRecord[]> {
 
   try {
     const rows = stmt.all(query + '*')
-    return Promise.resolve(rows.map(r => normalizeRecord(r)))
+    return Promise.resolve(rows.map((r) => normalizeRecord(r)))
   } catch (e) {
-    log.warn('[database] FTS search failed, falling back to LIKE', e instanceof Error ? e.message : String(e))
+    log.warn(
+      '[database] FTS search failed, falling back to LIKE',
+      e instanceof Error ? e.message : String(e)
+    )
     const likeStmt = db.prepare(`
       SELECT path, name, title, tags, modified_at, folder
       FROM files
       WHERE content LIKE ? OR title LIKE ? OR tags LIKE ?
       LIMIT 50
     `)
-    return Promise.resolve(likeStmt.all(`%${query}%`, `%${query}%`, `%${query}%`).map(r => normalizeRecord(r)))
+    return Promise.resolve(
+      likeStmt.all(`%${query}%`, `%${query}%`, `%${query}%`).map((r) => normalizeRecord(r))
+    )
   }
 }

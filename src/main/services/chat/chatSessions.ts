@@ -14,10 +14,14 @@ function isValidSession(obj: unknown): obj is ChatSession {
   return (
     typeof obj === 'object' &&
     obj !== null &&
-    'id' in obj && typeof (obj as Record<string, unknown>).id === 'string' &&
-    'title' in obj && typeof (obj as Record<string, unknown>).title === 'string' &&
-    'created_at' in obj && typeof (obj as Record<string, unknown>).created_at === 'number' &&
-    'updated_at' in obj && typeof (obj as Record<string, unknown>).updated_at === 'number' &&
+    'id' in obj &&
+    typeof (obj as Record<string, unknown>).id === 'string' &&
+    'title' in obj &&
+    typeof (obj as Record<string, unknown>).title === 'string' &&
+    'created_at' in obj &&
+    typeof (obj as Record<string, unknown>).created_at === 'number' &&
+    'updated_at' in obj &&
+    typeof (obj as Record<string, unknown>).updated_at === 'number' &&
     (!('systemPrompt' in obj) ||
       obj['systemPrompt'] === null ||
       typeof obj['systemPrompt'] === 'string')
@@ -72,7 +76,9 @@ export async function saveSessions(sessions: ChatSession[]): Promise<void> {
     if (existsSync(join(dir, SESSIONS_FILE))) {
       await writeFile(backupFile, await readFile(join(dir, SESSIONS_FILE), 'utf-8'), 'utf-8')
     }
-  } catch {/* ignore backup failures */}
+  } catch {
+    /* ignore backup failures */
+  }
   await writeFile(join(dir, SESSIONS_FILE), JSON.stringify(sessions, null, 2), 'utf-8')
 }
 
@@ -90,7 +96,7 @@ export async function createSession(firstQuestion: string): Promise<ChatSession>
     title: firstQuestion.slice(0, SESSION_TITLE_MAX_LEN),
     created_at: Date.now(),
     updated_at: Date.now(),
-    systemPrompt: null,
+    systemPrompt: null
   }
 
   sessions.unshift(session)
@@ -98,9 +104,12 @@ export async function createSession(firstQuestion: string): Promise<ChatSession>
   return session
 }
 
-export async function updateSessionSystemPrompt(sessionId: string, systemPrompt: string | null): Promise<void> {
+export async function updateSessionSystemPrompt(
+  sessionId: string,
+  systemPrompt: string | null
+): Promise<void> {
   const sessions = await loadSessions()
-  const idx = sessions.findIndex(s => s.id === sessionId)
+  const idx = sessions.findIndex((s) => s.id === sessionId)
   if (idx === -1) {
     log.warn('[chat] updateSessionSystemPrompt: session not found', sessionId)
     return
@@ -112,7 +121,7 @@ export async function updateSessionSystemPrompt(sessionId: string, systemPrompt:
 
 export async function deleteSession(sessionId: string): Promise<void> {
   const sessions = await loadSessions()
-  const filtered = sessions.filter(s => s.id !== sessionId)
+  const filtered = sessions.filter((s) => s.id !== sessionId)
   await saveSessions(filtered)
 
   // Delete messages file
@@ -150,7 +159,7 @@ export async function saveMessages(sessionId: string, messages: AgentMessage[]):
 
   // Update session timestamp
   const sessions = await loadSessions()
-  const idx = sessions.findIndex(s => s.id === sessionId)
+  const idx = sessions.findIndex((s) => s.id === sessionId)
   if (idx >= 0) {
     sessions[idx].updated_at = Date.now()
     await saveSessions(sessions)

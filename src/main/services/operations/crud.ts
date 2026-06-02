@@ -28,23 +28,29 @@ export async function saveFile(filePath: string, content: string): Promise<boole
 
     // Re-index
     if (db) {
-      const relPath = filePath.startsWith(vp)
-        ? filePath.replace(vp + '/', '')
-        : filePath
+      const relPath = filePath.startsWith(vp) ? filePath.replace(vp + '/', '') : filePath
       const stats = await stat(fullPath)
       const name = basename(relPath)
       const { frontmatter } = parseFrontmatter(content)
-      const title = frontmatter.title ?? extractTitle(content) ?? (name.replace(/\.md$/, ''))
+      const title = frontmatter.title ?? extractTitle(content) ?? name.replace(/\.md$/, '')
       const hash = simpleHash(content)
-      const folder = relPath.includes('/')
-        ? relPath.split('/').slice(0, -1).join('/')
-        : ''
+      const folder = relPath.includes('/') ? relPath.split('/').slice(0, -1).join('/') : ''
 
       const stmt = db.prepare(`
         INSERT OR REPLACE INTO files (path, name, title, content, tags, frontmatter, modified_at, content_hash, folder)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
-      stmt.run(relPath, name, title, content, frontmatter.tags?.join(', ') ?? '', JSON.stringify(frontmatter), stats.mtimeMs, hash, folder)
+      stmt.run(
+        relPath,
+        name,
+        title,
+        content,
+        frontmatter.tags?.join(', ') ?? '',
+        JSON.stringify(frontmatter),
+        stats.mtimeMs,
+        hash,
+        folder
+      )
     }
 
     return true
@@ -66,7 +72,9 @@ export async function renameFile(oldPath: string, newName: string): Promise<bool
     try {
       await stat(newFullPath)
       return false // Target exists, can't rename
-    } catch { /* target doesn't exist (expected) */ }
+    } catch {
+      /* target doesn't exist (expected) */
+    }
 
     await fsRename(oldFullPath, newFullPath)
 
@@ -78,21 +86,34 @@ export async function renameFile(oldPath: string, newName: string): Promise<bool
       const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as any
       if (existing) {
         // Update file record
-        db.prepare(`
+        db.prepare(
+          `
           UPDATE files SET path = ?, name = ? WHERE path = ?
-        `).run(newRelPath, newName, oldRelPath)
+        `
+        ).run(newRelPath, newName, oldRelPath)
 
         // Also update FTS by re-indexing
         const content = await readFile(newFullPath, 'utf-8')
         const stats = await stat(newFullPath)
         const { frontmatter } = parseFrontmatter(content)
-        const title = frontmatter.title ?? extractTitle(content) ?? (newName.replace(/\.md$/, ''))
+        const title = frontmatter.title ?? extractTitle(content) ?? newName.replace(/\.md$/, '')
         const hash = simpleHash(content)
         const folder = newRelPath.includes('/') ? newRelPath.split('/').slice(0, -1).join('/') : ''
 
-        db.prepare(`
+        db.prepare(
+          `
           UPDATE files SET content = ?, title = ?, tags = ?, frontmatter = ?, modified_at = ?, content_hash = ?, folder = ? WHERE path = ?
-        `).run(content, title, frontmatter.tags?.join(', ') ?? '', JSON.stringify(frontmatter), stats.mtimeMs, hash, folder, newRelPath)
+        `
+        ).run(
+          content,
+          title,
+          frontmatter.tags?.join(', ') ?? '',
+          JSON.stringify(frontmatter),
+          stats.mtimeMs,
+          hash,
+          folder,
+          newRelPath
+        )
       }
     }
 
@@ -112,10 +133,19 @@ export async function moveFile(oldPath: string, newParentDir: string): Promise<b
     const newFullPath = join(vp, newParentDir, basename(oldFullPath))
 
     // Check if source exists
-    try { await stat(oldFullPath) } catch { return false }
+    try {
+      await stat(oldFullPath)
+    } catch {
+      return false
+    }
 
     // Check if target already exists
-    try { await stat(newFullPath); return false } catch { /* OK */ }
+    try {
+      await stat(newFullPath)
+      return false
+    } catch {
+      /* OK */
+    }
 
     // Ensure parent dir exists
     await mkdir(dirname(newFullPath), { recursive: true })
@@ -129,17 +159,32 @@ export async function moveFile(oldPath: string, newParentDir: string): Promise<b
 
       const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as any
       if (existing) {
-        db.prepare('UPDATE files SET path = ?, folder = ? WHERE path = ?').run(newRelPath, newParentDir, oldRelPath)
+        db.prepare('UPDATE files SET path = ?, folder = ? WHERE path = ?').run(
+          newRelPath,
+          newParentDir,
+          oldRelPath
+        )
 
         // Re-index content
         const content = await readFile(newFullPath, 'utf-8')
         const stats = await stat(newFullPath)
         const { frontmatter } = parseFrontmatter(content)
-        const title = frontmatter.title ?? extractTitle(content) ?? (basename(oldRelPath).replace(/\.md$/, ''))
+        const title =
+          frontmatter.title ?? extractTitle(content) ?? basename(oldRelPath).replace(/\.md$/, '')
         const hash = simpleHash(content)
-        db.prepare(`
+        db.prepare(
+          `
           UPDATE files SET content = ?, title = ?, tags = ?, frontmatter = ?, modified_at = ?, content_hash = ? WHERE path = ?
-        `).run(content, title, frontmatter.tags?.join(', ') ?? '', JSON.stringify(frontmatter), stats.mtimeMs, hash, newRelPath)
+        `
+        ).run(
+          content,
+          title,
+          frontmatter.tags?.join(', ') ?? '',
+          JSON.stringify(frontmatter),
+          stats.mtimeMs,
+          hash,
+          newRelPath
+        )
       }
     }
     return true
@@ -212,7 +257,11 @@ export async function listVaultFiles(): Promise<FileRecord[]> {
 // Shared low-level file operations — pure fs only, no logging, no IPC, no DB.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function renameFileInVault(_vaultPath: string, oldPath: string, newName: string): Promise<string> {
+export async function renameFileInVault(
+  _vaultPath: string,
+  oldPath: string,
+  newName: string
+): Promise<string> {
   const ext = extname(oldPath)
   const finalName = newName.endsWith(ext) ? newName : newName + ext
   const ok = await renameFile(oldPath, finalName)
@@ -221,13 +270,21 @@ export async function renameFileInVault(_vaultPath: string, oldPath: string, new
   return join(dir, finalName)
 }
 
-export async function moveFileInVault(_vaultPath: string, filePath: string, newParentDir: string): Promise<string> {
+export async function moveFileInVault(
+  _vaultPath: string,
+  filePath: string,
+  newParentDir: string
+): Promise<string> {
   const ok = await moveFile(filePath, newParentDir)
   if (!ok) throw new Error(`move failed: ${filePath} → ${newParentDir}`)
   return join(newParentDir, basename(filePath))
 }
 
-export async function createFolderInVault(_vaultPath: string, parentDir: string, folderName: string): Promise<string> {
+export async function createFolderInVault(
+  _vaultPath: string,
+  parentDir: string,
+  folderName: string
+): Promise<string> {
   const ok = await createFolder(join(parentDir, folderName))
   if (!ok) throw new Error(`create folder failed: ${folderName}`)
   return join(parentDir, folderName)

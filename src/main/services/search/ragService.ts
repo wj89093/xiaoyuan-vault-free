@@ -9,7 +9,7 @@ import log from 'electron-log/main'
 interface RAGResult {
   title: string
   path: string
-  file: string  // alias for path, for compatibility with chat.ts
+  file: string // alias for path, for compatibility with chat.ts
   content: string
   score: number
 }
@@ -20,7 +20,6 @@ interface RAGFile {
   isDirectory: boolean
   title?: string
 }
-
 
 export async function retrieveRelevantPages(query: string): Promise<RAGResult[]> {
   const vaultPath = getVaultPath()
@@ -65,7 +64,9 @@ export async function retrieveRelevantPages(query: string): Promise<RAGResult[]>
     if (files && files.length > 0) {
       return await fetchPageContents(files.slice(0, 8), query)
     }
-  } catch { /* fall through to empty */ }
+  } catch {
+    /* fall through to empty */
+  }
 
   return []
 }
@@ -87,7 +88,9 @@ async function scanWikiFiles(dir: string): Promise<string[]> {
           results.push(full)
         }
       }
-    } catch { /* skip inaccessible */ }
+    } catch {
+      /* skip inaccessible */
+    }
   }
 
   await walk(dir)
@@ -98,11 +101,11 @@ async function scanWikiFiles(dir: string): Promise<string[]> {
 async function findPagesFromIndex(
   indexContent: string,
   queryLower: string,
-  vaultPath: string,
+  vaultPath: string
 ): Promise<string[]> {
   // Extract page titles/names from index.md
   const pageLinks = indexContent.match(/\[\[([^\]]+)\]\]/g) ?? []
-  const pageNames = pageLinks.map(m => m.slice(2, -2))
+  const pageNames = pageLinks.map((m) => m.slice(2, -2))
 
   // Score each page by keyword relevance
   const scored: Array<{ name: string; score: number }> = []
@@ -117,13 +120,16 @@ async function findPagesFromIndex(
   }
 
   scored.sort((a, b) => b.score - a.score)
-  const topNames = scored.slice(0, 10).map(s => s.name)
+  const topNames = scored.slice(0, 10).map((s) => s.name)
 
   // Find actual file paths — search entire vault, not just _wiki/
   const searchDirs = ['_wiki/sources', '_wiki/entities', '_wiki/concepts', '_wiki', '0-收集', '']
   const results: string[] = []
   for (const name of topNames) {
-    const safe = name.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '-').replace(/\.md$/, '')
+    const safe = name
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/\.md$/, '')
     for (const dir of searchDirs) {
       const p = dir ? join(vaultPath, dir, `${safe}.md`) : join(vaultPath, `${safe}.md`)
       if (existsSync(p) && !results.includes(p)) {
@@ -147,16 +153,17 @@ interface ScoredResult {
 async function scoreWikiPages(
   wikiFiles: string[],
   query: string,
-  _vaultPath: string,
+  _vaultPath: string
 ): Promise<RAGResult[]> {
   const results: ScoredResult[] = []
-  const keywords = query.split(/\s+/).filter(k => k.length > 1)
+  const keywords = query.split(/\s+/).filter((k) => k.length > 1)
 
   for (const filePath of wikiFiles) {
     try {
       const raw = await readFile(filePath, 'utf-8')
       const { frontmatter } = parseFrontmatter(raw)
-      const title = (frontmatter.title as string) ?? filePath.split('/').pop()?.replace('.md', '') ?? ''
+      const title =
+        (frontmatter.title as string) ?? filePath.split('/').pop()?.replace('.md', '') ?? ''
 
       // Score by keyword density
       const contentLower = raw.toLowerCase()
@@ -171,34 +178,39 @@ async function scoreWikiPages(
         const snippet = extractSnippet(raw, query, 200)
         results.push({ filePath, title, snippet, score })
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 
   results.sort((a, b) => b.score - a.score)
-  return results.slice(0, 15).map(r => ({ title: r.title, path: r.filePath, file: r.filePath, content: r.snippet, score: r.score }))
+  return results.slice(0, 15).map((r) => ({
+    title: r.title,
+    path: r.filePath,
+    file: r.filePath,
+    content: r.snippet,
+    score: r.score
+  }))
 }
 
-async function fetchWikiPageContents(
-  filePaths: string[],
-  query: string,
-): Promise<RAGResult[]> {
+async function fetchWikiPageContents(filePaths: string[], query: string): Promise<RAGResult[]> {
   const results: RAGResult[] = []
   for (const filePath of filePaths) {
     try {
       const raw = await readFile(filePath, 'utf-8')
       const { frontmatter } = parseFrontmatter(raw)
-      const title = (frontmatter.title as string) ?? filePath.split('/').pop()?.replace('.md', '') ?? ''
+      const title =
+        (frontmatter.title as string) ?? filePath.split('/').pop()?.replace('.md', '') ?? ''
       const snippet = extractSnippet(raw, query, 200)
       results.push({ title, path: filePath, file: filePath, content: snippet, score: 1.0 })
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
   return results
 }
 
-async function fetchPageContents(
-  files: RAGFile[],
-  query: string
-): Promise<RAGResult[]> {
+async function fetchPageContents(files: RAGFile[], query: string): Promise<RAGResult[]> {
   const vaultPath = getVaultPath()
   if (!vaultPath) return []
 
@@ -218,7 +230,7 @@ async function fetchPageContents(
       const snippet = extractSnippet(rawContent, query, 200)
 
       // TF-IDF-like score based on keyword density
-      const keywords = query.split(/\s+/).filter(k => k.length > 1)
+      const keywords = query.split(/\s+/).filter((k) => k.length > 1)
       const contentLower = rawContent.toLowerCase()
       const queryLower = query.toLowerCase()
       let score = 0
@@ -247,9 +259,8 @@ async function fetchPageContents(
 
 // ============ Stage 2: Generate Answer ============
 
-
 export function extractSnippet(content: string, query: string, maxLen: number): string {
-  const keywords = query.split(/\s+/).filter(k => k.length > 1)
+  const keywords = query.split(/\s+/).filter((k) => k.length > 1)
   if (keywords.length === 0) return content.slice(0, maxLen) + '...'
 
   // Find best matching paragraph
@@ -271,9 +282,7 @@ export function extractSnippet(content: string, query: string, maxLen: number): 
     }
   }
 
-  return bestPara.length > maxLen
-    ? bestPara.slice(0, maxLen) + '...'
-    : bestPara
+  return bestPara.length > maxLen ? bestPara.slice(0, maxLen) + '...' : bestPara
 }
 
 // ============ Session Management ============

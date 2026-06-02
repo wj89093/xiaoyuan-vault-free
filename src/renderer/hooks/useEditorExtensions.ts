@@ -4,13 +4,17 @@
 import type { Extension } from '@codemirror/state'
 import { inlinePreviewExtension } from './useInlinePreview'
 import { tableWidgetExtension } from './useTableWidget'
-import './useFrontmatterWidget'   // side-effect: registers frontmatter builder
-import './useMermaidWidget'        // side-effect: registers mermaid builder
+import './useFrontmatterWidget' // side-effect: registers frontmatter builder
+import './useMermaidWidget' // side-effect: registers mermaid builder
 import { blockHandleExtension } from './useBlockHandle'
 import { wikiLinksExtension } from './useWikiLinks/index'
 import { imageBlocksExtension } from './useImageBlocks'
 import { blockDecorationsField } from './blockDecorationsField'
-import { extendEmphasisPair, autoCloseCodeFence, tightListKeymap } from '../utils/editorInputHelpers'
+import {
+  extendEmphasisPair,
+  autoCloseCodeFence,
+  tightListKeymap
+} from '../utils/editorInputHelpers'
 
 export function editorExtensions(): Extension[] {
   return [
@@ -19,13 +23,11 @@ export function editorExtensions(): Extension[] {
     autoCloseCodeFence,
     tightListKeymap,
 
-
     // ── Core inline preview (ViewPlugin decorations) ────────────────────
     inlinePreviewExtension(),
 
     // ── Block decorations (shared StateField: mermaid + frontmatter) ───
     blockDecorationsField,
-
 
     // ── Block widgets ───────────────────────────────────────────────────
     tableWidgetExtension(),
@@ -33,6 +35,6 @@ export function editorExtensions(): Extension[] {
 
     // ── Navigation / interaction ────────────────────────────────────────
     wikiLinksExtension(),
-    imageBlocksExtension(),
+    imageBlocksExtension()
   ]
 }

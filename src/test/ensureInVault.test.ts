@@ -6,7 +6,10 @@ function ensureInVault(vaultPath: string | null, filePath: string): void {
   if (!vaultPath) return
   const safe = filePath.startsWith('/') ? filePath.slice(1) : filePath
   const resolved = join(vaultPath, safe)
-  if (!resolved.startsWith(vaultPath) || (resolved !== vaultPath && !resolved.startsWith(vaultPath + '/'))) {
+  if (
+    !resolved.startsWith(vaultPath) ||
+    (resolved !== vaultPath && !resolved.startsWith(vaultPath + '/'))
+  ) {
     throw new Error('Path traversal blocked: ' + filePath)
   }
 }

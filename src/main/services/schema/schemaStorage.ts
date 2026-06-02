@@ -87,7 +87,7 @@ export async function saveFolderSchema(schema: FolderSchema): Promise<void> {
 /** 获取所有待确认的 schema（基于 confirmed=false 且未被 settings 排除的 schema） */
 export async function getPendingFolderSchemas(): Promise<FolderSchema[]> {
   const all = await listFolderSchemas()
-  return all.filter(s => !s.confirmed)
+  return all.filter((s) => !s.confirmed)
 }
 
 /**
@@ -96,10 +96,12 @@ export async function getPendingFolderSchemas(): Promise<FolderSchema[]> {
  */
 export async function syncSchemaToCLAUDE(schema: FolderSchema, vaultPath: string): Promise<void> {
   const claudePath = join(vaultPath, '_raw', schema.folder, 'CLAUDE.md')
-  const fieldDescs = schema.fields.map(f => {
-    const opts = f.options?.length ? ` 可选值：${f.options.join('、')}` : ''
-    return `- ${f.label} (${f.key}): ${f.description ?? f.type}${opts}`
-  }).join('\n')
+  const fieldDescs = schema.fields
+    .map((f) => {
+      const opts = f.options?.length ? ` 可选值：${f.options.join('、')}` : ''
+      return `- ${f.label} (${f.key}): ${f.description ?? f.type}${opts}`
+    })
+    .join('\n')
   const content = [
     `# CLAUDE.md — ${schema.folder}/`,
     '',
@@ -113,7 +115,7 @@ export async function syncSchemaToCLAUDE(schema: FolderSchema, vaultPath: string
     '',
     `- 所有导入本文件夹的文件必须补全以上字段`,
     `- 类型字段（type）统一用 frontmatter 里的 \`type\`，不要用文件名判断`,
-    `- AI 在 ingest 时先读本文件，再读全局 CLAUDE.md`,
+    `- AI 在 ingest 时先读本文件，再读全局 CLAUDE.md`
   ].join('\n')
 
   await mkdir(dirname(claudePath), { recursive: true })
@@ -129,12 +131,15 @@ const SYSTEM_FILES = new Set(['index.md', 'log.md', 'RESOLVER.md', 'schema.md'])
  * 让 AI 根据文件夹内现有内容推测 schema 字段，
  * 标记为 pending（等待用户确认）。
  */
-export async function detectAndProposeSchemas(vaultPath: string, settings: { onSchemaDriven: boolean; pendingSchemas?: string[] }): Promise<string[]> {
+export async function detectAndProposeSchemas(
+  vaultPath: string,
+  settings: { onSchemaDriven: boolean; pendingSchemas?: string[] }
+): Promise<string[]> {
   if (!settings.onSchemaDriven) return []
 
   const folders = await getVaultFolders(vaultPath)
   const existing = await listFolderSchemas()
-  const existingNames = new Set(existing.map(s => s.folder))
+  const existingNames = new Set(existing.map((s) => s.folder))
   const pending: string[] = [...(settings.pendingSchemas ?? [])]
 
   for (const folder of folders) {
@@ -161,7 +166,7 @@ export async function detectAndProposeSchemas(vaultPath: string, settings: { onS
         fields: proposedFields,
         confirmed: false,
         description: folder,
-        createdAt: Date.now(),
+        createdAt: Date.now()
       }
 
       await saveFolderSchema(schema)
@@ -200,7 +205,9 @@ async function getVaultFolders(vaultPath: string): Promise<string[]> {
             await scan(fullPath, relPath)
           }
         }
-      } catch { log.warn('[Schema] scan error') }
+      } catch {
+        log.warn('[Schema] scan error')
+      }
     }
   }
 
@@ -211,15 +218,20 @@ async function getVaultFolders(vaultPath: string): Promise<string[]> {
 /**
  * AI 调用：根据文件夹名称和内容样本，建议 schema 字段
  */
-export async function proposeSchemaFieldsFromSamples(folder: string, samples: string[]): Promise<SchemaField[]> {
+export async function proposeSchemaFieldsFromSamples(
+  folder: string,
+  samples: string[]
+): Promise<SchemaField[]> {
   if (samples.length === 0) {
-    return [{
-      key: 'type',
-      label: '类型',
-      type: 'text',
-      description: `页面分类（${folder}）`,
-      extractHint: '根据内容判断页面最合适的类型标签',
-    }]
+    return [
+      {
+        key: 'type',
+        label: '类型',
+        type: 'text',
+        description: `页面分类（${folder}）`,
+        extractHint: '根据内容判断页面最合适的类型标签'
+      }
+    ]
   }
 
   const prompt = [
@@ -237,7 +249,7 @@ export async function proposeSchemaFieldsFromSamples(folder: string, samples: st
     `- extractHint 要写清楚 AI 如何从内容中提取这个字段的值`,
     `返回 JSON 数组，不要其他文字。`,
     `示例格式：`,
-    `[{"key":"category","label":"分类","type":"select","options":["综述","案例","指南"],"description":"...","extractHint":"..."}]`,
+    `[{"key":"category","label":"分类","type":"select","options":["综述","案例","指南"],"description":"...","extractHint":"..."}]`
   ].join('\n')
 
   try {
@@ -245,35 +257,57 @@ export async function proposeSchemaFieldsFromSamples(folder: string, samples: st
     if (typeof raw === 'string') {
       const parsed = parseJSONArray(raw)
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((f: any) => ({
-          key: String(f.key ?? '').trim(),
-          label: String(f.label ?? f.key ?? ''),
-          type: ['text', 'select', 'multi-select', 'date', 'number'].includes(f.type) ? f.type : 'text',
-          options: Array.isArray(f.options) ? f.options : undefined,
-          description: String(f.description ?? ''),
-          extractHint: String(f.extractHint ?? ''),
-        })).filter((f: SchemaField) => f.key)
+        return parsed
+          .map((f: any) => ({
+            key: String(f.key ?? '').trim(),
+            label: String(f.label ?? f.key ?? ''),
+            type: ['text', 'select', 'multi-select', 'date', 'number'].includes(f.type)
+              ? f.type
+              : 'text',
+            options: Array.isArray(f.options) ? f.options : undefined,
+            description: String(f.description ?? ''),
+            extractHint: String(f.extractHint ?? '')
+          }))
+          .filter((f: SchemaField) => f.key)
       }
     }
   } catch {
     // fallback below
   }
 
-  return [{
-    key: 'type',
-    label: '类型',
-    type: 'text',
-    description: `页面分类（${folder}）`,
-    extractHint: '根据内容判断页面最合适的类型标签',
-  }]
+  return [
+    {
+      key: 'type',
+      label: '类型',
+      type: 'text',
+      description: `页面分类（${folder}）`,
+      extractHint: '根据内容判断页面最合适的类型标签'
+    }
+  ]
 }
 
 /** 宽松解析 JSON 数组（可能被 AI 包裹在 markdown 代码块里） */
 export function parseJSONArray(raw: string): unknown[] {
-  try { return JSON.parse(raw) } catch { /* next */ }
+  try {
+    return JSON.parse(raw)
+  } catch {
+    /* next */
+  }
   const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (m) { try { return JSON.parse(m[1].trim()) } catch { /* next */ } }
+  if (m) {
+    try {
+      return JSON.parse(m[1].trim())
+    } catch {
+      /* next */
+    }
+  }
   const arrM = raw.match(/\[[\s\S]*\]/)
-  if (arrM) { try { return JSON.parse(arrM[0]) } catch { /* next */ } }
+  if (arrM) {
+    try {
+      return JSON.parse(arrM[0])
+    } catch {
+      /* next */
+    }
+  }
   return []
 }

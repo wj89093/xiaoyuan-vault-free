@@ -1,4 +1,3 @@
-
 /* eslint-disable react-hooks/refs, react-hooks/immutability */
 import React from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
@@ -45,7 +44,7 @@ export function FileTreeNode({
   onDragOver,
   onDragLeave,
   itemRefs,
-  flatItemsRef,
+  flatItemsRef
 }: FileTreeNodeProps): JSX.Element | null {
   if (!file?.path) return null
 
@@ -59,17 +58,20 @@ export function FileTreeNode({
   return (
     <div key={file.path}>
       <div
-         
-        ref={el => { itemRefs.current[flatIdx] = el }}
+        ref={(el) => {
+          itemRefs.current[flatIdx] = el
+        }}
         className={[
           'file-tree-item',
           isSelected ? 'selected' : '',
           isDropTarget ? 'drop-target' : '',
-          isFocused ? 'keyboard-focused' : '',
-        ].filter(Boolean).join(' ')}
+          isFocused ? 'keyboard-focused' : ''
+        ]
+          .filter(Boolean)
+          .join(' ')}
         style={{ paddingLeft: depthIndent }}
         tabIndex={0}
-        onClick={() => file.isDirectory ? onToggle(file.path) : onSelect(file.path)}
+        onClick={() => (file.isDirectory ? onToggle(file.path) : onSelect(file.path))}
         onContextMenu={(e) => {
           e.preventDefault()
           onContextMenu(e, file)
@@ -78,47 +80,56 @@ export function FileTreeNode({
         onMouseLeave={onMouseLeave}
         onDragOver={(e) => onDragOver(e)}
         onDragLeave={onDragLeave}
-        onDrop={(e) => file.isDirectory ? onDropOnFolder(e, file.path) : onDropOnFile(e, file.path)}
+        onDrop={(e) =>
+          file.isDirectory ? onDropOnFolder(e, file.path) : onDropOnFile(e, file.path)
+        }
         onDragStart={(e) => onDragStart(e, file.path)}
         role="treeitem"
         aria-selected={isSelected}
         aria-expanded={file.isDirectory ? isExpanded : undefined}
       >
         <span title={isExpanded ? '折叠' : '展开'}>
-          {file.isDirectory
-            ? (isExpanded ? <ChevronDown className="file-tree-chevron" size={12} /> : <ChevronRight className="file-tree-chevron" size={12} />)
-            : <span style={{ width: 12, display: 'inline-block' }} />}
+          {file.isDirectory ? (
+            isExpanded ? (
+              <ChevronDown className="file-tree-chevron" size={12} />
+            ) : (
+              <ChevronRight className="file-tree-chevron" size={12} />
+            )
+          ) : (
+            <span style={{ width: 12, display: 'inline-block' }} />
+          )}
         </span>
         <span className="file-tree-name">{file.name}</span>
       </div>
-      {file.isDirectory && isExpanded && file.children?.map((child, i) => {
-         
-        const childFlatIdx = flatItemsRef.current.findIndex(item => item.path === child.path)
-        return (
-          <FileTreeNode
-            key={child.path}
-            file={child}
-            depth={depth + 1}
-            flatIdx={childFlatIdx >= 0 ? childFlatIdx : flatIdx + i + 1}
-            expandedFolders={expandedFolders}
-            selectedFile={selectedFile}
-            focusedIndex={focusedIndex}
-            dropTarget={dropTarget}
-            onToggle={onToggle}
-            onSelect={onSelect}
-            onContextMenu={onContextMenu}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            onDragStart={onDragStart}
-            onDropOnFolder={onDropOnFolder}
-            onDropOnFile={onDropOnFile}
-            onDragOver={onDragOver}
-            onDragLeave={onDragLeave}
-            itemRefs={itemRefs}
-            flatItemsRef={flatItemsRef}
-          />
-        )
-      })}
+      {file.isDirectory &&
+        isExpanded &&
+        file.children?.map((child, i) => {
+          const childFlatIdx = flatItemsRef.current.findIndex((item) => item.path === child.path)
+          return (
+            <FileTreeNode
+              key={child.path}
+              file={child}
+              depth={depth + 1}
+              flatIdx={childFlatIdx >= 0 ? childFlatIdx : flatIdx + i + 1}
+              expandedFolders={expandedFolders}
+              selectedFile={selectedFile}
+              focusedIndex={focusedIndex}
+              dropTarget={dropTarget}
+              onToggle={onToggle}
+              onSelect={onSelect}
+              onContextMenu={onContextMenu}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+              onDragStart={onDragStart}
+              onDropOnFolder={onDropOnFolder}
+              onDropOnFile={onDropOnFile}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+              itemRefs={itemRefs}
+              flatItemsRef={flatItemsRef}
+            />
+          )
+        })}
       {isDropTarget && (
         <div className="file-tree-drop-indicator" style={{ paddingLeft: depthIndent + 16 }}>
           释放在此处

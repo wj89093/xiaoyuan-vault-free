@@ -43,7 +43,7 @@ describe('Database file operations — integration', () => {
   it('copyFile preserves content byte-for-byte', async () => {
     const src = join(TEST_DIR, 'source.bin')
     const dst = join(TEST_DIR, 'copy.bin')
-    const data = Buffer.from([0x50, 0x4B, 0x03, 0x04])  // ZIP magic bytes (like docx)
+    const data = Buffer.from([0x50, 0x4b, 0x03, 0x04]) // ZIP magic bytes (like docx)
     await writeFile(src, data)
     const { copyFile } = await import('fs/promises')
     await copyFile(src, dst)

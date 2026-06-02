@@ -10,13 +10,20 @@ import yaml from 'js-yaml'
 
 // ── Field Types ─────────────────────────────────────────────────────────
 
-export type FrontmatterFieldType = 'string' | 'number' | 'date' | 'boolean' | 'tags' | 'enum' | 'complex'
+export type FrontmatterFieldType =
+  | 'string'
+  | 'number'
+  | 'date'
+  | 'boolean'
+  | 'tags'
+  | 'enum'
+  | 'complex'
 
 export interface FrontmatterFieldSchema {
   key: string
   label: string
   type: FrontmatterFieldType
-  options?: string[]   // for enum type
+  options?: string[] // for enum type
   placeholder?: string
   hint?: string
 }
@@ -37,24 +44,49 @@ export interface ParsedField {
 
 /** Fields that have known types and options */
 const KNOWN_SCHEMAS: Record<string, FrontmatterFieldSchema> = {
-  status:    { key: 'status',    label: 'Status',    type: 'enum', options: ['draft', 'published', 'archived', 'review'] },
-  priority:  { key: 'priority',  label: 'Priority',  type: 'enum', options: ['low', 'medium', 'high', 'urgent'] },
-  category:  { key: 'category',  label: 'Category',  type: 'enum', options: ['note', 'project', 'daily', 'meeting', 'reference'] },
-  type:      { key: 'type',      label: 'Type',      type: 'enum', options: ['note', 'article', 'daily', 'template'] },
-  draft:     { key: 'draft',     label: 'Draft',     type: 'boolean' },
+  status: {
+    key: 'status',
+    label: 'Status',
+    type: 'enum',
+    options: ['draft', 'published', 'archived', 'review']
+  },
+  priority: {
+    key: 'priority',
+    label: 'Priority',
+    type: 'enum',
+    options: ['low', 'medium', 'high', 'urgent']
+  },
+  category: {
+    key: 'category',
+    label: 'Category',
+    type: 'enum',
+    options: ['note', 'project', 'daily', 'meeting', 'reference']
+  },
+  type: {
+    key: 'type',
+    label: 'Type',
+    type: 'enum',
+    options: ['note', 'article', 'daily', 'template']
+  },
+  draft: { key: 'draft', label: 'Draft', type: 'boolean' },
   published: { key: 'published', label: 'Published', type: 'boolean' },
-  tags:      { key: 'tags',      label: 'Tags',      type: 'tags' },
-  date:      { key: 'date',      label: 'Date',      type: 'date', placeholder: 'YYYY-MM-DD' },
-  created:   { key: 'created',   label: 'Created',   type: 'date', placeholder: 'YYYY-MM-DD' },
-  updated:   { key: 'updated',   label: 'Updated',   type: 'date', placeholder: 'YYYY-MM-DD' },
-  due:       { key: 'due',       label: 'Due',       type: 'date', placeholder: 'YYYY-MM-DD' },
-  recurring: { key: 'recurring', label: 'Recurring', type: 'enum', options: ['daily', 'weekly', 'monthly', 'yearly'] },
-  weight:    { key: 'weight',    label: 'Weight',    type: 'number', placeholder: '0' },
-  order:     { key: 'order',     label: 'Order',     type: 'number', placeholder: '0' },
-  author:    { key: 'author',    label: 'Author',    type: 'string' },
-  project:   { key: 'project',   label: 'Project',   type: 'string' },
-  title:     { key: 'title',     label: 'Title',     type: 'string' },
-  summary:   { key: 'summary',   label: 'Summary',   type: 'string' },
+  tags: { key: 'tags', label: 'Tags', type: 'tags' },
+  date: { key: 'date', label: 'Date', type: 'date', placeholder: 'YYYY-MM-DD' },
+  created: { key: 'created', label: 'Created', type: 'date', placeholder: 'YYYY-MM-DD' },
+  updated: { key: 'updated', label: 'Updated', type: 'date', placeholder: 'YYYY-MM-DD' },
+  due: { key: 'due', label: 'Due', type: 'date', placeholder: 'YYYY-MM-DD' },
+  recurring: {
+    key: 'recurring',
+    label: 'Recurring',
+    type: 'enum',
+    options: ['daily', 'weekly', 'monthly', 'yearly']
+  },
+  weight: { key: 'weight', label: 'Weight', type: 'number', placeholder: '0' },
+  order: { key: 'order', label: 'Order', type: 'number', placeholder: '0' },
+  author: { key: 'author', label: 'Author', type: 'string' },
+  project: { key: 'project', label: 'Project', type: 'string' },
+  title: { key: 'title', label: 'Title', type: 'string' },
+  summary: { key: 'summary', label: 'Summary', type: 'string' }
 }
 
 // ── Field Schema Lookup ─────────────────────────────────────────────────
@@ -135,7 +167,10 @@ function escapeRegex(s: string): string {
 // ── Main parser ────────────────────────────────────────────────────────
 
 export function parseFrontmatter(raw: string): ParsedField[] {
-  const fm = raw.replace(/^---\n/, '').replace(/\n---\s*$/, '').trim()
+  const fm = raw
+    .replace(/^---\n/, '')
+    .replace(/\n---\s*$/, '')
+    .trim()
   if (!fm) return []
 
   try {
@@ -147,17 +182,23 @@ export function parseFrontmatter(raw: string): ParsedField[] {
 
       if (type === 'complex') {
         return {
-          key, value: null, raw: key, type: 'complex',
-          rawYaml: extractRawYamlBlock(fm, key),
+          key,
+          value: null,
+          raw: key,
+          type: 'complex',
+          rawYaml: extractRawYamlBlock(fm, key)
         }
       }
 
       if (Array.isArray(value)) {
         return {
-          key, value: value.join(', '), raw: key,
-          type: 'tags', isList: true,
+          key,
+          value: value.join(', '),
+          raw: key,
+          type: 'tags',
+          isList: true,
           items: value.map(String),
-          options: schema?.options,
+          options: schema?.options
         }
       }
       return {
@@ -165,7 +206,7 @@ export function parseFrontmatter(raw: string): ParsedField[] {
         value: type === 'boolean' ? Boolean(value) : String(value ?? ''),
         raw: key,
         type,
-        options: schema?.options,
+        options: schema?.options
       }
     })
   } catch {
@@ -178,9 +219,15 @@ export function parseFrontmatter(raw: string): ParsedField[] {
   let i = 0
   while (i < lines.length) {
     const line = lines[i]
-    if (/^---\s*$/.test(line)) { i++; continue }
+    if (/^---\s*$/.test(line)) {
+      i++
+      continue
+    }
     const ci = line.indexOf(':')
-    if (ci === -1) { i++; continue }
+    if (ci === -1) {
+      i++
+      continue
+    }
     const key = line.slice(0, ci).trim()
     let val = line.slice(ci + 1).trim()
     // Remove quotes
@@ -197,8 +244,10 @@ export function parseFrontmatter(raw: string): ParsedField[] {
     } else {
       const type = detectFieldType(key, val)
       fields.push({
-        key, value: type === 'boolean' ? Boolean(val) : val,
-        raw: line, type,
+        key,
+        value: type === 'boolean' ? Boolean(val) : val,
+        raw: line,
+        type
       })
       i++
     }

@@ -26,9 +26,5 @@ export function D3Provider({ children }: { children: ReactNode }): JSX.Element {
     })
   }, [])
 
-  return (
-    <D3Context.Provider value={{ d3, loaded }}>
-      {children}
-    </D3Context.Provider>
-  )
+  return <D3Context.Provider value={{ d3, loaded }}>{children}</D3Context.Provider>
 }

@@ -2,7 +2,11 @@
 import { ipcMain } from 'electron'
 import log from 'electron-log/main'
 import { runMaintenance } from '../services/lint/maintain'
-import { generateBriefing, saveConversationSummary, getConversationSummaries } from '../services/briefing/briefing'
+import {
+  generateBriefing,
+  saveConversationSummary,
+  getConversationSummaries
+} from '../services/briefing/briefing'
 import { getLintReports, fixLintIssue, runLintTask } from '../services/lint/lintReports'
 import { listFolderSchemas, getPendingFolderSchemas } from '../services/schema/schemaStorage'
 
@@ -12,11 +16,22 @@ ipcMain.handle('briefing:generate', async () => {
 })
 
 // conversation summary IPC
-ipcMain.handle('briefing:saveConversation', async (_event, params: {
-  title: string; topic: string; decisions: string[]; relatedFiles: string[]; nextSteps: string[]; discussion?: string
-}) => {
-  return saveConversationSummary(params)
-})
+ipcMain.handle(
+  'briefing:saveConversation',
+  async (
+    _event,
+    params: {
+      title: string
+      topic: string
+      decisions: string[]
+      relatedFiles: string[]
+      nextSteps: string[]
+      discussion?: string
+    }
+  ) => {
+    return saveConversationSummary(params)
+  }
+)
 
 ipcMain.handle('briefing:getConversations', async (_event, date: string) => {
   return getConversationSummaries(date)
@@ -36,9 +51,15 @@ export function registerMaintainHandlers(): void {
     return getLintReports()
   })
 
-  ipcMain.handle('lint:fixLintIssue', async (_, issue: { type: string; pagePath?: string; deadTarget?: string; orphanTarget?: string }) => {
-    return fixLintIssue(issue)
-  })
+  ipcMain.handle(
+    'lint:fixLintIssue',
+    async (
+      _,
+      issue: { type: string; pagePath?: string; deadTarget?: string; orphanTarget?: string }
+    ) => {
+      return fixLintIssue(issue)
+    }
+  )
 
   ipcMain.handle('lint:runLint', async () => {
     const { getVaultPath } = await import('../services/database/database')
@@ -63,7 +84,9 @@ export function registerMaintainHandlers(): void {
       const tasksFile = join(vaultPath, '.xiaoyuan', 'tasks.json')
       if (!existsSync(tasksFile)) return []
       return JSON.parse(await readFile(tasksFile, 'utf-8'))
-    } catch { return [] }
+    } catch {
+      return []
+    }
   })
 
   ipcMain.handle('scheduler:updateTasks', async (_, tasks: unknown[]) => {

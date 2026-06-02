@@ -33,10 +33,10 @@ export const extendEmphasisPair = Prec.high(
 
     view.dispatch({
       changes: { from, insert: text + text },
-      selection: { anchor: from + 1 },
+      selection: { anchor: from + 1 }
     })
     return true
-  }),
+  })
 )
 
 // ── 2. Auto-close code fence ─────────────────────────────────────────────────
@@ -67,7 +67,7 @@ function autoCloseCodeFenceInput(
   view: EditorView,
   from: number,
   to: number,
-  text: string,
+  text: string
 ): boolean {
   if (text !== '`' || from !== to) return false
 
@@ -85,7 +85,7 @@ function autoCloseCodeFenceInput(
   const insert = '`\n' + indent + '```'
   view.dispatch({
     changes: { from, to: replaceTo, insert },
-    selection: { anchor: from + 1 },
+    selection: { anchor: from + 1 }
   })
   return true
 }
@@ -94,9 +94,7 @@ function autoCloseCodeFenceInput(
  * Type `` ``` `` at the start of a line → auto-insert closing `` ``` ``.
  * Cursor stays after the opening fence so the user can type an info string.
  */
-export const autoCloseCodeFence = Prec.highest(
-  EditorView.inputHandler.of(autoCloseCodeFenceInput),
-)
+export const autoCloseCodeFence = Prec.highest(EditorView.inputHandler.of(autoCloseCodeFenceInput))
 
 // ── 3. Tight list item Enter behavior ───────────────────────────────────────
 
@@ -143,7 +141,7 @@ function insertTightListItem(view: EditorView): boolean {
     // Previous line is also empty → delete this line entirely
     view.dispatch({
       changes: { from: line.from, to: line.to, insert: '' },
-      selection: { anchor: line.from },
+      selection: { anchor: line.from }
     })
     return true
   }
@@ -155,9 +153,9 @@ function insertTightListItem(view: EditorView): boolean {
     changes: {
       from: line.from,
       to: line.to,
-      insert: newLine,
+      insert: newLine
     },
-    selection: { anchor: line.from + newLine.length },
+    selection: { anchor: line.from + newLine.length }
   })
   return true
 }
@@ -166,6 +164,4 @@ function insertTightListItem(view: EditorView): boolean {
  * Tight list Enter handler — wraps insertTightListItem in a Prec.highest keymap
  * so it fires before CM6's default Enter handler.
  */
-export const tightListKeymap = Prec.highest(
-  keymap.of([{ key: 'Enter', run: insertTightListItem }]),
-)
+export const tightListKeymap = Prec.highest(keymap.of([{ key: 'Enter', run: insertTightListItem }]))

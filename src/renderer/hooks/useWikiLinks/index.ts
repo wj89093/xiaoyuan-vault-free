@@ -10,7 +10,13 @@ import { wikiLinksCompletionsExtension } from './wikiLinksCompletions'
 import { wikiLinksClickHandlerExtension } from './wikiLinksClickHandler'
 import { createWikiLinksPlugin } from './wikiLinksPlugin'
 
-export type { WikiLinkStatus, WikiLinkSuggestion, WikiLinkResolvedTarget, WikiLinksConfig, ParsedWikiLink } from './types'
+export type {
+  WikiLinkStatus,
+  WikiLinkSuggestion,
+  WikiLinkResolvedTarget,
+  WikiLinksConfig,
+  ParsedWikiLink
+} from './types'
 
 /**
  * The main extension — composes:
@@ -20,14 +26,16 @@ export type { WikiLinkStatus, WikiLinkSuggestion, WikiLinkResolvedTarget, WikiLi
  * 4. Click handler
  * 5. Pointer guard
  */
-export function wikiLinksExtension(config: WikiLinksConfig = {}): ReturnType<typeof createWikiLinksPlugin>[number] {
+export function wikiLinksExtension(
+  config: WikiLinksConfig = {}
+): ReturnType<typeof createWikiLinksPlugin>[number] {
   const [field, plugin] = createWikiLinksPlugin(config)
 
   return Prec.highest([
     field,
     plugin,
     wikiLinksCompletionsExtension(config),
-    wikiLinksClickHandlerExtension(config, () => ({ resolved: new Map(), decorations: [] as any })),
+    wikiLinksClickHandlerExtension(config, () => ({ resolved: new Map(), decorations: [] as any }))
   ])
 }
 

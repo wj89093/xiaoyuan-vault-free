@@ -33,36 +33,39 @@ export interface UseEditorContextMenuOptions {
  */
 export function useEditorContextMenu(
   viewRef: React.MutableRefObject<EditorView | null>,
-  options: UseEditorContextMenuOptions = {},
+  options: UseEditorContextMenuOptions = {}
 ) {
-  const {  } = options
+  const {} = options
   const [menuState, setMenuState] = useState<ContextMenuState>({
     visible: false,
     x: 0,
     y: 0,
-    viewRef: null,
+    viewRef: null
   })
 
   // Always read from window (viewRef may not update on every render)
   const getView = useCallback((): EditorView | null => {
-    const w = (window as any)
+    const w = window as any
     if (w.__cmView instanceof EditorView) return w.__cmView
     return viewRef.current
   }, [viewRef])
 
-  const showContextMenu = useCallback((e: React.MouseEvent) => {
-    // Prevent native context menu immediately
-    e.preventDefault()
-    e.stopPropagation()
+  const showContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      // Prevent native context menu immediately
+      e.preventDefault()
+      e.stopPropagation()
 
-    const view = getView()
-    if (!view) return
+      const view = getView()
+      if (!view) return
 
-    setMenuState({ visible: true, x: e.clientX, y: e.clientY, viewRef: view })
-  }, [getView])
+      setMenuState({ visible: true, x: e.clientX, y: e.clientY, viewRef: view })
+    },
+    [getView]
+  )
 
   const hideContextMenu = useCallback(() => {
-    setMenuState(s => ({ ...s, visible: false }))
+    setMenuState((s) => ({ ...s, visible: false }))
   }, [])
 
   // Close on outside click or Escape
@@ -73,11 +76,14 @@ export function useEditorContextMenu(
     const close = (_e: MouseEvent) => {
       willClose = true
       setTimeout(() => {
-        if (willClose) setMenuState(s => ({ ...s, visible: false }))
+        if (willClose) setMenuState((s) => ({ ...s, visible: false }))
       }, 150)
     }
     const keydown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { willClose = true; setMenuState(s => ({ ...s, visible: false })) }
+      if (e.key === 'Escape') {
+        willClose = true
+        setMenuState((s) => ({ ...s, visible: false }))
+      }
     }
 
     // Use capture phase to catch clicks outside
@@ -95,6 +101,6 @@ export function useEditorContextMenu(
   return {
     contextMenu: menuState,
     showContextMenu,
-    hideContextMenu,
+    hideContextMenu
   }
 }

@@ -9,7 +9,7 @@ import log from 'electron-log/main'
 export async function downloadAndReplaceImages(
   htmlContent: string,
   pageUrl: string,
-  vaultPath: string,
+  vaultPath: string
 ): Promise<{ content: string; downloaded: number }> {
   const { join } = await import('path')
   const { mkdir, writeFile } = await import('fs/promises')
@@ -19,7 +19,8 @@ export async function downloadAndReplaceImages(
 
   try {
     await mkdir(assetDir, { recursive: true })
-  } catch { log.warn('[urlFetch] mkdir assetDir failed, returning fallback', assetDir)
+  } catch {
+    log.warn('[urlFetch] mkdir assetDir failed, returning fallback', assetDir)
     return { content: htmlContent, downloaded: 0 }
   }
 
@@ -36,7 +37,7 @@ export async function downloadAndReplaceImages(
       const response = await axios.get(imgUrl, {
         responseType: 'arraybuffer',
         timeout: 10000,
-        headers: { 'User-Agent': 'Mozilla/5.0' },
+        headers: { 'User-Agent': 'Mozilla/5.0' }
       })
 
       const ext = response.headers['content-type']?.split('/')?.[1] ?? 'png'
@@ -61,7 +62,7 @@ export async function downloadAndReplaceImages(
 export function extractYouTubeId(url: string): string | null {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/,
+    /^([a-zA-Z0-9_-]{11})$/
   ]
   for (const pattern of patterns) {
     const match = url.match(pattern)

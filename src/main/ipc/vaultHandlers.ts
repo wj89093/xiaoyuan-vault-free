@@ -17,7 +17,9 @@ async function readConfig(): Promise<Record<string, unknown>> {
     if (existsSync(configPath)) {
       return JSON.parse(await readFile(configPath, 'utf-8')) as Record<string, unknown>
     }
-  } catch { log.warn('[Vault] operation failed') }
+  } catch {
+    log.warn('[Vault] operation failed')
+  }
   return {}
 }
 
@@ -27,27 +29,30 @@ async function writeConfig(data: Record<string, unknown>): Promise<void> {
 
 async function addVaultToList(vaultPath: string): Promise<void> {
   const config = await readConfig()
-  const vaults = (config.vaults as Array<{path: string; name: string; lastOpened: number}> | undefined) ?? []
+  const vaults =
+    (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
   const name = vaultPath.split('/').pop() ?? '未命名'
-  const filtered = vaults.filter(v => v.path !== vaultPath)
+  const filtered = vaults.filter((v) => v.path !== vaultPath)
   filtered.unshift({ path: vaultPath, name, lastOpened: Date.now() })
   await writeConfig({ ...config, vaults: filtered.slice(0, 10), lastVaultPath: vaultPath })
 }
 
-function getMainWindow(): BrowserWindow | null { return getMainWindowRef() }
+function getMainWindow(): BrowserWindow | null {
+  return getMainWindowRef()
+}
 
 // ── Vault skeleton helpers (DRY extraction) ────────────────────────────────
 const VAULT_DIRS = ['_raw', '_wiki', '_schema', '_lint', '_briefing', '_output'] as const
 const VAULT_TEMPLATES: Array<[string, string]> = [
-  ['vault-index-template.md',     'index.md'],
-  ['vault-log-template.md',        'log.md'],
-  ['vault-lint-template.md',       '_lint/lint.md'],
-  ['vault-summary-template.md',     '_briefing/summary.md'],
+  ['vault-index-template.md', 'index.md'],
+  ['vault-log-template.md', 'log.md'],
+  ['vault-lint-template.md', '_lint/lint.md'],
+  ['vault-summary-template.md', '_briefing/summary.md']
 ]
 const VAULT_OPTIONAL_TEMPLATES: Array<[string, string]> = [
   ['vault-usage-guide.md', '_wiki/使用说明.md'],
-  ['LLM-wiki.md',          'LLM-wiki.md'],
-  ['Agents.md',            'Agents.md'],
+  ['LLM-wiki.md', 'LLM-wiki.md'],
+  ['Agents.md', 'Agents.md']
 ]
 
 async function initVaultDirs(vaultPath: string): Promise<void> {
@@ -95,7 +100,7 @@ function registerVaultLifecycleHandlers(): void {
     if (vaultPath && existsSync(vaultPath)) {
       await initDatabase(vaultPath)
       setVaultPath(vaultPath)
-       triggerGraphRebuild()
+      triggerGraphRebuild()
       return vaultPath
     }
     return null
@@ -156,7 +161,7 @@ function registerVaultBrowseHandlers(): void {
       await initDatabase(vaultPath)
       await addVaultToList(vaultPath)
       setVaultPath(vaultPath)
-       triggerGraphRebuild()
+      triggerGraphRebuild()
       return vaultPath
     }
     return null
@@ -168,8 +173,9 @@ function registerVaultBrowseHandlers(): void {
 
   ipcMain.handle('vault:list', async () => {
     const config = await readConfig()
-    const all = (config.vaults as Array<{path: string; name: string; lastOpened: number}> | undefined) ?? []
-    const existing = all.filter(v => existsSync(v.path))
+    const all =
+      (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
+    const existing = all.filter((v) => existsSync(v.path))
     // Clean up stale entries from config
     if (existing.length !== all.length) {
       await writeConfig({ ...config, vaults: existing })
@@ -182,14 +188,15 @@ function registerVaultBrowseHandlers(): void {
     await initDatabase(vaultPath)
     await addVaultToList(vaultPath)
     setVaultPath(vaultPath)
-     triggerGraphRebuild()
-      return vaultPath
+    triggerGraphRebuild()
+    return vaultPath
   })
 
   ipcMain.handle('vault:remove', async (_, vaultPath: string) => {
     const config = await readConfig()
-    const vaults = (config.vaults as Array<{path: string; name: string; lastOpened: number}> | undefined) ?? []
-    await writeConfig({ ...config, vaults: vaults.filter(v => v.path !== vaultPath) })
+    const vaults =
+      (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
+    await writeConfig({ ...config, vaults: vaults.filter((v) => v.path !== vaultPath) })
     return true
   })
 
@@ -201,18 +208,24 @@ function registerVaultBrowseHandlers(): void {
       const main = getMainWindow()
       if (main && !main.isDestroyed()) main.webContents.send('import:completed', [])
       return { ok: true }
-    } catch { return { ok: false } }
+    } catch {
+      return { ok: false }
+    }
   })
 }
 
 function registerVaultDialogHandlers(): void {
   ipcMain.handle('dialog:selectDirectory', async () => {
-    const win = getMainWindow() ?? BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0] ?? null
+    const win =
+      getMainWindow() ??
+      BrowserWindow.getFocusedWindow() ??
+      BrowserWindow.getAllWindows()[0] ??
+      null
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
       properties: ['openDirectory', 'createDirectory'],
       title: '选择知识库存放位置'
     })
-    return result.canceled ? null : result.filePaths[0] ?? null
+    return result.canceled ? null : (result.filePaths[0] ?? null)
   })
 }

@@ -30,7 +30,11 @@ export async function initDatabase(vault: string): Promise<void> {
   const oldDb = db
   db = new Database(dbPath)
   if (oldDb) {
-    try { oldDb.close() } catch { /* already closed */ }
+    try {
+      oldDb.close()
+    } catch {
+      /* already closed */
+    }
   }
 
   // Enable WAL for better concurrency
@@ -111,7 +115,7 @@ async function indexFile(filePath: string): Promise<void> {
     const relPath = filePath.replace(vaultPath + '/', '')
     const name = basename(relPath)
     const { frontmatter } = parseFrontmatter(content)
-    const title = frontmatter.title ?? extractTitle(content) ?? (name.replace(/\.md$/, ''))
+    const title = frontmatter.title ?? extractTitle(content) ?? name.replace(/\.md$/, '')
     const hash = simpleHash(content)
 
     const stmt = db.prepare(`
@@ -119,9 +123,7 @@ async function indexFile(filePath: string): Promise<void> {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
-    const folder = relPath.includes('/')
-      ? relPath.split('/').slice(0, -1).join('/')
-      : ''
+    const folder = relPath.includes('/') ? relPath.split('/').slice(0, -1).join('/') : ''
 
     stmt.run(
       relPath,
@@ -148,7 +150,7 @@ export function simpleHash(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash
   }
   return hash.toString(16)
@@ -203,7 +205,9 @@ export async function scanDirectory(dir: string, basePath: string = ''): Promise
       let title: string | undefined
       let tags: string | undefined
       if (db) {
-        const record = db.prepare('SELECT title, tags FROM files WHERE path = ?').get(relPath) as any
+        const record = db
+          .prepare('SELECT title, tags FROM files WHERE path = ?')
+          .get(relPath) as any
         if (record) {
           title = record.title ?? undefined
           tags = record.tags ?? undefined
@@ -265,9 +269,16 @@ export function searchVault(
   try {
     // Build FTS5 query with path filtering
     // Use ' OR ' for multi-word queries (any word match)
-    const terms = query.trim().split(/\s+/).filter(Boolean).map(t => `"${t}"`).join(' OR ')
+    const terms = query
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((t) => `"${t}"`)
+      .join(' OR ')
 
-    const rows = db.prepare(`
+    const rows = db
+      .prepare(
+        `
       SELECT
         f.path,
         f.title,
@@ -281,12 +292,18 @@ export function searchVault(
         AND f.path LIKE ?
       ORDER BY rank
       LIMIT ?
-    `).all(terms, `${pathFilter}%`, maxResults) as Array<{
-      path: string; title: string; tags: string | null;
-      frontmatter: string | null; snippet: string; rank: number
+    `
+      )
+      .all(terms, `${pathFilter}%`, maxResults) as Array<{
+      path: string
+      title: string
+      tags: string | null
+      frontmatter: string | null
+      snippet: string
+      rank: number
     }>
 
-    return rows.map(r => {
+    return rows.map((r) => {
       // Extract topic from path: _wiki/{topic}/file.md → {topic}
       const parts = r.path.split('/')
       const topic = parts.length > 2 && parts[0] === '_wiki' ? parts[1] : (parts[0] ?? '根目录')
@@ -298,7 +315,9 @@ export function searchVault(
           const fm = JSON.parse(r.frontmatter) as Record<string, unknown>
           summary = String(fm.summary ?? '')
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       return {
         path: r.path,
@@ -307,7 +326,7 @@ export function searchVault(
         snippet: r.snippet || '(匹配内容)',
         rank: Math.round(r.rank * 100) / 100,
         tags: r.tags ?? '',
-        summary,
+        summary
       }
     })
   } catch (err) {
@@ -320,7 +339,7 @@ export function searchVault(
 export function reindexFile(relPath: string): void {
   if (!db || !vaultPath) return
   const fullPath = join(vaultPath, relPath)
-  indexFile(fullPath).catch(err => log.error('reindexFile error:', err))
+  indexFile(fullPath).catch((err) => log.error('reindexFile error:', err))
 }
 
 /** Remove a file from the search index. Called by delete tool handlers. */

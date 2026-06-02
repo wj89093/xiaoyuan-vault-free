@@ -4,7 +4,10 @@
 import type { EditorState } from '@codemirror/state'
 import type { ParsedWikiLink, WikiLinkSuggestion, WikiLinksConfig } from './types'
 
-export function wikiLinkElementFromEvent(event: MouseEvent, root?: HTMLElement): HTMLElement | null {
+export function wikiLinkElementFromEvent(
+  event: MouseEvent,
+  root?: HTMLElement
+): HTMLElement | null {
   const target = event.target as Element
   if (!(target instanceof Element)) return null
   const link = target.closest<HTMLElement>('[data-wiki-link-target]')
@@ -17,7 +20,7 @@ export function defaultSerializeSuggestion(s: WikiLinkSuggestion): string {
 }
 
 export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => window.setTimeout(resolve, ms))
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
 
 export function leadingWhitespaceLength(value: string): number {
@@ -29,13 +32,14 @@ export function trailingWhitespaceLength(value: string): number {
 }
 
 export function isInsideAny(pos: number, spans: readonly { from: number; to: number }[]): boolean {
-  return spans.some(s => pos >= s.from && pos < s.to)
+  return spans.some((s) => pos >= s.from && pos < s.to)
 }
 
 export function isSelectionInsideLink(state: EditorState, link: ParsedWikiLink): boolean {
-  return state.selection.ranges.some(r => {
-    const from = Math.min(r.from, r.to), to = Math.max(r.from, r.to)
-    return r.empty ? (from > link.from && from < link.to) : (from < link.to && to > link.from)
+  return state.selection.ranges.some((r) => {
+    const from = Math.min(r.from, r.to),
+      to = Math.max(r.from, r.to)
+    return r.empty ? from > link.from && from < link.to : from < link.to && to > link.from
   })
 }
 

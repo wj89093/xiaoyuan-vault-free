@@ -20,7 +20,7 @@ describe('Vault file system operations', () => {
     await writeFile(join(TEST_DIR, 'a.md'), '# A', 'utf-8')
     await writeFile(join(TEST_DIR, 'b.md'), '# B', 'utf-8')
     await writeFile(join(TEST_DIR, '_wiki', 'c.md'), '# C', 'utf-8')
-    
+
     const all = await readdir(TEST_DIR, { recursive: true })
     expect(all.length).toBeGreaterThanOrEqual(3)
   })
@@ -53,10 +53,10 @@ describe('Vault file system operations', () => {
       '',
       'Content here'
     ].join('\n')
-    
+
     const f = join(TEST_DIR, '_wiki', 'test-page.md')
     await writeFile(f, frontmatter, 'utf-8')
-    
+
     const content = await readFile(f, 'utf-8')
     expect(content).toContain('title: "Test Page"')
     expect(content).toContain('tags: [a, b]')
@@ -66,7 +66,7 @@ describe('Vault file system operations', () => {
   it('appends to an existing log file', async () => {
     const logPath = join(TEST_DIR, 'log.md')
     await writeFile(logPath, '# 操作日志\n\n', 'utf-8')
-    
+
     // Append 3 entries
     const entries = ['query: test1', 'write: test2', 'ingest: test3']
     for (const e of entries) {
@@ -74,7 +74,7 @@ describe('Vault file system operations', () => {
       const ts = new Date().toISOString()
       await writeFile(logPath, existing + `\n### ${ts}\n  - ${e}\n`, 'utf-8')
     }
-    
+
     const result = await readFile(logPath, 'utf-8')
     expect(result).toContain('query: test1')
     expect(result).toContain('write: test2')
@@ -84,8 +84,12 @@ describe('Vault file system operations', () => {
     const { createHash } = await import('crypto')
     await writeFile(join(TEST_DIR, 'hash1.md'), 'same content', 'utf-8')
     await writeFile(join(TEST_DIR, 'hash2.md'), 'same content', 'utf-8')
-    const h1 = createHash('sha256').update(await readFile(join(TEST_DIR, 'hash1.md'))).digest('hex')
-    const h2 = createHash('sha256').update(await readFile(join(TEST_DIR, 'hash2.md'))).digest('hex')
+    const h1 = createHash('sha256')
+      .update(await readFile(join(TEST_DIR, 'hash1.md')))
+      .digest('hex')
+    const h2 = createHash('sha256')
+      .update(await readFile(join(TEST_DIR, 'hash2.md')))
+      .digest('hex')
     expect(h1).toBe(h2)
   })
 
@@ -93,8 +97,12 @@ describe('Vault file system operations', () => {
     const { createHash } = await import('crypto')
     await writeFile(join(TEST_DIR, 'hash3.md'), 'A', 'utf-8')
     await writeFile(join(TEST_DIR, 'hash4.md'), 'B', 'utf-8')
-    const h1 = createHash('sha256').update(await readFile(join(TEST_DIR, 'hash3.md'))).digest('hex')
-    const h2 = createHash('sha256').update(await readFile(join(TEST_DIR, 'hash4.md'))).digest('hex')
+    const h1 = createHash('sha256')
+      .update(await readFile(join(TEST_DIR, 'hash3.md')))
+      .digest('hex')
+    const h2 = createHash('sha256')
+      .update(await readFile(join(TEST_DIR, 'hash4.md')))
+      .digest('hex')
     expect(h1).not.toBe(h2)
   })
 })
@@ -119,5 +127,3 @@ describe('File type detection', () => {
     expect(isBinary('md')).toBe(false)
   })
 })
-
-

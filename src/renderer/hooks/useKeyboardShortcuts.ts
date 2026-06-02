@@ -1,4 +1,3 @@
- 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from 'react'
 
@@ -7,7 +6,7 @@ export function useKeyboardShortcuts(
   setShowQuickSwitch: (v: boolean | ((prev: boolean) => boolean)) => void,
   setShowShortcuts: (v: boolean | ((prev: boolean) => boolean)) => void,
   showQuickSwitch: boolean,
-  showShortcuts: boolean,
+  showShortcuts: boolean
 ) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -16,7 +15,12 @@ export function useKeyboardShortcuts(
         if (vaultPath) setShowQuickSwitch((v: boolean) => !v)
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'f' && vaultPath) {
-        if (!(document.activeElement?.closest('.cm-editor') || document.activeElement?.closest('.cm-content'))) {
+        if (
+          !(
+            document.activeElement?.closest('.cm-editor') ||
+            document.activeElement?.closest('.cm-content')
+          )
+        ) {
           ;(document.querySelector('.search-input') as HTMLInputElement)?.focus()
         }
       }
@@ -46,20 +50,24 @@ export function useKeyboardShortcuts(
 
 export function useGlobalShortcuts(
   vaultPath: string | null,
-  setShowQuickSwitch: (v: boolean) => void,
+  setShowQuickSwitch: (v: boolean) => void
 ) {
   // P1-3: store unsubscribe to avoid listener accumulation on remount
   useEffect(() => {
     const unsubscribe = window.api.onQuickSwitch?.(() => {
       if (vaultPath) setShowQuickSwitch(true)
     })
-    return () => { if (unsubscribe) unsubscribe() }
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [vaultPath])
 
   useEffect(() => {
     const unsubscribe = window.api.onGotoImport?.(() => {
       window.location.hash = '#/import'
     })
-    return () => { if (unsubscribe) unsubscribe() }
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [])
 }

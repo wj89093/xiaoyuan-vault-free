@@ -53,7 +53,9 @@ export async function transcribeAudio(filePath: string): Promise<string> {
   const whisperModel = getWhisperModelPath()
 
   if (!existsSync(whisperCli)) {
-    throw new Error(`whisper-cli not found at ${whisperCli}. Please install: brew install whisper-cpp`)
+    throw new Error(
+      `whisper-cli not found at ${whisperCli}. Please install: brew install whisper-cpp`
+    )
   }
 
   if (!existsSync(whisperModel)) {
@@ -68,28 +70,45 @@ export async function transcribeAudio(filePath: string): Promise<string> {
 
   try {
     const outputFile = `/tmp/whisper_${Date.now()}.txt`
-    await execFileAsync('ffmpeg', [
-      '-i', inputFile,
-      '-ar', '16000',
-      '-ac', '1',
-      '-c:a', 'pcm_s16le',
-      '/tmp/whisper_input.wav',
-      '-y'
-    ], { timeout: 60_000 })
+    await execFileAsync(
+      'ffmpeg',
+      [
+        '-i',
+        inputFile,
+        '-ar',
+        '16000',
+        '-ac',
+        '1',
+        '-c:a',
+        'pcm_s16le',
+        '/tmp/whisper_input.wav',
+        '-y'
+      ],
+      { timeout: 60_000 }
+    )
 
-    await execFileAsync(whisperCli, [
-      '-m', whisperModel,
-      '-f', '/tmp/whisper_input.wav',
-      '--language', 'zh',
-      '-otxt',
-      '-of', outputFile.replace('.txt', ''),
-    ], { timeout: 300_000 })
+    await execFileAsync(
+      whisperCli,
+      [
+        '-m',
+        whisperModel,
+        '-f',
+        '/tmp/whisper_input.wav',
+        '--language',
+        'zh',
+        '-otxt',
+        '-of',
+        outputFile.replace('.txt', '')
+      ],
+      { timeout: 300_000 }
+    )
 
     const { readFile } = await import('fs/promises')
     let text = ''
     try {
       text = await readFile(outputFile, 'utf-8')
-    } catch { log.warn('[whisper] readFile from outputPath failed, trying /tmp fallback')
+    } catch {
+      log.warn('[whisper] readFile from outputPath failed, trying /tmp fallback')
       text = await readFile('/tmp/whisper.txt', 'utf-8')
     }
 
@@ -103,28 +122,28 @@ export async function transcribeAudio(filePath: string): Promise<string> {
 
 async function convertAudioToWav(filePath: string): Promise<string> {
   const output = `/tmp/whisper_audio_${Date.now()}.wav`
-  await execFileAsync('ffmpeg', [
-    '-i', filePath,
-    '-ar', '16000',
-    '-ac', '1',
-    '-c:a', 'pcm_s16le',
-    output,
-    '-y'
-  ], { timeout: 60_000 })
+  await execFileAsync(
+    'ffmpeg',
+    ['-i', filePath, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', output, '-y'],
+    { timeout: 60_000 }
+  )
   return output
 }
 
 export async function getAudioDuration(filePath: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const proc = spawn('ffprobe', [
-      '-v', 'error',
-      '-show_entries', 'format=duration',
-      '-of', 'default=noprint_wrappers=1:nokey=1',
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
       filePath
     ])
     let stdout = ''
-    proc.stdout.on('data', d => stdout += d)
-    proc.on('close', code => {
+    proc.stdout.on('data', (d) => (stdout += d))
+    proc.on('close', (code) => {
       if (code === 0) resolve(parseFloat(stdout.trim()))
       else reject(new Error(`ffprobe failed: ${code}`))
     })

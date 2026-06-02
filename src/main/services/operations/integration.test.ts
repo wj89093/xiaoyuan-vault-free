@@ -72,8 +72,14 @@ Xampla is a UK-based company working on synthetic biology.
   })
 
   it('should calculate similarity between related documents', () => {
-    const doc1 = new Map([['合成生物学', 0.5], ['融资', 0.3]])
-    const doc2 = new Map([['合成生物学', 0.4], ['融资', 0.4]])
+    const doc1 = new Map([
+      ['合成生物学', 0.5],
+      ['融资', 0.3]
+    ])
+    const doc2 = new Map([
+      ['合成生物学', 0.4],
+      ['融资', 0.4]
+    ])
     const similarity = cosineSimilarity(doc1, doc2)
     expect(similarity).toBeGreaterThan(0)
     expect(similarity).toBeLessThan(1)

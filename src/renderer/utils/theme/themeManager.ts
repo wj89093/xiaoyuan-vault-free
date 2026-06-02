@@ -127,7 +127,7 @@ export function systemColor(name: 'blue' | 'green' | 'red' | 'orange' | 'purple'
     red: 'var(--color-red)',
     orange: 'var(--color-orange)',
     purple: 'var(--color-purple)',
-    gray: 'var(--color-gray)',
+    gray: 'var(--color-gray)'
   }
   return map[name] || map.gray
 }
@@ -139,7 +139,7 @@ export function textColor(level: 'primary' | 'secondary' | 'tertiary' = 'primary
   const map = {
     primary: 'var(--color-text-primary)',
     secondary: 'var(--color-text-secondary)',
-    tertiary: 'var(--color-text-tertiary)',
+    tertiary: 'var(--color-text-tertiary)'
   }
   return map[level]
 }

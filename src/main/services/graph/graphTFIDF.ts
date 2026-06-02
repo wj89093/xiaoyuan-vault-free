@@ -3,20 +3,136 @@ import type { TFIDFDocument, GraphEdge } from './types'
 // ============ Constants ============
 
 export const STOPWORDS = new Set([
-  '的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都', '一',
-  '一个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有',
-  '看', '好', '自己', '这', '他', '她', '它', '们', '那', '些', '什么',
-  '怎么', '如何', '可以', '这个', '那个', '如果', '因为', '所以', '但是',
-  '而且', '或者', '虽然', '不过', '已经', '还是', '这样', '那样', '大家',
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-  'should', 'may', 'might', 'can', 'shall', 'to', 'of', 'in', 'for',
-  'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
-  'before', 'after', 'above', 'below', 'between', 'under', 'again',
-  'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
-  'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some',
-  'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
-  'very', 'and', 'but', 'or', 'it', 'its',
+  '的',
+  '了',
+  '在',
+  '是',
+  '我',
+  '有',
+  '和',
+  '就',
+  '不',
+  '人',
+  '都',
+  '一',
+  '一个',
+  '上',
+  '也',
+  '很',
+  '到',
+  '说',
+  '要',
+  '去',
+  '你',
+  '会',
+  '着',
+  '没有',
+  '看',
+  '好',
+  '自己',
+  '这',
+  '他',
+  '她',
+  '它',
+  '们',
+  '那',
+  '些',
+  '什么',
+  '怎么',
+  '如何',
+  '可以',
+  '这个',
+  '那个',
+  '如果',
+  '因为',
+  '所以',
+  '但是',
+  '而且',
+  '或者',
+  '虽然',
+  '不过',
+  '已经',
+  '还是',
+  '这样',
+  '那样',
+  '大家',
+  'the',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'could',
+  'should',
+  'may',
+  'might',
+  'can',
+  'shall',
+  'to',
+  'of',
+  'in',
+  'for',
+  'on',
+  'with',
+  'at',
+  'by',
+  'from',
+  'as',
+  'into',
+  'through',
+  'during',
+  'before',
+  'after',
+  'above',
+  'below',
+  'between',
+  'under',
+  'again',
+  'further',
+  'then',
+  'once',
+  'here',
+  'there',
+  'when',
+  'where',
+  'why',
+  'how',
+  'all',
+  'both',
+  'each',
+  'few',
+  'more',
+  'most',
+  'other',
+  'some',
+  'such',
+  'no',
+  'nor',
+  'not',
+  'only',
+  'own',
+  'same',
+  'so',
+  'than',
+  'too',
+  'very',
+  'and',
+  'but',
+  'or',
+  'it',
+  'its'
 ])
 
 export const MIN_TOKENS_FOR_SIMILARITY = 5
@@ -73,10 +189,16 @@ export function computeTFIDF(documents: TFIDFDocument[]): {
   for (const doc of documents) {
     const seen = new Set<string>()
     for (const term of doc.tokens.keys()) {
-      if (!seen.has(term)) { df.set(term, (df.get(term) ?? 0) + 1); seen.add(term) }
+      if (!seen.has(term)) {
+        df.set(term, (df.get(term) ?? 0) + 1)
+        seen.add(term)
+      }
     }
     for (const tag of doc.tags) {
-      if (!seen.has(tag)) { df.set(tag, (df.get(tag) ?? 0) + 1); seen.add(tag) }
+      if (!seen.has(tag)) {
+        df.set(tag, (df.get(tag) ?? 0) + 1)
+        seen.add(tag)
+      }
     }
   }
 
@@ -105,10 +227,7 @@ export function computeTFIDF(documents: TFIDFDocument[]): {
 
 // ============ Cosine Similarity ============
 
-export function cosineSimilarity(
-  vecA: Map<string, number>,
-  vecB: Map<string, number>
-): number {
+export function cosineSimilarity(vecA: Map<string, number>, vecB: Map<string, number>): number {
   let dotProduct = 0
   let normA = 0
   let normB = 0
@@ -146,7 +265,7 @@ export function buildEdges(
 
   const nameToDocs = new Map<string, { doc: TFIDFDocument }[]>()
   for (const doc of documents) {
-    const titles = [doc.title, ...doc.relationships.map(r => r.target)]
+    const titles = [doc.title, ...doc.relationships.map((r) => r.target)]
     for (const name of titles) {
       const norm = name.toLowerCase().replace(/\s+/g, '')
       if (!nameToDocs.has(norm)) nameToDocs.set(norm, [])
@@ -154,7 +273,12 @@ export function buildEdges(
     }
   }
 
-  function addEdge(source: string, target: string, relation: GraphEdge['relation'], weight: number): void {
+  function addEdge(
+    source: string,
+    target: string,
+    relation: GraphEdge['relation'],
+    weight: number
+  ): void {
     const key = edgeKey(source, target, relation)
     if (seen.has(key)) return
     if (edges.length >= MAX_EDGES) return
@@ -178,7 +302,7 @@ export function buildEdges(
   // Tag edges
   for (let i = 0; i < documents.length; i++) {
     for (let j = i + 1; j < documents.length; j++) {
-      const sharedTags = documents[i].tags.filter(t => documents[j].tags.includes(t))
+      const sharedTags = documents[i].tags.filter((t) => documents[j].tags.includes(t))
       if (sharedTags.length > 0) {
         addEdge(documents[i].file, documents[j].file, 'shared_tag', sharedTags.length * 0.3)
       }

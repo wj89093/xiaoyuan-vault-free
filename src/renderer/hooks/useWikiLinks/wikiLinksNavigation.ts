@@ -30,6 +30,6 @@ export function editorNavigationExtension(onNavigate?: (target: string) => void)
         return true
       }
       return false
-    },
+    }
   })
 }

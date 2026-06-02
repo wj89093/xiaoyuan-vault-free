@@ -21,13 +21,16 @@ export function FloatingPanel({
   height = 600,
   defaultPos,
   children,
-  bottomOffset: _bb = 80,
+  bottomOffset: _bb = 80
 }: FloatingPanelProps): JSX.Element {
-  void _bb;
-  const [pos, setPos] = useState(() => defaultPos ?? {
-    x: (window.innerWidth - width) / 2,
-    y: (window.innerHeight - height) / 2,
-  })
+  void _bb
+  const [pos, setPos] = useState(
+    () =>
+      defaultPos ?? {
+        x: (window.innerWidth - width) / 2,
+        y: (window.innerHeight - height) / 2
+      }
+  )
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
   const [panelWidth, _setPanelWidth] = useState(width)
@@ -55,14 +58,20 @@ export function FloatingPanel({
           panelEl.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
           )
-        ).filter(el => !el.hasAttribute('disabled'))
+        ).filter((el) => !el.hasAttribute('disabled'))
         if (focusable.length === 0) return
         const first = focusable[0]
         const last = focusable[focusable.length - 1]
         if (e.shiftKey) {
-          if (document.activeElement === first) { e.preventDefault(); last.focus() }
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
         } else {
-          if (document.activeElement === last) { e.preventDefault(); first.focus() }
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
         }
       }
     }
@@ -83,11 +92,15 @@ export function FloatingPanel({
 
   useEffect(() => {
     if (!dragging) return
-    const onMove = (e: MouseEvent) => setPos({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+    const onMove = (e: MouseEvent) =>
+      setPos({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
     const onUp = () => setDragging(false)
     document.addEventListener('mousemove', onMove)
     document.addEventListener('mouseup', onUp)
-    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
+    return () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
   }, [dragging, dragStart])
 
   return (
@@ -113,7 +126,7 @@ export function FloatingPanel({
         flexDirection: 'column',
         overflow: 'hidden',
         border: '1px solid var(--color-border, #e5e5ea)',
-        transition: 'width 150ms ease-out, box-shadow 200ms ease',
+        transition: 'width 150ms ease-out, box-shadow 200ms ease'
       }}
     >
       {/* Title bar */}
@@ -122,12 +135,14 @@ export function FloatingPanel({
         aria-label="拖拽移动"
         title="拖动此标题栏以移动面板"
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
           padding: '10px 14px',
           borderBottom: '1px solid var(--color-border, #e5e5ea)',
           background: 'var(--color-surface-hover, #f9f9fb)',
           cursor: dragging ? 'grabbing' : 'grab',
-          userSelect: 'none',
+          userSelect: 'none'
         }}
         onMouseDown={handleDragStart}
       >
@@ -136,12 +151,15 @@ export function FloatingPanel({
         <kbd
           title="按 Escape 关闭面板"
           style={{
-            fontSize: 10, fontFamily: 'monospace',
-            padding: '1px 5px', borderRadius: 3,
+            fontSize: 10,
+            fontFamily: 'monospace',
+            padding: '1px 5px',
+            borderRadius: 3,
             border: '1px solid var(--color-border, #d1d1d6)',
             color: 'var(--color-text-tertiary, #8e8e93)',
             background: 'var(--color-surface-hover, #f5f5f7)',
-            cursor: 'default', userSelect: 'none',
+            cursor: 'default',
+            userSelect: 'none'
           }}
         >
           Esc
@@ -150,10 +168,14 @@ export function FloatingPanel({
           onClick={onClose}
           aria-label="关闭"
           style={{
-            background: 'none', border: 'none', cursor: 'pointer',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
             color: 'var(--color-text-tertiary, #8e8e93)',
-            padding: 2, borderRadius: 4,
-            display: 'flex', alignItems: 'center',
+            padding: 2,
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center'
           }}
         >
           <X size={14} />
@@ -161,9 +183,7 @@ export function FloatingPanel({
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        {children}
-      </div>
+      <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
     </div>
   )
 }

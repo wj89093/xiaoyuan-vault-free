@@ -40,7 +40,10 @@ function buildAllBlockDecorations(state: EditorState): DecorationSet {
   }
 
   return allRanges.length > 0
-    ? Decoration.set(allRanges.sort((a, b) => a.from - b.from), true)
+    ? Decoration.set(
+        allRanges.sort((a, b) => a.from - b.from),
+        true
+      )
     : Decoration.none
 }
 
@@ -56,5 +59,5 @@ export const blockDecorationsField = StateField.define<DecorationSet>({
     }
     return decos.map(tr.changes)
   },
-  provide: f => EditorView.decorations.from(f),
+  provide: (f) => EditorView.decorations.from(f)
 })

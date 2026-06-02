@@ -14,10 +14,18 @@ interface EditorProps {
   isNativePreview?: boolean
 }
 
-function DocxViewer({ dataUrl, onDownload }: { dataUrl: string; onDownload?: () => void }): JSX.Element {
+function DocxViewer({
+  dataUrl,
+  onDownload
+}: {
+  dataUrl: string
+  onDownload?: () => void
+}): JSX.Element {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
-  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() => dataUrl ? 'loading' : 'fail')
+  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() =>
+    dataUrl ? 'loading' : 'fail'
+  )
 
   useEffect(() => {
     const wrapper = wrapperRef.current
@@ -25,7 +33,10 @@ function DocxViewer({ dataUrl, onDownload }: { dataUrl: string; onDownload?: () 
     let cancelled = false
     let timeout: ReturnType<typeof setTimeout>
     void (async () => {
-      if (!dataUrl) { setState('fail'); return }
+      if (!dataUrl) {
+        setState('fail')
+        return
+      }
       // Create content div outside React's tree so docx-preview DOM changes
       // don't conflict with React's virtual DOM reconciliation
       const content = document.createElement('div')
@@ -34,9 +45,14 @@ function DocxViewer({ dataUrl, onDownload }: { dataUrl: string; onDownload?: () 
       try {
         const { renderAsync } = await import('docx-preview')
         const raw = dataUrl.split(',')[1]
-        if (!raw) { setState('fail'); return }
-        const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0))
-        timeout = setTimeout(() => { if (!cancelled) setState('fail') }, 25_000)
+        if (!raw) {
+          setState('fail')
+          return
+        }
+        const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0))
+        timeout = setTimeout(() => {
+          if (!cancelled) setState('fail')
+        }, 25_000)
         await renderAsync(bytes.buffer, content, content, {
           className: 'docx-preview',
           inWrapper: true,
@@ -44,11 +60,11 @@ function DocxViewer({ dataUrl, onDownload }: { dataUrl: string; onDownload?: () 
           ignoreHeight: false,
           ignoreFonts: false,
           breakPages: true,
-          useBase64URL: true,
+          useBase64URL: true
         })
         clearTimeout(timeout)
         if (!cancelled) setState('ready')
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_err) {
         clearTimeout(timeout)
         if (!cancelled) setState('fail')
@@ -56,21 +72,53 @@ function DocxViewer({ dataUrl, onDownload }: { dataUrl: string; onDownload?: () 
     })()
     return () => {
       cancelled = true
-      if (contentRef.current) { contentRef.current.remove(); contentRef.current = null }
+      if (contentRef.current) {
+        contentRef.current.remove()
+        contentRef.current = null
+      }
     }
   }, [dataUrl])
 
   return (
     <div ref={wrapperRef} style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-      {state === 'loading' && <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>加载中...</div>}
+      {state === 'loading' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%'
+          }}
+        >
+          加载中...
+        </div>
+      )}
       {state === 'fail' && (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',height:'100%'}}>
-          <p style={{fontSize:64,marginBottom:16}}>📄</p>
-          <p style={{fontSize:14,color:'var(--text-secondary)'}}>预览失败，请下载原始文件查看</p>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            height: '100%'
+          }}
+        >
+          <p style={{ fontSize: 64, marginBottom: 16 }}>📄</p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+            预览失败，请下载原始文件查看
+          </p>
           {onDownload && (
             <button
               onClick={onDownload}
-              style={{marginTop:16,padding:'6px 16px',borderRadius:6,border:'1px solid var(--border)',background:'var(--surface)',color:'var(--text)',cursor:'pointer'}}
+              style={{
+                marginTop: 16,
+                padding: '6px 16px',
+                borderRadius: 6,
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--text)',
+                cursor: 'pointer'
+              }}
             >
               下载原始文件
             </button>
@@ -85,7 +133,9 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
   const [activeSheet, setActiveSheet] = useState<string>('')
   const [sheetNames, setSheetNames] = useState<string[]>([])
   const [sheets, setSheets] = useState<Record<string, string>>({})
-  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() => dataUrl ? 'loading' : 'fail')
+  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() =>
+    dataUrl ? 'loading' : 'fail'
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -93,8 +143,11 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
     void (async () => {
       try {
         const raw = dataUrl.split(',')[1]
-        if (!raw) { setState('fail'); return }
-        const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0))
+        if (!raw) {
+          setState('fail')
+          return
+        }
+        const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0))
         const XLSX = await import('xlsx')
         const wb = XLSX.read(bytes.buffer, { type: 'array' })
         if (cancelled) return
@@ -103,8 +156,13 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
         for (const name of names) {
           sheetData[name] = XLSX.utils.sheet_to_html(wb.Sheets[name])
         }
-        timeout = setTimeout(() => { if (!cancelled) setState('fail') }, 15_000)
-        if (cancelled) { clearTimeout(timeout); return }
+        timeout = setTimeout(() => {
+          if (!cancelled) setState('fail')
+        }, 15_000)
+        if (cancelled) {
+          clearTimeout(timeout)
+          return
+        }
         setSheetNames(names)
         setSheets(sheetData)
         setActiveSheet(names[0] || '')
@@ -116,25 +174,43 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
         if (!cancelled) setState('fail')
       }
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [dataUrl])
 
-  if (state === 'loading') return <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>加载中...</div>
-  if (state === 'fail') return (
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',padding:32}}>
-      <p style={{fontSize:64,marginBottom:16}}>📊</p>
-      <p style={{fontSize:14,color:'var(--text-secondary)'}}>预览失败，请下载原始文件查看</p>
-    </div>
-  )
-  if (sheetNames.length === 0) return (
-    <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <p style={{fontSize:14,color:'var(--text-secondary)'}}>无可用工作表</p>
-    </div>
-  )
+  if (state === 'loading')
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        加载中...
+      </div>
+    )
+  if (state === 'fail')
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          padding: 32
+        }}
+      >
+        <p style={{ fontSize: 64, marginBottom: 16 }}>📊</p>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>预览失败，请下载原始文件查看</p>
+      </div>
+    )
+  if (sheetNames.length === 0)
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>无可用工作表</p>
+      </div>
+    )
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       <div className="xlsx-tabs">
-        {sheetNames.map(name => (
+        {sheetNames.map((name) => (
           <button
             key={name}
             className={`xlsx-tab-btn${activeSheet === name ? ' active' : ''}`}
@@ -144,7 +220,10 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
           </button>
         ))}
       </div>
-      <div className="xlsx-content" dangerouslySetInnerHTML={{ __html: sheets[activeSheet] || '' }} />
+      <div
+        className="xlsx-content"
+        dangerouslySetInnerHTML={{ __html: sheets[activeSheet] || '' }}
+      />
     </div>
   )
 }
@@ -159,13 +238,21 @@ function HtmlFrame({ content }: { content: string }): JSX.Element {
     return () => URL.revokeObjectURL(url)
   }, [content])
   if (!blobUrl) return <div style={{ padding: 32, color: 'var(--text-secondary)' }}>加载中...</div>
-  return <iframe src={blobUrl} style={{ width: '100%', height: '100%', minHeight: '85vh', border: 'none' }} sandbox="allow-scripts allow-same-origin" />
+  return (
+    <iframe
+      src={blobUrl}
+      style={{ width: '100%', height: '100%', minHeight: '85vh', border: 'none' }}
+      sandbox="allow-scripts allow-same-origin"
+    />
+  )
 }
 
 function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
-  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() => dataUrl ? 'loading' : 'fail')
+  const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() =>
+    dataUrl ? 'loading' : 'fail'
+  )
   const [progress, setProgress] = useState('')
   useEffect(() => {
     const wrapper = wrapperRef.current
@@ -177,7 +264,7 @@ function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
     let cancelled = false
     void (async () => {
       const originalKeys = Object.keys as (o: any) => string[]
-      Object.keys = (o: any) => o ? originalKeys(o) : []
+      Object.keys = (o: any) => (o ? originalKeys(o) : [])
       try {
         setProgress('正在加载 PPTX 预览…')
         const { init } = await import('pptx-preview')
@@ -186,7 +273,10 @@ function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
         setProgress('正在渲染幻灯片…')
         const viewer = init(content, { width: 960, height: 540 })
         const timeout = setTimeout(() => {
-          if (!cancelled) { setProgress(''); setState('fail') }
+          if (!cancelled) {
+            setProgress('')
+            setState('fail')
+          }
         }, 20000)
         await viewer.preview(arrayBuffer)
         clearTimeout(timeout)
@@ -204,23 +294,56 @@ function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
     })()
     return () => {
       cancelled = true
-      if (contentRef.current) { contentRef.current.remove(); contentRef.current = null }
+      if (contentRef.current) {
+        contentRef.current.remove()
+        contentRef.current = null
+      }
     }
   }, [dataUrl])
 
   return (
     <div ref={wrapperRef} style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
       {state === 'loading' && (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:8,height:'100%'}}>
-          <div style={{width:32,height:32,border:'3px solid var(--border,#e5e5ea)',borderTopColor:'var(--accent,#007aff)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} />
-          <span style={{fontSize:13,color:'var(--text-secondary,#8e8e93)'}}>{progress || '加载中…'}</span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 8,
+            height: '100%'
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              border: '3px solid var(--border,#e5e5ea)',
+              borderTopColor: 'var(--accent,#007aff)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }}
+          />
+          <span style={{ fontSize: 13, color: 'var(--text-secondary,#8e8e93)' }}>
+            {progress || '加载中…'}
+          </span>
         </div>
       )}
       {state === 'fail' && (
-        <div style={{display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',height:'100%'}}>
-          <p style={{fontSize:64,marginBottom:16}}>📊</p>
-          <p style={{fontSize:14,color:'var(--text-secondary)'}}>此 PPTX 暂不支持预览</p>
-          <p style={{fontSize:12,color:'var(--text-tertiary)',marginTop:8}}>文件包含嵌入式字体或特殊主题，请用 PowerPoint 打开</p>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            height: '100%'
+          }}
+        >
+          <p style={{ fontSize: 64, marginBottom: 16 }}>📊</p>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>此 PPTX 暂不支持预览</p>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
+            文件包含嵌入式字体或特殊主题，请用 PowerPoint 打开
+          </p>
         </div>
       )}
     </div>
@@ -251,14 +374,16 @@ function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
       const pdfjsLib = await import('pdfjs-dist')
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.mjs'
       const raw = dataUrl.split(',')[1]
-      const bytes = Uint8Array.from(atob(raw), c => c.charCodeAt(0))
+      const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0))
       const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
       if (cancelled) return
       pdfDocRef.current = pdf
       setNumPages(pdf.numPages)
       renderPage(pdf, 1)
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [dataUrl])
 
   useEffect(() => {
@@ -267,44 +392,99 @@ function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
 
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          marginBottom: 12,
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <button
           type="button"
-          onClick={() => setPageNum(p => Math.max(1, p - 1))}
+          onClick={() => setPageNum((p) => Math.max(1, p - 1))}
           disabled={pageNum <= 1}
           aria-label={`上一页，第 ${pageNum} 页，共 ${numPages} 页`}
-          style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}
-        >‹</button>
-        <span aria-live="polite" style={{ fontSize: 13 }}>{pageNum} / {numPages}</span>
+          style={{
+            padding: '4px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            cursor: 'pointer'
+          }}
+        >
+          ‹
+        </button>
+        <span aria-live="polite" style={{ fontSize: 13 }}>
+          {pageNum} / {numPages}
+        </span>
         <button
           type="button"
-          onClick={() => setPageNum(p => Math.min(numPages, p + 1))}
+          onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
           disabled={pageNum >= numPages}
           aria-label={`下一页，第 ${pageNum} 页，共 ${numPages} 页`}
-          style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}
-        >›</button>
+          style={{
+            padding: '4px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            cursor: 'pointer'
+          }}
+        >
+          ›
+        </button>
         <button
           type="button"
-          onClick={() => setScale(s => s + 0.2)}
+          onClick={() => setScale((s) => s + 0.2)}
           aria-label="放大"
-          style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', marginLeft: 12 }}
-        >🔍+</button>
+          style={{
+            padding: '4px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            cursor: 'pointer',
+            marginLeft: 12
+          }}
+        >
+          🔍+
+        </button>
         <button
           type="button"
-          onClick={() => setScale(s => Math.max(0.5, s - 0.2))}
+          onClick={() => setScale((s) => Math.max(0.5, s - 0.2))}
           aria-label="缩小"
-          style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}
-        >🔍-</button>
+          style={{
+            padding: '4px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border)',
+            background: 'var(--surface)',
+            color: 'var(--text)',
+            cursor: 'pointer'
+          }}
+        >
+          🔍-
+        </button>
       </div>
       <div style={{ textAlign: 'center' }}>
-        <canvas ref={canvasRef} style={{ maxWidth: '100%', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }} />
+        <canvas
+          ref={canvasRef}
+          style={{ maxWidth: '100%', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
+        />
       </div>
     </div>
   )
 }
 
-
-export function Editor({ value, onChange, onWikiLinkNavigate, nativePreview, isNativePreview = false }: EditorProps): JSX.Element {
+export function Editor({
+  value,
+  onChange,
+  onWikiLinkNavigate,
+  nativePreview,
+  isNativePreview = false
+}: EditorProps): JSX.Element {
   const cmContainerRef = useRef<HTMLDivElement | null>(null)
 
   const { viewRef } = useCodeMirror(cmContainerRef, value, onChange, onWikiLinkNavigate)
@@ -315,23 +495,54 @@ export function Editor({ value, onChange, onWikiLinkNavigate, nativePreview, isN
     if (!view) return
     const cmds: EditorFormatCommands = createFormatCommands(view)
     switch (command) {
-      case 'bold':    cmds.bold(); break
-      case 'italic':  cmds.italic(); break
-      case 'code':    cmds.code(); break
-      case 'link':    cmds.link(); break
-      case 'quote':   cmds.quote(); break
-      case 'heading':  if (params?.level === 1) cmds.h1(); else if (params?.level === 2) cmds.h2(); else cmds.h3(); break
-      case 'h1':      cmds.h1(); break
-      case 'h2':      cmds.h2(); break
-      case 'h3':      cmds.h3(); break
-      case 'codeblock': cmds.codeblock(); break
-      case 'image':   cmds.image(); break
-      case 'table':   cmds.table(); break
-      case 'hr':      cmds.hr(); break
+      case 'bold':
+        cmds.bold()
+        break
+      case 'italic':
+        cmds.italic()
+        break
+      case 'code':
+        cmds.code()
+        break
+      case 'link':
+        cmds.link()
+        break
+      case 'quote':
+        cmds.quote()
+        break
+      case 'heading':
+        if (params?.level === 1) cmds.h1()
+        else if (params?.level === 2) cmds.h2()
+        else cmds.h3()
+        break
+      case 'h1':
+        cmds.h1()
+        break
+      case 'h2':
+        cmds.h2()
+        break
+      case 'h3':
+        cmds.h3()
+        break
+      case 'codeblock':
+        cmds.codeblock()
+        break
+      case 'image':
+        cmds.image()
+        break
+      case 'table':
+        cmds.table()
+        break
+      case 'hr':
+        cmds.hr()
+        break
     }
   }
 
-  const { contextMenu, showContextMenu, hideContextMenu } = useEditorContextMenu(viewRef as React.MutableRefObject<any>, { onFormat: handleFormat })
+  const { contextMenu, showContextMenu, hideContextMenu } = useEditorContextMenu(
+    viewRef as React.MutableRefObject<any>,
+    { onFormat: handleFormat }
+  )
 
   // Native preview (image/html/pdf/docx) — used by file manager for binary file previews
   if (isNativePreview) {
@@ -339,8 +550,28 @@ export function Editor({ value, onChange, onWikiLinkNavigate, nativePreview, isN
       return (
         <>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          <div className="editor-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-            <div style={{ width: 32, height: 32, border: '3px solid var(--border, #e5e5ea)', borderTopColor: 'var(--accent, #007aff)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} role="status" aria-label="加载中" />
+          <div
+            className="editor-wrapper"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 12
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                border: '3px solid var(--border, #e5e5ea)',
+                borderTopColor: 'var(--accent, #007aff)',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite'
+              }}
+              role="status"
+              aria-label="加载中"
+            />
             <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>加载预览中…</p>
           </div>
         </>
@@ -348,24 +579,66 @@ export function Editor({ value, onChange, onWikiLinkNavigate, nativePreview, isN
     }
     return (
       <div className="editor-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="native-preview" style={{ flex: 1, overflow: 'auto', padding: nativePreview.type === 'pdf' ? 0 : 32, minWidth: 0 }}>
-          {nativePreview.type === 'image' && nativePreview.dataUrl && <img src={nativePreview.dataUrl} alt="预览" style={{ maxWidth: '100%', borderRadius: 8 }} />}
-          {nativePreview.type === 'pdf' && nativePreview.dataUrl && <PDFViewer dataUrl={nativePreview.dataUrl} />}
-          {nativePreview.type === 'docx' && nativePreview.dataUrl && <DocxViewer dataUrl={nativePreview.dataUrl} />}
-          {nativePreview.type === 'pptx' && nativePreview.dataUrl && <PptxViewer dataUrl={nativePreview.dataUrl} />}
-          {nativePreview.type === 'spreadsheet' && nativePreview.dataUrl && <XlsxViewer dataUrl={nativePreview.dataUrl} />}
-          {nativePreview.type === 'html' && nativePreview.content && <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(nativePreview.content) }} />}
+        <div
+          className="native-preview"
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            padding: nativePreview.type === 'pdf' ? 0 : 32,
+            minWidth: 0
+          }}
+        >
+          {nativePreview.type === 'image' && nativePreview.dataUrl && (
+            <img
+              src={nativePreview.dataUrl}
+              alt="预览"
+              style={{ maxWidth: '100%', borderRadius: 8 }}
+            />
+          )}
+          {nativePreview.type === 'pdf' && nativePreview.dataUrl && (
+            <PDFViewer dataUrl={nativePreview.dataUrl} />
+          )}
+          {nativePreview.type === 'docx' && nativePreview.dataUrl && (
+            <DocxViewer dataUrl={nativePreview.dataUrl} />
+          )}
+          {nativePreview.type === 'pptx' && nativePreview.dataUrl && (
+            <PptxViewer dataUrl={nativePreview.dataUrl} />
+          )}
+          {nativePreview.type === 'spreadsheet' && nativePreview.dataUrl && (
+            <XlsxViewer dataUrl={nativePreview.dataUrl} />
+          )}
+          {nativePreview.type === 'html' && nativePreview.content && (
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(nativePreview.content) }} />
+          )}
           {nativePreview.type === 'htmlIframe' && nativePreview.content && (
             <HtmlFrame content={nativePreview.content} />
           )}
           {nativePreview.type === 'unsupported' && (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: 32 }}>
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                padding: 32
+              }}
+            >
               <p style={{ fontSize: 48, marginBottom: 12 }}>📄</p>
               <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>暂不支持预览此文件格式</p>
               {nativePreview.filePath && (
                 <button
                   onClick={() => window.api.openInDefaultApp?.(nativePreview.filePath)}
-                  style={{ marginTop: 16, padding: '6px 16px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', fontSize: 13 }}
+                  style={{
+                    marginTop: 16,
+                    padding: '6px 16px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    color: 'var(--text)',
+                    cursor: 'pointer',
+                    fontSize: 13
+                  }}
                 >
                   用默认应用打开
                 </button>
@@ -393,7 +666,10 @@ export function Editor({ value, onChange, onWikiLinkNavigate, nativePreview, isN
           onFormat={handleFormat}
         />
       )}
-      <div ref={cmContainerRef} style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', cursor: 'text' }} />
+      <div
+        ref={cmContainerRef}
+        style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', cursor: 'text' }}
+      />
     </div>
   )
 }

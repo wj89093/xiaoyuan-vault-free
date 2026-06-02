@@ -21,7 +21,7 @@ describe('Operation log (log.md)', () => {
     // Simulate appendToOperationLog
     const entries = ['query: 搜索生物医药']
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    const lines = ['', `### ${timestamp}`, ...entries.map(e => `  - ${e}`)]
+    const lines = ['', `### ${timestamp}`, ...entries.map((e) => `  - ${e}`)]
 
     const existing = await readFile(logPath, 'utf-8')
     await writeFile(logPath, existing + '\n' + lines.join('\n'), 'utf-8')

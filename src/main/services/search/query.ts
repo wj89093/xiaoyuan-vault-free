@@ -43,14 +43,14 @@ export async function queryVault(question: string): Promise<QueryResult> {
       if (indexContent) {
         // Extract topic names from index.md (## headers)
         const topicMatches = indexContent.match(/^##\s+(.+)/gm) ?? []
-        const topics = topicMatches.map(m => m.replace(/^##\s+/, '').trim())
+        const topics = topicMatches.map((m) => m.replace(/^##\s+/, '').trim())
 
         // Search each topic directory for relevant pages
         for (const topic of topics.slice(0, 5)) {
           try {
             const topicDir = join(wikiDir, topic)
             const files = await readdir(topicDir)
-            const mdFiles = files.filter(f => f.endsWith('.md') && !f.startsWith('Lint报告'))
+            const mdFiles = files.filter((f) => f.endsWith('.md') && !f.startsWith('Lint报告'))
 
             for (const file of mdFiles.slice(0, 6)) {
               try {
@@ -61,13 +61,18 @@ export async function queryVault(question: string): Promise<QueryResult> {
                 const questionLower = question.toLowerCase()
 
                 // Simple relevance: title/body contains question keywords
-                if (fileText.includes(questionLower) ||
-                    questionLower.split(' ').filter(w => w.length > 2).every(w => fileText.includes(w))) {
+                if (
+                  fileText.includes(questionLower) ||
+                  questionLower
+                    .split(' ')
+                    .filter((w) => w.length > 2)
+                    .every((w) => fileText.includes(w))
+                ) {
                   const displayContent = frontmatter.summary
                     ? `${frontmatter.summary}\n\n${body.slice(0, 800)}`
                     : body.slice(0, 2000)
                   const rels: string[] = Array.isArray(frontmatter.relationships)
-                    ? frontmatter.relationships.map(r => `${r.type}: ${r.target}`)
+                    ? frontmatter.relationships.map((r) => `${r.type}: ${r.target}`)
                     : []
                   wikiContexts.push({
                     path: filePath,
@@ -76,15 +81,21 @@ export async function queryVault(question: string): Promise<QueryResult> {
                     summary: frontmatter.summary,
                     tags: Array.isArray(frontmatter.tags) ? frontmatter.tags : undefined,
                     relationships: rels.length > 0 ? rels : undefined,
-                    type: frontmatter.type,
+                    type: frontmatter.type
                   })
                 }
-              } catch { /* skip individual file errors */ }
+              } catch {
+                /* skip individual file errors */
+              }
             }
-          } catch { /* skip topic dir errors */ }
+          } catch {
+            /* skip topic dir errors */
+          }
         }
       }
-    } catch { /* index.md not available */ }
+    } catch {
+      /* index.md not available */
+    }
 
     // ── Step 1: FTS5 search ───────────────────────────────────────
     const searchResults = await searchFiles(question)
@@ -116,7 +127,7 @@ export async function queryVault(question: string): Promise<QueryResult> {
             ? `${frontmatter.summary}\n\n${body.slice(0, 800)}`
             : body.slice(0, 2000)
           const rels: string[] = Array.isArray(frontmatter.relationships)
-            ? frontmatter.relationships.map(r => `${r.type}: ${r.target}`)
+            ? frontmatter.relationships.map((r) => `${r.type}: ${r.target}`)
             : []
           allContexts.push({
             path: file.path,
@@ -125,9 +136,11 @@ export async function queryVault(question: string): Promise<QueryResult> {
             summary: frontmatter.summary,
             tags: Array.isArray(frontmatter.tags) ? frontmatter.tags : undefined,
             relationships: rels.length > 0 ? rels : undefined,
-            type: frontmatter.type,
+            type: frontmatter.type
           })
-        } catch { /* skip unreadable files */ }
+        } catch {
+          /* skip unreadable files */
+        }
       }
     }
 
@@ -139,12 +152,11 @@ export async function queryVault(question: string): Promise<QueryResult> {
         for (const ctx of allContexts) {
           // Find nodes that link to or are linked from the current file
           const related = graph.edges
-            .filter(e =>
-              (e.source === ctx.path || e.target === ctx.path) &&
-              e.relation === 'typed_link'
+            .filter(
+              (e) => (e.source === ctx.path || e.target === ctx.path) && e.relation === 'typed_link'
             )
-            .map(e => (e.source === ctx.path ? e.target : e.source))
-            .filter(p => p !== ctx.path)
+            .map((e) => (e.source === ctx.path ? e.target : e.source))
+            .filter((p) => p !== ctx.path)
             .slice(0, 3)
           for (const relPath of related) {
             try {
@@ -153,29 +165,41 @@ export async function queryVault(question: string): Promise<QueryResult> {
               relatedFiles.push({
                 path: relPath,
                 title: relFm.title ?? basename(relPath, '.md'),
-                content: relFm.summary ? `${relFm.summary}\n\n${relBody.slice(0, 500)}` : relBody.slice(0, 800),
+                content: relFm.summary
+                  ? `${relFm.summary}\n\n${relBody.slice(0, 500)}`
+                  : relBody.slice(0, 800)
               })
-            } catch { /* skip */ }
+            } catch {
+              /* skip */
+            }
           }
         }
       }
-    } catch { /* graph not available */ }
+    } catch {
+      /* graph not available */
+    }
 
     // Step 4: Build RAG context — structured frontmatter first, then body
-    const contextText = allContexts.map(c => {
-      const meta: string[] = []
-      if (c.type) meta.push(`类型：${c.type}`)
-      if (c.tags?.length) meta.push(`标签：${c.tags.join(', ')}`)
-      if (c.summary) meta.push(`摘要：${c.summary}`)
-      if (c.relationships?.length) meta.push(`关系：${c.relationships.join('；')}`)
-      const metaStr = meta.length > 0 ? `【${c.title}】(${c.path})\n${meta.join('\n')}\n\n正文：${c.content}` : `【${c.title}】(${c.path})\n${c.content}`
-      return metaStr
-    }).join('\n\n---\n\n')
+    const contextText = allContexts
+      .map((c) => {
+        const meta: string[] = []
+        if (c.type) meta.push(`类型：${c.type}`)
+        if (c.tags?.length) meta.push(`标签：${c.tags.join(', ')}`)
+        if (c.summary) meta.push(`摘要：${c.summary}`)
+        if (c.relationships?.length) meta.push(`关系：${c.relationships.join('；')}`)
+        const metaStr =
+          meta.length > 0
+            ? `【${c.title}】(${c.path})\n${meta.join('\n')}\n\n正文：${c.content}`
+            : `【${c.title}】(${c.path})\n${c.content}`
+        return metaStr
+      })
+      .join('\n\n---\n\n')
 
-    const relContextText = relatedFiles.length > 0
-      ? `\n\n---\n\n【相关页面（通过关系网络扩展）】\n` +
-        relatedFiles.map(r => `【${r.title}】\n${r.content.slice(0, 500)}`).join('\n\n')
-      : ''
+    const relContextText =
+      relatedFiles.length > 0
+        ? `\n\n---\n\n【相关页面（通过关系网络扩展）】\n` +
+          relatedFiles.map((r) => `【${r.title}】\n${r.content.slice(0, 500)}`).join('\n\n')
+        : ''
 
     // Step 5: AI synthesize answer
     const prompt = `你是晓园知识库的查询助手。基于以下知识库内容回答用户问题。
@@ -192,10 +216,10 @@ ${contextText}${relContextText}
 
 回答：`
 
-    const answer = await callAI('reason', { question: prompt, context: [] }) as string
+    const answer = (await callAI('reason', { question: prompt, context: [] })) as string
 
     // Step 6: Build source list
-    const sources = allContexts.map(c => ({
+    const sources = allContexts.map((c) => ({
       path: c.path,
       title: c.title,
       snippet: c.content.slice(0, 100) + '...'

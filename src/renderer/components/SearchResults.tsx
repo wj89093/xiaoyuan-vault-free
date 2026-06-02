@@ -9,7 +9,12 @@ interface SearchResultsProps {
   onClose: () => void
 }
 
-export function SearchResults({ results, query, onSelect, onClose }: SearchResultsProps): JSX.Element {
+export function SearchResults({
+  results,
+  query,
+  onSelect,
+  onClose
+}: SearchResultsProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -21,21 +26,24 @@ export function SearchResults({ results, query, onSelect, onClose }: SearchResul
     }
   }, [selectedIndex])
 
-  const openSelected = useCallback((index: number) => {
-    const item = results[index]
-    if (item) {
-      onSelect(item.path)
-      onClose()
-    }
-  }, [results, onSelect, onClose])
+  const openSelected = useCallback(
+    (index: number) => {
+      const item = results[index]
+      if (item) {
+        onSelect(item.path)
+        onClose()
+      }
+    },
+    [results, onSelect, onClose]
+  )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex(i => Math.min(i + 1, results.length - 1))
+      setSelectedIndex((i) => Math.min(i + 1, results.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setSelectedIndex(i => Math.max(i - 1, -1))
+      setSelectedIndex((i) => Math.max(i - 1, -1))
     } else if (e.key === 'Enter') {
       e.preventDefault()
       if (selectedIndex >= 0) openSelected(selectedIndex)
@@ -62,11 +70,7 @@ export function SearchResults({ results, query, onSelect, onClose }: SearchResul
   return (
     <div className="search-results" tabIndex={0} onKeyDown={handleKeyDown}>
       <div className="search-results-header">
-        <span
-          className="search-results-count"
-          role="status"
-          aria-live="polite"
-        >
+        <span className="search-results-count" role="status" aria-live="polite">
           {results.length > 0 ? (
             <span className="search-results-badge">{results.length}</span>
           ) : null}
@@ -91,7 +95,10 @@ export function SearchResults({ results, query, onSelect, onClose }: SearchResul
               aria-selected={selectedIndex === i}
               tabIndex={-1}
               className={`search-results-item${selectedIndex === i ? ' selected' : ''}`}
-              onClick={() => { setSelectedIndex(i); openSelected(i) }}
+              onClick={() => {
+                setSelectedIndex(i)
+                openSelected(i)
+              }}
               onMouseEnter={() => setSelectedIndex(i)}
               style={{ animationDelay: `${Math.min(i * 20, 200)}ms` }}
             >

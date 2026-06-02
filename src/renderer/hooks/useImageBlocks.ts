@@ -9,7 +9,13 @@
  * Skips images inside tables (table widget handles them).
  */
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language'
-import { StateField, type EditorState, type Extension, type Range, type Transaction } from '@codemirror/state'
+import {
+  StateField,
+  type EditorState,
+  type Extension,
+  type Range,
+  type Transaction
+} from '@codemirror/state'
 import { Decoration, EditorView, WidgetType, type DecorationSet } from '@codemirror/view'
 import { treeGrowthEffect, treeProgressPlugin } from './useInlinePreview'
 
@@ -38,7 +44,12 @@ const dimensionCache = new Map<string, { w: number; h: number }>()
 // ── Image Widget ─────────────────────────────────────────────────────────────
 
 class ImageWidget extends WidgetType {
-  constructor(readonly src: string, readonly alt: string) { super() }
+  constructor(
+    readonly src: string,
+    readonly alt: string
+  ) {
+    super()
+  }
 
   eq(other: ImageWidget): boolean {
     return other.src === this.src && other.alt === this.alt
@@ -92,7 +103,12 @@ class ImageWidget extends WidgetType {
 class InlineImageWidget extends WidgetType {
   private _triedFallback = false
 
-  constructor(readonly filename: string, readonly refNum: string) { super() }
+  constructor(
+    readonly filename: string,
+    readonly refNum: string
+  ) {
+    super()
+  }
 
   eq(other: InlineImageWidget): boolean {
     return other.filename === this.filename && other.refNum === this.refNum
@@ -112,15 +128,19 @@ class InlineImageWidget extends WidgetType {
     img.src = primary
 
     // onerror: try fallback path
-    img.addEventListener('error', () => {
-      if (this._triedFallback) return
-      this._triedFallback = true
-      const vp = getVaultPath()
-      if (!vp) return
-      img.src = `file://${vp}/assets/${this.filename}`
-       
-      img.addEventListener('error', () => {}, { once: true }) // silence final failure
-    }, { once: true })
+    img.addEventListener(
+      'error',
+      () => {
+        if (this._triedFallback) return
+        this._triedFallback = true
+        const vp = getVaultPath()
+        if (!vp) return
+        img.src = `file://${vp}/assets/${this.filename}`
+
+        img.addEventListener('error', () => {}, { once: true }) // silence final failure
+      },
+      { once: true }
+    )
 
     wrap.appendChild(img)
     return wrap
@@ -153,10 +173,10 @@ function buildImageBlocks(state: EditorState): DecorationSet {
           widget: new ImageWidget(src, alt),
           block: true,
           // side: 1 places widget after the line content
-          side: 1,
-        }).range(line.to),
+          side: 1
+        }).range(line.to)
       )
-    },
+    }
   })
 
   // ── @image#N:filename inline references ──────────────────────────────
@@ -170,8 +190,8 @@ function buildImageBlocks(state: EditorState): DecorationSet {
     const filename = m[2]
     ranges.push(
       Decoration.replace({
-        widget: new InlineImageWidget(filename, refNum),
-      }).range(from, to),
+        widget: new InlineImageWidget(filename, refNum)
+      }).range(from, to)
     )
   }
 
@@ -184,7 +204,10 @@ function changeAffectsImages(tr: Transaction, existing: DecorationSet): boolean 
   let affected = false
   tr.changes.iterChanges((fromA, toA) => {
     if (affected) return
-    existing.between(fromA, toA, () => { affected = true; return false })
+    existing.between(fromA, toA, () => {
+      affected = true
+      return false
+    })
   })
   if (affected) return true
 
@@ -195,7 +218,10 @@ function changeAffectsImages(tr: Transaction, existing: DecorationSet): boolean 
     const endLine = toB > startLine.to ? state.doc.lineAt(toB) : startLine
     for (let n = startLine.number; n <= endLine.number; n++) {
       const text = state.doc.line(n).text
-      if (text.includes('![') || text.includes('@image#')) { affected = true; break }
+      if (text.includes('![') || text.includes('@image#')) {
+        affected = true
+        break
+      }
     }
   })
   return affected
@@ -214,7 +240,7 @@ const imageBlocksField = StateField.define<DecorationSet>({
     if (!changeAffectsImages(tr, deco)) return mapped
     return buildImageBlocks(tr.state)
   },
-  provide: f => EditorView.decorations.from(f),
+  provide: (f) => EditorView.decorations.from(f)
 })
 
 // ── Extension ──────────────────────────────────────────────────────────────

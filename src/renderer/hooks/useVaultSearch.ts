@@ -51,6 +51,6 @@ export function useVaultSearch() {
     setShowSearchResults,
     handleSearch,
     handleCloseSearch,
-    handleOpenSearch,
+    handleOpenSearch
   }
 }

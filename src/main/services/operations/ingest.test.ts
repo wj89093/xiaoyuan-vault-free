@@ -11,7 +11,8 @@ describe('sanitizeFilename behavior (via real vault)', () => {
     await mkdir(join(vaultDir, '_wiki', '测试'), { recursive: true })
     await mkdir(join(vaultDir, 'raw'), { recursive: true })
 
-    const rawContent = '---\ntitle: Test File\n---\n\nThis is test content for ingest testing.\nIt has enough body to pass the 20 char minimum check.\n'
+    const rawContent =
+      '---\ntitle: Test File\n---\n\nThis is test content for ingest testing.\nIt has enough body to pass the 20 char minimum check.\n'
     await writeFile(join(vaultDir, 'raw', 'test.md'), rawContent, 'utf-8')
 
     try {
@@ -36,7 +37,7 @@ describe('IngestResult interface shape', () => {
       success: false as boolean,
       entitiesUpdated: [] as string[],
       conceptsUpdated: [] as string[],
-      error: 'no vault',
+      error: 'no vault'
     }
     expect(typeof result.success).toBe('boolean')
     expect(Array.isArray(result.entitiesUpdated)).toBe(true)
@@ -49,7 +50,7 @@ describe('IngestResult interface shape', () => {
       topic: '技术',
       sourcePage: '_wiki/技术/test.md',
       entitiesUpdated: [] as string[],
-      conceptsUpdated: [] as string[],
+      conceptsUpdated: [] as string[]
     }
     expect(result.success).toBe(true)
     expect(result.topic).toBe('技术')
@@ -80,7 +81,7 @@ describe('ingest boundary conditions', () => {
       'tags: [中文, 标签]',
       'created: 2026-05-17',
       '---',
-      '这是正文内容，足够长以通过 20 字符检查。',
+      '这是正文内容，足够长以通过 20 字符检查。'
     ].join('\n')
     const { frontmatter, content } = parseFrontmatter(raw)
     expect(frontmatter.title).toBe('中文标题')
@@ -92,7 +93,11 @@ describe('ingest boundary conditions', () => {
     const vaultDir = join(tmpdir(), 'test-ingest-nested-' + Date.now())
     const rawPath = join(vaultDir, 'raw', 'a', 'b', 'c', 'nested.md')
     await mkdir(dirname(rawPath), { recursive: true })
-    await writeFile(rawPath, '---\ntitle: Nested\n---\n\nNested content that is long enough for ingest.\n', 'utf-8')
+    await writeFile(
+      rawPath,
+      '---\ntitle: Nested\n---\n\nNested content that is long enough for ingest.\n',
+      'utf-8'
+    )
     try {
       const { parseFrontmatter } = await import('../frontmatter/index')
       const raw = await readFile(rawPath, 'utf-8')
@@ -109,7 +114,7 @@ describe('ingest boundary conditions', () => {
       topic: '技术',
       sourcePage: '_wiki/技术/test.md',
       entitiesUpdated: ['人名A', '公司B'],
-      conceptsUpdated: ['概念A', '概念B'],
+      conceptsUpdated: ['概念A', '概念B']
     }
     expect(Array.isArray(result.entitiesUpdated)).toBe(true)
     expect(Array.isArray(result.conceptsUpdated)).toBe(true)
@@ -122,12 +127,8 @@ describe('ingest boundary conditions', () => {
       success: true,
       topic: '人物',
       sourcePage: 'raw/2026/05/17/interview.md',
-      entitiesUpdated: [
-        '_wiki/人物/张三.md',
-        '_wiki/人物/李四.md',
-        '_wiki/公司/某公司.md',
-      ],
-      conceptsUpdated: ['AI', '创业'],
+      entitiesUpdated: ['_wiki/人物/张三.md', '_wiki/人物/李四.md', '_wiki/公司/某公司.md'],
+      conceptsUpdated: ['AI', '创业']
     }
     expect(result.entitiesUpdated).toHaveLength(3)
     expect(result.conceptsUpdated).toHaveLength(2)
@@ -138,7 +139,7 @@ describe('ingest boundary conditions', () => {
       success: false,
       entitiesUpdated: [] as string[],
       conceptsUpdated: [] as string[],
-      error: 'content too short',
+      error: 'content too short'
     }
     expect(result.success).toBe(false)
     expect(result.error).toBe('content too short')
@@ -151,7 +152,7 @@ describe('IngestContext interface', () => {
     const ctx = {
       onTags: true,
       onSummary: true,
-      onSchemaDriven: true,
+      onSchemaDriven: true
     }
     expect(typeof ctx.onTags).toBe('boolean')
     expect(typeof ctx.onSummary).toBe('boolean')
@@ -162,7 +163,7 @@ describe('IngestContext interface', () => {
     const ctx = {
       onTags: false,
       onSummary: true,
-      onSchemaDriven: false,
+      onSchemaDriven: false
     }
     expect(ctx.onTags).toBe(false)
     expect(ctx.onSummary).toBe(true)
@@ -184,7 +185,7 @@ describe('wiki page write (real fs)', () => {
       '',
       '# 测试页面',
       '',
-      '这是测试内容。',
+      '这是测试内容。'
     ].join('\n')
 
     const pagePath = join(vaultDir, '_wiki', 'AI', '测试页面.md')

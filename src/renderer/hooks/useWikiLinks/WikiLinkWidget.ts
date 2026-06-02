@@ -8,11 +8,15 @@ export class WikiLinkWidget extends WidgetType {
   constructor(
     private readonly target: string,
     private readonly label: string,
-    private readonly status: WikiLinkStatus,
-  ) { super() }
+    private readonly status: WikiLinkStatus
+  ) {
+    super()
+  }
 
   eq(other: WikiLinkWidget): boolean {
-    return this.target === other.target && this.label === other.label && this.status === other.status
+    return (
+      this.target === other.target && this.label === other.label && this.status === other.status
+    )
   }
 
   toDOM(): HTMLElement {
@@ -25,11 +29,13 @@ export class WikiLinkWidget extends WidgetType {
       e.preventDefault()
       e.stopPropagation()
       // Dispatch a bubbling custom event that EditorView can observe
-      span.dispatchEvent(new CustomEvent('cm-wikilink-click', {
-        bubbles: true,
-        composed: true,
-        detail: { target: this.target, label: this.label, status: this.status },
-      }))
+      span.dispatchEvent(
+        new CustomEvent('cm-wikilink-click', {
+          bubbles: true,
+          composed: true,
+          detail: { target: this.target, label: this.label, status: this.status }
+        })
+      )
     })
     span.setAttribute('role', 'link')
     span.setAttribute('tabindex', '0')
@@ -42,5 +48,7 @@ export class WikiLinkWidget extends WidgetType {
     return span
   }
 
-  ignoreEvent(): boolean { return false }
+  ignoreEvent(): boolean {
+    return false
+  }
 }

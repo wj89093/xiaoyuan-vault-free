@@ -5,8 +5,11 @@ import { fetchURL, saveURLToVault } from '../services/urlFetch'
 import { openImportWindow } from '../importWindow'
 import { importFilesToVault, setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../graphUtils'
-import { convertWithJS, getSupportedExtensions, canTranscribeAudio } from '../services/operations/converters'
-
+import {
+  convertWithJS,
+  getSupportedExtensions,
+  canTranscribeAudio
+} from '../services/operations/converters'
 
 export function registerImportHandlers(): void {
   // ── Import window ──────────────────────────────────────────────────

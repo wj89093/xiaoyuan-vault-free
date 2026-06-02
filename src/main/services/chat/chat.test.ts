@@ -5,7 +5,10 @@ import { tmpdir } from 'os'
 
 // Mock fs before importing chat
 vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs') as { existsSync: typeof existsSync; readFile: typeof readFile }
+  const actual = (await vi.importActual('fs')) as {
+    existsSync: typeof existsSync
+    readFile: typeof readFile
+  }
   return { ...actual, existsSync: vi.fn(), readFile: vi.fn() }
 })
 
@@ -56,7 +59,7 @@ describe('ChatMessage and ChatSession interfaces', () => {
       content: 'hello',
       id: 1,
       session_id: 'abc',
-      timestamp: Date.now(),
+      timestamp: Date.now()
     }
     expect(msg.role).toBe('user')
     expect(msg.content).toBe('hello')
@@ -69,7 +72,7 @@ describe('ChatMessage and ChatSession interfaces', () => {
       title: 'Test Session',
       created_at: Date.now(),
       updated_at: Date.now(),
-      systemPrompt: null,
+      systemPrompt: null
     }
     expect(session.id).toBe('id-123')
   })

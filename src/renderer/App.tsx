@@ -15,13 +15,21 @@ import { useImportObserver } from './hooks/useImportObserver'
 import { useToasts } from './components/Toast'
 
 // ── Settings event listener hook ────────────────────────────────────
-function useSettingsListener(openSchema: () => void, openLint: () => void, openSettings: () => void) {
+function useSettingsListener(
+  openSchema: () => void,
+  openLint: () => void,
+  openSettings: () => void
+) {
   useEffect(() => {
     const handler = (e: Event) => {
       const { panel, tab } = (e as CustomEvent).detail ?? {}
-      if (panel === 'schema' || tab === 'schema') { openSchema() }
-      else if (panel === 'lint' || tab === 'lint') { openLint() }
-      else { openSettings() }
+      if (panel === 'schema' || tab === 'schema') {
+        openSchema()
+      } else if (panel === 'lint' || tab === 'lint') {
+        openLint()
+      } else {
+        openSettings()
+      }
     }
     document.addEventListener('open-settings', handler)
     return () => document.removeEventListener('open-settings', handler)
@@ -29,12 +37,12 @@ function useSettingsListener(openSchema: () => void, openLint: () => void, openS
 }
 
 // ── Import observer callback factory ────────────────────────────────
-function useImportObserverCallbacks(
-  setFiles: any,
-) {
+function useImportObserverCallbacks(setFiles: any) {
   return {
     showOnboarding: false,
-    onFilesImported: () => { window.api.listFiles().then((f: any) => setFiles(f)) },
+    onFilesImported: () => {
+      window.api.listFiles().then((f: any) => setFiles(f))
+    },
     onFirstImportAnalyze: async (filePaths: string[], handleSendMessage: (msg: string) => void) => {
       if (filePaths.length === 0) return
       const filesContent: string[] = []
@@ -43,7 +51,9 @@ function useImportObserverCallbacks(
           const c = await window.api.readFile(p)
           const name = p.split('/').pop() ?? p
           filesContent.push(`### ${name}\n${((c ?? '') as string).slice(0, 1500)}`)
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       }
       const hint = filePaths.length > 3 ? `(共 ${filePaths.length} 个，仅展示前 3 个)` : ''
       const question = `我刚导入了 ${filePaths.length} 个文件${hint}。请帮我：
@@ -56,7 +66,7 @@ function useImportObserverCallbacks(
 文件内容：
 ${filesContent.join('\n\n')}`
       handleSendMessage(question)
-    },
+    }
   }
 }
 
@@ -64,7 +74,9 @@ ${filesContent.join('\n\n')}`
 function useLastVaultRestore(handleOpenVaultItem: (path: string) => void) {
   useEffect(() => {
     if (!window.api) return
-    window.api.getLastVault?.().then(vaultPath => { if (vaultPath) handleOpenVaultItem(vaultPath) })
+    window.api.getLastVault?.().then((vaultPath) => {
+      if (vaultPath) handleOpenVaultItem(vaultPath)
+    })
   }, [handleOpenVaultItem])
 }
 
@@ -114,8 +126,11 @@ function App(): JSX.Element {
   // ── State from hooks ─────────────────────────────────────────────
   const vaultState = useVaultState()
   const {
-    vaultPath, files, selectedFile,
-    setVaultPath: _setVaultPath, setSelectedFile,
+    vaultPath,
+    files,
+    selectedFile,
+    setVaultPath: _setVaultPath,
+    setSelectedFile
   } = vaultState
 
   const { toasts, dismiss: dismissToast } = useToasts()
@@ -125,18 +140,23 @@ function App(): JSX.Element {
     const unsub = (window.api as any).onVaultFileOpened?.((data: { path: string }) => {
       setSelectedFile(data.path)
     })
-    return () => { unsub?.() }
+    return () => {
+      unsub?.()
+    }
   }, [setSelectedFile])
 
   const ui = useAppUIState()
   const {
-    showQuickSwitch, setShowQuickSwitch,
-    showGraph, setShowGraph,
-    showShortcuts, setShowShortcuts,
+    showQuickSwitch,
+    setShowQuickSwitch,
+    showGraph,
+    setShowGraph,
+    showShortcuts,
+    setShowShortcuts,
     openSettings,
     openLint,
     openSchema,
-    openLog,
+    openLog
   } = ui
 
   // ── Import observer ───────────────────────────────────────────────
@@ -147,7 +167,13 @@ function App(): JSX.Element {
   useSettingsListener(openSchema, openLint, openSettings)
 
   // ── Keyboard shortcuts ────────────────────────────────────────────
-  useKeyboardShortcuts(vaultPath, setShowQuickSwitch, setShowShortcuts, showQuickSwitch, showShortcuts)
+  useKeyboardShortcuts(
+    vaultPath,
+    setShowQuickSwitch,
+    setShowShortcuts,
+    showQuickSwitch,
+    showShortcuts
+  )
   useGlobalShortcuts(vaultPath, setShowQuickSwitch)
 
   // ── Vault lifecycle ───────────────────────────────────────────────
@@ -173,49 +199,72 @@ function App(): JSX.Element {
 
   const handleReference = useCallback((_ref: any) => {}, [])
 
-  const handleEditorWikiLink = useCallback((target: string) => {
-    // Recursively flatten file tree to search all levels
-    const flatten = (items: any[]): any[] => {
-      const result: any[] = []
-      for (const item of items) {
-        if (item.isDirectory && item.children) {
-          result.push(...flatten(item.children))
+  const handleEditorWikiLink = useCallback(
+    (target: string) => {
+      // Recursively flatten file tree to search all levels
+      const flatten = (items: any[]): any[] => {
+        const result: any[] = []
+        for (const item of items) {
+          if (item.isDirectory && item.children) {
+            result.push(...flatten(item.children))
+          }
+          result.push(item)
         }
-        result.push(item)
+        return result
       }
-      return result
-    }
-    const flatFiles = flatten(files)
-    const targetClean = target.replace(/\.md$/, '')
-    const match = flatFiles.find((f: any) => {
-      const fullPath = String(f.path ?? '')
-      const pathNoExt = fullPath.replace(/\.md$/, '')
-      const name = fullPath.split('/').pop()?.replace(/\.md$/, '') ?? ''
-      return name === targetClean
-        || pathNoExt.endsWith('/' + targetClean)
-        || pathNoExt.endsWith(targetClean)
-        || pathNoExt === targetClean
-        || fullPath === target
-    })
-    if (match) { void vaultState.handleSelectFile(match.path); return }
-    // Not found in file tree — try as relative path, fall back to _wiki/
-    if (targetClean.includes('/')) {
-      void vaultState.handleSelectFile(targetClean + '.md')
-    } else {
-      const wikiGuess = '_wiki/' + targetClean + '.md'
-      const inWiki = flatFiles.some((f: any) => String(f.path ?? '') === wikiGuess)
-      void vaultState.handleSelectFile(inWiki ? wikiGuess : targetClean + '.md')
-    }
-  }, [files, vaultState.handleSelectFile])
+      const flatFiles = flatten(files)
+      const targetClean = target.replace(/\.md$/, '')
+      const match = flatFiles.find((f: any) => {
+        const fullPath = String(f.path ?? '')
+        const pathNoExt = fullPath.replace(/\.md$/, '')
+        const name = fullPath.split('/').pop()?.replace(/\.md$/, '') ?? ''
+        return (
+          name === targetClean ||
+          pathNoExt.endsWith('/' + targetClean) ||
+          pathNoExt.endsWith(targetClean) ||
+          pathNoExt === targetClean ||
+          fullPath === target
+        )
+      })
+      if (match) {
+        void vaultState.handleSelectFile(match.path)
+        return
+      }
+      // Not found in file tree — try as relative path, fall back to _wiki/
+      if (targetClean.includes('/')) {
+        void vaultState.handleSelectFile(targetClean + '.md')
+      } else {
+        const wikiGuess = '_wiki/' + targetClean + '.md'
+        const inWiki = flatFiles.some((f: any) => String(f.path ?? '') === wikiGuess)
+        void vaultState.handleSelectFile(inWiki ? wikiGuess : targetClean + '.md')
+      }
+    },
+    [files, vaultState.handleSelectFile]
+  )
 
   // ── IconSidebar view routing ──────────────────────────────────────
-  const handleViewChange = useCallback((view: string) => {
-    ui.setActiveView(view)
-    if (view === 'graph') { setShowGraph(v => !v); return }
-    if (view === 'settings') { openSettings(); return }
-    if (view === 'lint') { openLint(); return }
-    if (view === 'log') { openLog(); return }
-  }, [ui, setShowGraph, openSettings, openLint, openLog])
+  const handleViewChange = useCallback(
+    (view: string) => {
+      ui.setActiveView(view)
+      if (view === 'graph') {
+        setShowGraph((v) => !v)
+        return
+      }
+      if (view === 'settings') {
+        openSettings()
+        return
+      }
+      if (view === 'lint') {
+        openLint()
+        return
+      }
+      if (view === 'log') {
+        openLog()
+        return
+      }
+    },
+    [ui, setShowGraph, openSettings, openLint, openLog]
+  )
 
   // ── Render ────────────────────────────────────────────────────────
   return (
@@ -224,7 +273,10 @@ function App(): JSX.Element {
         <QuickSwitch
           files={files}
           recentFiles={vaultState.recentFiles}
-          onSelect={(path: string) => { setSelectedFile(path); setShowQuickSwitch(false) }}
+          onSelect={(path: string) => {
+            setSelectedFile(path)
+            setShowQuickSwitch(false)
+          }}
           onClose={() => setShowQuickSwitch(false)}
         />
       )}
@@ -233,7 +285,10 @@ function App(): JSX.Element {
           <KnowledgeGraph
             files={files}
             selectedFile={selectedFile}
-            onSelect={(path) => { vaultState.handleSelectFile(path); setShowGraph(false) }}
+            onSelect={(path) => {
+              vaultState.handleSelectFile(path)
+              setShowGraph(false)
+            }}
             onClose={() => setShowGraph(false)}
           />
         </div>

@@ -23,9 +23,7 @@ const GROWTH_THRESHOLD = 8192
 // Budget per idle tick — short enough to stay responsive, long enough to make progress.
 const TICK_BUDGET_MS = 30
 
-type IdleHandle =
-  | { kind: 'idle'; id: number }
-  | { kind: 'raf'; id: number }
+type IdleHandle = { kind: 'idle'; id: number } | { kind: 'raf'; id: number }
 
 function scheduleIdle(cb: () => void): IdleHandle {
   if (typeof window.requestIdleCallback === 'function') {
@@ -93,7 +91,7 @@ export const treeProgressPlugin = ViewPlugin.fromClass(
         this._lastTreeLen = newLen
         try {
           this.view.dispatch({
-            effects: treeGrowthEffect.of({ from: previous, to: newLen }),
+            effects: treeGrowthEffect.of({ from: previous, to: newLen })
           })
         } catch {
           // View destroyed mid-flight; revert baseline.
@@ -104,5 +102,5 @@ export const treeProgressPlugin = ViewPlugin.fromClass(
 
       if (newLen < docLen) this._schedule()
     }
-  },
+  }
 )

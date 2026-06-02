@@ -44,9 +44,9 @@ Object.defineProperty(global, 'crypto', {
 // Import chain: providers.ts → import axios from 'axios' → crash during module init
 vi.mock('axios', () => ({
   default: {
-    get: vi.fn().mockResolvedValue({ data: '', status: 200 }),
+    get: vi.fn().mockResolvedValue({ data: '', status: 200 })
   },
-  get: vi.fn().mockResolvedValue({ data: '', status: 200 }),
+  get: vi.fn().mockResolvedValue({ data: '', status: 200 })
 }))
 
 // Mock urlFetch/providers (after axios is mocked, these can be properly resolved)
@@ -59,21 +59,21 @@ vi.mock('../urlFetch/providers', () => ({
   fetchGitHub: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' }),
   fetchReddit: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' }),
   fetchBilibili: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' }),
-  fetchZhihu: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' }),
+  fetchZhihu: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' })
 }))
 
 vi.mock('../urlFetch', () => ({
   fetchURL: vi.fn().mockResolvedValue({ ok: false, error: 'mocked' }),
-  saveURLToVault: vi.fn().mockResolvedValue('/mock/path'),
+  saveURLToVault: vi.fn().mockResolvedValue('/mock/path')
 }))
 
 // Mock clipboard (imported by agent/tools.ts)
 vi.mock('../clipboard/clipboard', () => ({
   bubbleState: { get: vi.fn(), set: vi.fn() },
-  respawnBubble: vi.fn(),
+  respawnBubble: vi.fn()
 }))
 
 // Mock mainWindowRef (imported by agent/tools.ts)
 vi.mock('../../mainWindowRef', () => ({
-  getMainWindowRef: vi.fn().mockReturnValue(null),
+  getMainWindowRef: vi.fn().mockReturnValue(null)
 }))

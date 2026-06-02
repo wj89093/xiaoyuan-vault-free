@@ -10,5 +10,5 @@ export {
   treeGrowthEffect,
   previewFrozenField,
   treeProgressPlugin,
-  freezeMousePlugin,
+  freezeMousePlugin
 } from './unifiedDecorations'

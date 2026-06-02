@@ -33,19 +33,41 @@ export function MermaidTest(): JSX.Element {
       <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Mermaid 渲染测试</h2>
 
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 8 }}>流程图（graph TD）</h3>
-        <div ref={ref1}
-          style={{ border: '1px solid var(--color-border, #d1d1d6)', borderRadius: 8, padding: 16, background: 'var(--color-surface, #fff)', minHeight: 120 }}
+        <h3 style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+          流程图（graph TD）
+        </h3>
+        <div
+          ref={ref1}
+          style={{
+            border: '1px solid var(--color-border, #d1d1d6)',
+            borderRadius: 8,
+            padding: 16,
+            background: 'var(--color-surface, #fff)',
+            minHeight: 120
+          }}
         />
-        <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>状态: {s1}</p>
+        <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
+          状态: {s1}
+        </p>
       </div>
 
       <div style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 8 }}>复杂流程图（flowchart LR + subgraph）</h3>
-        <div ref={ref2}
-          style={{ border: '1px solid var(--color-border, #d1d1d6)', borderRadius: 8, padding: 16, background: 'var(--color-surface, #fff)', minHeight: 120 }}
+        <h3 style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+          复杂流程图（flowchart LR + subgraph）
+        </h3>
+        <div
+          ref={ref2}
+          style={{
+            border: '1px solid var(--color-border, #d1d1d6)',
+            borderRadius: 8,
+            padding: 16,
+            background: 'var(--color-surface, #fff)',
+            minHeight: 120
+          }}
         />
-        <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>状态: {s2}</p>
+        <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
+          状态: {s2}
+        </p>
       </div>
     </div>
   )

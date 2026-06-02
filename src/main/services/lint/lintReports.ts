@@ -1,13 +1,11 @@
 import { existsSync } from 'fs'
 import { mkdir, readFile, writeFile, unlink } from 'fs/promises'
-import {join, dirname} from 'path'
-import {getVaultPath} from '../database/database'
-import {parseFrontmatter, applyFrontmatter} from '../frontmatter/index'
-import {callAI} from '../ai/aiService'
+import { join, dirname } from 'path'
+import { getVaultPath } from '../database/database'
+import { parseFrontmatter, applyFrontmatter } from '../frontmatter/index'
+import { callAI } from '../ai/aiService'
 import log from 'electron-log/main'
 import type { MaintainReport } from '../lint/maintain'
-
- 
 
 // ─── Lint Report Types ───────────────────────────────────────────────
 
@@ -32,8 +30,7 @@ export interface LintReportWithFixes extends MaintainReport {
 
 // ─── Lint Report Storage ─────────────────────────────────────────────
 
-const lintReportCachePath = (vaultPath: string) =>
-  join(vaultPath, '.xiaoyuan', 'lint-reports.json')
+const lintReportCachePath = (vaultPath: string) => join(vaultPath, '.xiaoyuan', 'lint-reports.json')
 
 export async function saveLintReport(report: LintReportWithFixes): Promise<void> {
   const vaultPath = getVaultPath()
@@ -49,10 +46,10 @@ async function readLintReportsInternal(): Promise<LintReportWithFixes[]> {
   const vaultPath = getVaultPath()
   if (!vaultPath) return []
   const cachePath = lintReportCachePath(vaultPath)
-   
+
   if (!existsSync(cachePath)) return []
   const raw = await readFile(cachePath, 'utf-8')
-   
+
   return JSON.parse(raw) as LintReportWithFixes[]
 }
 
@@ -70,7 +67,11 @@ export function registerBannerSender(
   _bannerSender = sender
 }
 
-export function notifyBanner(type: 'schema' | 'info' | 'success' | 'warning', title: string, body?: string): void {
+export function notifyBanner(
+  type: 'schema' | 'info' | 'success' | 'warning',
+  title: string,
+  body?: string
+): void {
   _bannerSender?.(type, title, body)
 }
 
@@ -90,23 +91,36 @@ export async function runLintTask(_vaultPath: string): Promise<void> {
 
 // ─── AI Fix Suggestion Generator ─────────────────────────────────────
 
-export async function generateFixSuggestions(report: MaintainReport, _vaultPath: string): Promise<LintFixSuggestion[]> {
+export async function generateFixSuggestions(
+  report: MaintainReport,
+  _vaultPath: string
+): Promise<LintFixSuggestion[]> {
   const suggestions: LintFixSuggestion[] = []
 
   if (report.deadLinks.length > 0) {
-    const deadLinksText = report.deadLinks.slice(0, 10).map(l =>
-      `  - 来自「${l.fromTitle}」→ 链接「${l.deadTarget}」不存在`
-    ).join('\n')
-    const prompt = `你是知识库助手。以下页面存在死链接（链接目标不存在）：\n${deadLinksText}\n\n现有页面标题：\n${Array.from(new Set(report.deadLinks.map(l => l.fromTitle))).slice(0, 20).join('\n')}\n\n请为每个死链接生成修复建议。返回JSON数组：\n[{"deadTarget": "不存在的链接目标", "suggestion": "修复建议（搜索相似标题、更改链接、删除链接）", "action": "fix或ignore"}]\n\n只返回JSON数组。`
+    const deadLinksText = report.deadLinks
+      .slice(0, 10)
+      .map((l) => `  - 来自「${l.fromTitle}」→ 链接「${l.deadTarget}」不存在`)
+      .join('\n')
+    const prompt = `你是知识库助手。以下页面存在死链接（链接目标不存在）：\n${deadLinksText}\n\n现有页面标题：\n${Array.from(
+      new Set(report.deadLinks.map((l) => l.fromTitle))
+    )
+      .slice(0, 20)
+      .join(
+        '\n'
+      )}\n\n请为每个死链接生成修复建议。返回JSON数组：\n[{"deadTarget": "不存在的链接目标", "suggestion": "修复建议（搜索相似标题、更改链接、删除链接）", "action": "fix或ignore"}]\n\n只返回JSON数组。`
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await callAI('lint_fix', { prompt })
-       
+
       const match = String(result).match(/\[[\s\S]*\]/)
       if (match) {
-        const parsed = JSON.parse(match[0]) as Array<{ deadTarget: string; suggestion: string; action: string }>
+        const parsed = JSON.parse(match[0]) as Array<{
+          deadTarget: string
+          suggestion: string
+          action: string
+        }>
         for (const p of parsed) {
-          const link = report.deadLinks.find(l => l.deadTarget === p.deadTarget)
+          const link = report.deadLinks.find((l) => l.deadTarget === p.deadTarget)
           if (link) {
             suggestions.push({
               issueType: 'deadLink',
@@ -114,26 +128,34 @@ export async function generateFixSuggestions(report: MaintainReport, _vaultPath:
               title: link.fromTitle,
               deadTarget: p.deadTarget,
               suggestion: p.suggestion,
-              action: p.action as 'fix' | 'ignore',
+              action: p.action as 'fix' | 'ignore'
             })
           }
         }
       }
-    } catch (e) { log.warn('[Lint] dead link suggestions failed:', e) }
+    } catch (e) {
+      log.warn('[Lint] dead link suggestions failed:', e)
+    }
   }
 
   if (report.orphanPages.length > 0) {
-    const orphanText = report.orphanPages.slice(0, 10).map(p => `  - ${p.title}`).join('\n')
+    const orphanText = report.orphanPages
+      .slice(0, 10)
+      .map((p) => `  - ${p.title}`)
+      .join('\n')
     const prompt = `你是知识库结构助手。发现以下页面没有反向链接（孤立页面）：\n${orphanText}\n\n请判断每个页面应该归档还是保留。如果内容不完整或重复，建议「归档」。\n\n返回JSON数组：\n[{"orphanTarget": "页面标题", "suggestion": "建议（归档 / 写入哪个文件夹）", "action": "fix或ignore"}]\n\n只返回JSON数组。`
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await callAI('lint_fix', { prompt })
-       
+
       const match = String(result).match(/\[[\s\S]*\]/)
       if (match) {
-        const parsed = JSON.parse(match[0]) as Array<{ orphanTarget: string; suggestion: string; action: string }>
+        const parsed = JSON.parse(match[0]) as Array<{
+          orphanTarget: string
+          suggestion: string
+          action: string
+        }>
         for (const p of parsed) {
-          const page = report.orphanPages.find(l => l.title === p.orphanTarget)
+          const page = report.orphanPages.find((l) => l.title === p.orphanTarget)
           if (page) {
             suggestions.push({
               issueType: 'orphanPage',
@@ -141,21 +163,22 @@ export async function generateFixSuggestions(report: MaintainReport, _vaultPath:
               title: p.orphanTarget,
               orphanTarget: p.orphanTarget,
               suggestion: p.suggestion,
-              action: p.action as 'fix' | 'ignore',
+              action: p.action as 'fix' | 'ignore'
             })
           }
         }
       }
-    } catch (e) { log.warn('[Lint] orphan suggestions failed:', e) }
+    } catch (e) {
+      log.warn('[Lint] orphan suggestions failed:', e)
+    }
   }
 
   if (report.contradictions.length > 0) {
     for (const c of report.contradictions.slice(0, 5)) {
       const prompt = `页面「${c.pageTitle}」存在信息矛盾：\n旧值：${c.oldValue}\n新值：${c.newValue}\n来源：${c.source}\n\n请根据页面整体内容判断应该保留哪个值。\n\n只返回JSON：\n{"recommendedValue": "推荐保留的值", "reason": "判断理由"}\n\n只返回JSON。`
       try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const result = await callAI('resolve', { prompt })
-       
+
         const match = String(result).match(/\{[\s\S]*\}/)
         if (match) {
           const p = JSON.parse(match[0]) as { recommendedValue: string; reason: string }
@@ -168,10 +191,12 @@ export async function generateFixSuggestions(report: MaintainReport, _vaultPath:
             source: c.source,
             recommendedValue: p.recommendedValue,
             suggestion: `${p.recommendedValue}（${p.reason}）`,
-            action: 'ignore',
+            action: 'ignore'
           })
         }
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
   }
 
@@ -184,7 +209,12 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-export async function fixLintIssue(issue: { type: string; pagePath?: string; deadTarget?: string; orphanTarget?: string }): Promise<boolean> {
+export async function fixLintIssue(issue: {
+  type: string
+  pagePath?: string
+  deadTarget?: string
+  orphanTarget?: string
+}): Promise<boolean> {
   const vaultPath = getVaultPath()
   if (!vaultPath) {
     log.warn('[Lint] fixLintIssue: no vault open, skipping')
@@ -219,7 +249,9 @@ export async function fixLintIssue(issue: { type: string; pagePath?: string; dea
       await unlink(issue.pagePath)
       log.info(`[Lint] orphan page archived: ${issue.orphanTarget} → _orphan/`)
       return true
-    } catch { return false }
+    } catch {
+      return false
+    }
   }
 
   return false

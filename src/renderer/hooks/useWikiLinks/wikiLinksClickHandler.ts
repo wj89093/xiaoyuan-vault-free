@@ -18,21 +18,31 @@ import type { Extension } from '@codemirror/view'
  */
 export function wikiLinksClickHandlerExtension(
   config: WikiLinksConfig,
-  getDecorationState: () => { resolved: Map<string, unknown>; decorations: unknown },
+  getDecorationState: () => { resolved: Map<string, unknown>; decorations: unknown }
 ): Extension {
-  const followLinkKeymap = keymap.of([{
-    key: 'Ctrl-Alt-Enter',
-    run: (view: EditorView): boolean => {
-      const pos = view.state.selection.main.head
-      const link = findLinkAtPos(view.state.doc, pos)
-      if (!link) return false
+  const followLinkKeymap = keymap.of([
+    {
+      key: 'Ctrl-Alt-Enter',
+      run: (view: EditorView): boolean => {
+        const pos = view.state.selection.main.head
+        const link = findLinkAtPos(view.state.doc, pos)
+        if (!link) return false
 
-      const state = getDecorationState()
-      const resolved = state.resolved.get(link.target) as { target: string; label: string; status: string } | null
-      config.onClick?.(link.target, resolved as Parameters<typeof config.onClick>[1], new MouseEvent('click') as unknown as MouseEvent)
-      return true
-    },
-  }])
+        const state = getDecorationState()
+        const resolved = state.resolved.get(link.target) as {
+          target: string
+          label: string
+          status: string
+        } | null
+        config.onClick?.(
+          link.target,
+          resolved as Parameters<typeof config.onClick>[1],
+          new MouseEvent('click') as unknown as MouseEvent
+        )
+        return true
+      }
+    }
+  ])
 
   return [followLinkKeymap] as unknown as Extension
 }

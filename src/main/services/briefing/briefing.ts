@@ -11,13 +11,13 @@ import { getLintReports } from '../lint/lintReports'
 
 export interface BriefingReport {
   date: string
-  period: string       // e.g. "2026-04-28 ~ 2026-05-01"
+  period: string // e.g. "2026-04-28 ~ 2026-05-01"
   newPages: number
   updatedPages: number
-  entities: string[]   // 新建的实体类型（人/公司/项目）
-  highlights: string[]  // LLM 生成的要点列表
-  health: string        // wiki 健康状态
-  raw: string           // LLM 原始摘要
+  entities: string[] // 新建的实体类型（人/公司/项目）
+  highlights: string[] // LLM 生成的要点列表
+  health: string // wiki 健康状态
+  raw: string // LLM 原始摘要
 }
 
 // ─── Daily/Weekly Briefing ─────────────────────────────────────────
@@ -67,12 +67,12 @@ async function generateLLMBriefing(
   indexRaw: string,
   recentFiles: { path: string; title: string; type: string; updated: string }[],
   period: string,
-  lintSummary: string,
+  lintSummary: string
 ): Promise<BriefingReport> {
   // 截取 log.md 最后 100 行（避免 token 过多）
   const logLines = logRaw.split('\n').slice(-100).join('\n')
   const recentSummary = recentFiles
-    .map(f => `- ${f.title} (${f.type ?? 'collection'}, ${f.updated})`)
+    .map((f) => `- ${f.title} (${f.type ?? 'collection'}, ${f.updated})`)
     .join('\n')
 
   const prompt = `你是晓园 Vault 的知识管家。
@@ -123,7 +123,7 @@ ${lintSummary}
       entities: (p.entities as unknown[]).slice(0, 5) as string[],
       highlights: (p.highlights as unknown[]).slice(0, 5) as string[],
       health: String(p.health ?? '未知'),
-      raw: String(p.raw ?? ''),
+      raw: String(p.raw ?? '')
     }
   } catch (err) {
     log.warn('[Briefing] LLM failed:', (err as Error).message)
@@ -175,7 +175,7 @@ export async function saveConversationSummary(params: {
       `time: ${time}`,
       `tags: [conversation]`,
       `created: ${date} ${time}`,
-      '---',
+      '---'
     ].join('\n')
 
     const body = [
@@ -187,13 +187,13 @@ export async function saveConversationSummary(params: {
       params.discussion ?? '（无记录）',
       '',
       '## 关键决策',
-      ...params.decisions.map(d => `- ${d}`),
+      ...params.decisions.map((d) => `- ${d}`),
       '',
       '## 相关文件',
-      ...params.relatedFiles.map(f => `- ${f}`),
+      ...params.relatedFiles.map((f) => `- ${f}`),
       '',
       '## 下一步',
-      ...params.nextSteps.map(s => `- ${s}`),
+      ...params.nextSteps.map((s) => `- ${s}`)
     ].join('\n')
 
     const filePath = join(dir, `conv-${hhmm}.md`)
@@ -215,7 +215,7 @@ export async function getConversationSummaries(date: string): Promise<Conversati
 
   try {
     const files = await readdir(dir)
-    const convFiles = files.filter(f => f.startsWith('conv-') && f.endsWith('.md')).sort()
+    const convFiles = files.filter((f) => f.startsWith('conv-') && f.endsWith('.md')).sort()
 
     for (const file of convFiles) {
       try {
@@ -228,9 +228,20 @@ export async function getConversationSummaries(date: string): Promise<Conversati
         let inDecisions = false
         let inNext = false
         for (const line of lines) {
-          if (line.trim() === '## 关键决策') { inDecisions = true; inNext = false; continue }
-          if (line.trim() === '## 下一步') { inNext = true; inDecisions = false; continue }
-          if (line.startsWith('## ')) { inDecisions = false; inNext = false }
+          if (line.trim() === '## 关键决策') {
+            inDecisions = true
+            inNext = false
+            continue
+          }
+          if (line.trim() === '## 下一步') {
+            inNext = true
+            inDecisions = false
+            continue
+          }
+          if (line.startsWith('## ')) {
+            inDecisions = false
+            inNext = false
+          }
           if ((inDecisions || inNext) && line.startsWith('- ')) {
             const text = line.slice(2).trim()
             if (inDecisions) decisions.push(text)
@@ -245,11 +256,15 @@ export async function getConversationSummaries(date: string): Promise<Conversati
           decisions,
           relatedFiles: (frontmatter.sources as string[]) ?? [],
           nextSteps,
-          raw,
+          raw
         })
-      } catch { /* skip unreadable file */ }
+      } catch {
+        /* skip unreadable file */
+      }
     }
-  } catch { /* dir doesn't exist */ }
+  } catch {
+    /* dir doesn't exist */
+  }
 
   return summaries
 }
@@ -278,11 +293,13 @@ async function getRecentChanges(
             path: f.path,
             title: frontmatter.title ?? f.name.replace('.md', ''),
             type: frontmatter.type ?? 'collection',
-            updated,
+            updated
           })
         }
       }
-    } catch { log.warn('[Briefing] week scan failed') }
+    } catch {
+      log.warn('[Briefing] week scan failed')
+    }
   }
 
   return results.sort((a, b) => (a.updated < b.updated ? 1 : -1))
@@ -313,6 +330,6 @@ function makeEmpty(reason: string): BriefingReport {
     entities: [],
     highlights: [],
     health: reason,
-    raw: reason,
+    raw: reason
   }
 }

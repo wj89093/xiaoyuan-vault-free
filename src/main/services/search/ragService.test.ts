@@ -19,12 +19,12 @@ vi.mock('electron-log/main', () => ({
   default: {
     info: vi.fn(),
     warn: vi.fn(),
-    error: vi.fn(),
-  },
+    error: vi.fn()
+  }
 }))
 
 vi.mock('../database/database', () => ({
-  getVaultPath: vi.fn(),
+  getVaultPath: vi.fn()
 }))
 
 describe('RAGResult interface shape', () => {
@@ -34,7 +34,7 @@ describe('RAGResult interface shape', () => {
       path: '_wiki/tech/test.md',
       file: '_wiki/tech/test.md',
       content: 'Test content body',
-      score: 0.85,
+      score: 0.85
     }
     expect(typeof result.title).toBe('string')
     expect(typeof result.path).toBe('string')
@@ -49,7 +49,7 @@ describe('RAGResult interface shape', () => {
     const results = [
       { title: 'A', path: 'a.md', file: 'a.md', content: 'content a', score: 0.9 },
       { title: 'B', path: 'b.md', file: 'b.md', content: 'content b', score: 0.7 },
-      { title: 'C', path: 'c.md', file: 'c.md', content: 'content c', score: 0.5 },
+      { title: 'C', path: 'c.md', file: 'c.md', content: 'content c', score: 0.5 }
     ]
     expect(results).toHaveLength(3)
     expect(results[0].score).toBeGreaterThanOrEqual(results[1].score)
@@ -61,7 +61,7 @@ describe('RAGResult interface shape', () => {
       path: 'nomatch.md',
       file: 'nomatch.md',
       content: '',
-      score: 0,
+      score: 0
     }
     expect(result.score).toBe(0)
   })
@@ -116,7 +116,11 @@ describe('RAG large vault behavior', () => {
     const vaultDir = join(tmpdir(), 'test-rag-noindex-' + Date.now())
     await mkdir(join(vaultDir, '_wiki'), { recursive: true })
     // No index.md, just raw files
-    await writeFile(join(vaultDir, '_wiki', 'page.md'), '---\ntitle: Page\n---\n\nPage content here', 'utf-8')
+    await writeFile(
+      join(vaultDir, '_wiki', 'page.md'),
+      '---\ntitle: Page\n---\n\nPage content here',
+      'utf-8'
+    )
 
     const { getVaultPath } = await import('../database/database')
     ;(getVaultPath as any).mockReturnValue(vaultDir)
@@ -143,7 +147,7 @@ describe('RAGResult ordering', () => {
     const mockResults = [
       { title: 'High', path: 'high.md', file: 'high.md', content: 'x', score: 0.95 },
       { title: 'Med', path: 'med.md', file: 'med.md', content: 'y', score: 0.6 },
-      { title: 'Low', path: 'low.md', file: 'low.md', content: 'z', score: 0.1 },
+      { title: 'Low', path: 'low.md', file: 'low.md', content: 'z', score: 0.1 }
     ]
     // Verify score ordering is descending
     for (let i = 1; i < mockResults.length; i++) {

@@ -34,7 +34,6 @@ function trimContext(messages: ChatMessage[], maxTokens: number): ChatMessage[] 
   return result
 }
 
-
 export interface ChatMessage {
   id?: string
   role: 'user' | 'assistant'
@@ -58,7 +57,7 @@ export function useChat(
   messages: ChatMessage[],
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
   setChatLoading: (v: boolean) => void,
-  options: UseChatOptions,
+  options: UseChatOptions
 ) {
   const { vaultPath } = options
 
@@ -82,57 +81,76 @@ export function useChat(
 
     const offChunk = api.chat.onStreamChunk?.((data: { chunk: string } | undefined) => {
       if (!data) return
-      setMessagesRef.current(prev => prev.map(m => {
-        if (m.id === placeholderIdRef.current) {
-          return { ...m, content: (m.content || '') + data.chunk }
-        }
-        return m
-      }))
+      setMessagesRef.current((prev) =>
+        prev.map((m) => {
+          if (m.id === placeholderIdRef.current) {
+            return { ...m, content: (m.content || '') + data.chunk }
+          }
+          return m
+        })
+      )
     })
 
-    const offTool = api.chat.onToolUpdate?.((data: { name: string; args: unknown; status: string; result?: string } | undefined) => {
-      if (!data) return
-      setMessagesRef.current(prev => prev.map(m => {
-        if (m.id === placeholderIdRef.current) {
-          const tools = m.toolCalls ? [...m.toolCalls] : []
-          const idx = tools.findIndex(t => t.name === data.name)
-          if (idx >= 0) {
-            tools[idx] = { ...tools[idx], status: data.status as 'running' | 'done', result: data.result }
-          } else {
-            tools.push({ name: data.name, status: data.status as 'running' | 'done', result: data.result })
-          }
-          return { ...m, toolCalls: tools }
-        }
-        return m
-      }))
-    })
+    const offTool = api.chat.onToolUpdate?.(
+      (data: { name: string; args: unknown; status: string; result?: string } | undefined) => {
+        if (!data) return
+        setMessagesRef.current((prev) =>
+          prev.map((m) => {
+            if (m.id === placeholderIdRef.current) {
+              const tools = m.toolCalls ? [...m.toolCalls] : []
+              const idx = tools.findIndex((t) => t.name === data.name)
+              if (idx >= 0) {
+                tools[idx] = {
+                  ...tools[idx],
+                  status: data.status as 'running' | 'done',
+                  result: data.result
+                }
+              } else {
+                tools.push({
+                  name: data.name,
+                  status: data.status as 'running' | 'done',
+                  result: data.result
+                })
+              }
+              return { ...m, toolCalls: tools }
+            }
+            return m
+          })
+        )
+      }
+    )
 
     const offDone = api.chat.onStreamDone?.((data: { answer: string } | undefined) => {
       setChatLoadingRef.current(false)
-      setMessagesRef.current(prev => prev.map(m => {
-        if (m.id === placeholderIdRef.current) {
-          return { ...m, content: data?.answer ?? '暂无回复', toolCalls: [] }
-        }
-        return m
-      }))
+      setMessagesRef.current((prev) =>
+        prev.map((m) => {
+          if (m.id === placeholderIdRef.current) {
+            return { ...m, content: data?.answer ?? '暂无回复', toolCalls: [] }
+          }
+          return m
+        })
+      )
     })
 
     const offError = api.chat.onStreamError?.((data: { error: string } | undefined) => {
       setChatLoadingRef.current(false)
       const errorText = data?.error ?? '请求处理出错'
-      const errMsg = errorText.includes('401') || errorText.includes('key')
-        ? 'API Key 未配置或无效'
-        : errorText.includes('timeout') || errorText.includes('ETIMEDOUT')
-        ? '请求超时，请稍后重试'
-        : errorText.includes('ECONNREFUSED') || errorText.includes('network')
-        ? '网络连接失败'
-        : `处理出错：${errorText}`
-      setMessagesRef.current(prev => prev.map(m => {
-        if (m.id === placeholderIdRef.current) {
-          return { ...m, content: errMsg, toolCalls: [] }
-        }
-        return m
-      }))
+      const errMsg =
+        errorText.includes('401') || errorText.includes('key')
+          ? 'API Key 未配置或无效'
+          : errorText.includes('timeout') || errorText.includes('ETIMEDOUT')
+            ? '请求超时，请稍后重试'
+            : errorText.includes('ECONNREFUSED') || errorText.includes('network')
+              ? '网络连接失败'
+              : `处理出错：${errorText}`
+      setMessagesRef.current((prev) =>
+        prev.map((m) => {
+          if (m.id === placeholderIdRef.current) {
+            return { ...m, content: errMsg, toolCalls: [] }
+          }
+          return m
+        })
+      )
     })
 
     // Store placeholderId for cleanup (accessible from handleSendMessage via ref)
@@ -146,69 +164,79 @@ export function useChat(
     }
   }, [])
 
-  const handleSendMessage = useCallback(async (text: string) => {
-    if (!vaultPath) {
-      setMessages(prev => [...prev, {
-        id: `user-${Date.now()}`,
-        role: 'user',
-        content: text,
-      }, {
-        id: `error-${Date.now()}`,
-        role: 'assistant',
-        content: '请先打开知识库',
-      }])
-      return
-    }
-
-    const userMsg = { id: `user-${Date.now()}`, role: 'user' as const, content: text }
-    setMessages(prev => [...prev, userMsg])
-    setChatLoading(true)
-
-    const placeholderId = `stream-${Date.now()}`
-    const placeholder: ChatMessage = {
-      id: placeholderId,
-      role: 'assistant',
-      content: '正在思考...',
-      pagesUsed: [],
-      sourceMode: 'knowledge_base',
-      toolCalls: [],
-    }
-    setMessages(prev => [...prev, placeholder])
-
-    ;((globalThis as any).__chatPlaceholderIdRef as { current: string }).current = placeholderId
-
-    const history = trimContext(messagesRef.current, 6000).map((m: any) => ({
-      role: m.role,
-      content: m.content,
-    }))
-
-    // Build question with selected file context
-    let question = text
-    if (selectedFile && content) {
-      // File sent with no text → auto-trigger ingest skill
-      if (!text.trim()) {
-        question = `帮我整理新导入的文件：${selectedFile}`
-      } else {
-        question = `${text}\n（参考文件: ${selectedFile}）`
+  const handleSendMessage = useCallback(
+    async (text: string) => {
+      if (!vaultPath) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `user-${Date.now()}`,
+            role: 'user',
+            content: text
+          },
+          {
+            id: `error-${Date.now()}`,
+            role: 'assistant',
+            content: '请先打开知识库'
+          }
+        ])
+        return
       }
-    }
 
-    try {
-      // Single-session path: chat:sessionAsk handles RAG + streaming + auto-save
-      await api.chat.sessionAsk(question, history, vaultPath)
-      // Stream events handle UI updates (chat:streamChunk / chat:streamDone / chat:streamError)
-    } catch (err: any) {
-      setChatLoading(false)
-      const msg = err?.message ?? String(err)
-      const fallback = msg.includes('key') || msg.includes('401') ? 'API Key 未配置或无效'
-        : msg.includes('timeout') || msg.includes('ETIMEDOUT') ? '请求超时，请稍后重试'
-        : msg.includes('network') || msg.includes('ECONNREFUSED') ? '网络连接失败'
-        : '抱歉，处理请求时出错。'
-      setMessages(prev => prev.map(m =>
-        m.id === placeholderId ? { ...m, content: fallback, toolCalls: [] } : m
-      ))
-    }
-  }, [content, selectedFile, vaultPath, setChatLoading])
+      const userMsg = { id: `user-${Date.now()}`, role: 'user' as const, content: text }
+      setMessages((prev) => [...prev, userMsg])
+      setChatLoading(true)
+
+      const placeholderId = `stream-${Date.now()}`
+      const placeholder: ChatMessage = {
+        id: placeholderId,
+        role: 'assistant',
+        content: '正在思考...',
+        pagesUsed: [],
+        sourceMode: 'knowledge_base',
+        toolCalls: []
+      }
+      setMessages((prev) => [...prev, placeholder])
+      ;((globalThis as any).__chatPlaceholderIdRef as { current: string }).current = placeholderId
+
+      const history = trimContext(messagesRef.current, 6000).map((m: any) => ({
+        role: m.role,
+        content: m.content
+      }))
+
+      // Build question with selected file context
+      let question = text
+      if (selectedFile && content) {
+        // File sent with no text → auto-trigger ingest skill
+        if (!text.trim()) {
+          question = `帮我整理新导入的文件：${selectedFile}`
+        } else {
+          question = `${text}\n（参考文件: ${selectedFile}）`
+        }
+      }
+
+      try {
+        // Single-session path: chat:sessionAsk handles RAG + streaming + auto-save
+        await api.chat.sessionAsk(question, history, vaultPath)
+        // Stream events handle UI updates (chat:streamChunk / chat:streamDone / chat:streamError)
+      } catch (err: any) {
+        setChatLoading(false)
+        const msg = err?.message ?? String(err)
+        const fallback =
+          msg.includes('key') || msg.includes('401')
+            ? 'API Key 未配置或无效'
+            : msg.includes('timeout') || msg.includes('ETIMEDOUT')
+              ? '请求超时，请稍后重试'
+              : msg.includes('network') || msg.includes('ECONNREFUSED')
+                ? '网络连接失败'
+                : '抱歉，处理请求时出错。'
+        setMessages((prev) =>
+          prev.map((m) => (m.id === placeholderId ? { ...m, content: fallback, toolCalls: [] } : m))
+        )
+      }
+    },
+    [content, selectedFile, vaultPath, setChatLoading]
+  )
 
   return { handleSendMessage }
 }

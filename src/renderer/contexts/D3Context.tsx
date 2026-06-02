@@ -7,7 +7,6 @@
  */
 import { createContext } from 'react'
 
- 
 type D3Module = any
 
 interface D3ContextValue {
@@ -25,7 +24,7 @@ export function loadD3(): Promise<D3Module> {
   if (d3Singleton) return Promise.resolve(d3Singleton)
   if (d3LoadPromise) return d3LoadPromise
 
-  d3LoadPromise = import('d3').then(d3 => {
+  d3LoadPromise = import('d3').then((d3) => {
     d3Singleton = d3
     return d3
   })

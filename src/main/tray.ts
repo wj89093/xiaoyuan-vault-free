@@ -44,7 +44,7 @@ export function createTray(mainWindow: Electron.BrowserWindow): Electron.Tray {
     {
       label: '退出',
       click: () => {
-        (app as any).isQuitting = true
+        ;(app as any).isQuitting = true
         app.quit()
       }
     }
@@ -59,7 +59,6 @@ export function createTray(mainWindow: Electron.BrowserWindow): Electron.Tray {
       mainWindow.focus()
     }
   })
-
 
   tray.on('double-click', () => {
     if (!mainWindow.isDestroyed()) {
@@ -80,7 +79,7 @@ export function showTrayNotification(title: string, body?: string): void {
   const notification = new Notification({
     title: `晓园 Vault：${title}`,
     body: body ?? '',
-    silent: false,
+    silent: false
   })
   notification.on('click', () => {
     if (!tray) return

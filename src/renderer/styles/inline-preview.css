@@ -112,7 +112,8 @@
  * quotes even though each line is an independent DOM element. */
 .cm-line.cm-atomic-blockquote {
   padding-left: 1rem;
-  border-left: 3px solid var(--atomic-editor-accent-soft, color-mix(in srgb, #7c3aed 72%, white 28%));
+  border-left: 3px solid
+    var(--atomic-editor-accent-soft, color-mix(in srgb, #7c3aed 72%, white 28%));
   color: var(--atomic-editor-fg-muted, #888);
 }
 
@@ -193,7 +194,7 @@
  * encoded as a mask so the color tracks the link color via
  * `background-color`. */
 .cm-atomic-link::after {
-  content: "";
+  content: '';
   display: inline-block;
   width: 0.78em;
   height: 0.78em;
@@ -254,7 +255,7 @@
 }
 
 .cm-line.cm-atomic-hr::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   right: 0;
@@ -562,7 +563,9 @@
   font: inherit;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .cm-atomic-search-input:focus {
@@ -596,7 +599,10 @@
   border-radius: 6px;
   color: var(--atomic-editor-fg-muted, #888);
   cursor: pointer;
-  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .cm-atomic-search-btn:hover {
@@ -671,7 +677,7 @@
  * Code-highlight colors swap from Material Palenight to a set tuned for
  * light backgrounds — the palette ideas come from GitHub's light theme
  * and the original Solarized Light. */
-[data-theme="light"] .atomic-cm-editor {
+[data-theme='light'] .atomic-cm-editor {
   --atomic-editor-fg: #24292f;
   --atomic-editor-fg-muted: #57606a;
   --atomic-editor-fg-faint: #8c959f;
@@ -749,7 +755,7 @@
 }
 
 /* Dark mode: atomic-editor defaults are already dark; our [data-theme="dark"] inverts */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --atomic-editor-fg: var(--color-text-primary, #e5e5e5);
   --atomic-editor-fg-muted: var(--color-text-secondary, #a1a1a6);
   --atomic-editor-fg-faint: var(--color-text-tertiary, #888);
@@ -782,11 +788,12 @@
 }
 
 /* ── Scroll stability: no rebuild on scroll ─────────────────────────────── */
-.cm-line { transition: none; }
+.cm-line {
+  transition: none;
+}
 
 /* ── Heading / block / list styles (cm-atomic-* from atomic CSS) ────────── */
 /* These are set by inline-preview.ts LINE_CLASS_BY_BLOCK map */
-
 
 /* ── Math rendering (17770block17770 / $) ─────────────────────────── */
 .cm-math-inline {
@@ -801,7 +808,7 @@
   text-align: center;
   padding: 4px 0;
   border-radius: 4px;
-  background: var(--color-surface-2, rgba(255,255,255,0.03));
+  background: var(--color-surface-2, rgba(255, 255, 255, 0.03));
   margin: 2px 0;
 }
 .cm-math-block .katex {
@@ -810,7 +817,6 @@
 .katex-error {
   color: var(--color-red, #ef4444) !important;
 }
-
 
 /* ── Embed (![[note]] → collapsed block) ─────────────────────────── */
 .cm-embed-widget {
@@ -839,7 +845,9 @@
   font-weight: 500;
   transition: background var(--transition-fast);
 }
-.cm-atomic-tag:hover { background: rgba(124, 58, 237, 0.28); }
+.cm-atomic-tag:hover {
+  background: rgba(124, 58, 237, 0.28);
+}
 
 /* ── Embed (![[note]] → collapsed block) ─────────────────────────── */
 .cm-atomic-embed {
@@ -853,7 +861,9 @@
   font-size: var(--atomic-editor-ui-font-md);
   color: var(--atomic-editor-fg-muted);
   cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
 }
 .cm-atomic-embed:hover {
   border-color: var(--atomic-editor-accent);
@@ -886,13 +896,34 @@
 }
 
 /* Color variants */
-.cm-line.cm-atomic-callout-note   { border-left-color: #3b82f6; background: rgba(59,130,246,0.06); }
-.cm-line.cm-atomic-callout-tip    { border-left-color: #3db872; background: rgba(61,184,114,0.06); }
-.cm-line.cm-atomic-callout-warning{ border-left-color: #f59e0b; background: rgba(245,158,11,0.06); }
-.cm-line.cm-atomic-callout-danger { border-left-color: #ef4444; background: rgba(239,68,68,0.06); }
-.cm-line.cm-atomic-callout-info   { border-left-color: #6366f1; background: rgba(99,102,241,0.06); }
-.cm-line.cm-atomic-callout-example{ border-left-color: #8b5cf6; background: rgba(139,92,246,0.06); }
-.cm-line.cm-atomic-callout-success{ border-left-color: #22c55e; background: rgba(34,197,94,0.06); }
+.cm-line.cm-atomic-callout-note {
+  border-left-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.06);
+}
+.cm-line.cm-atomic-callout-tip {
+  border-left-color: #3db872;
+  background: rgba(61, 184, 114, 0.06);
+}
+.cm-line.cm-atomic-callout-warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+}
+.cm-line.cm-atomic-callout-danger {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+.cm-line.cm-atomic-callout-info {
+  border-left-color: #6366f1;
+  background: rgba(99, 102, 241, 0.06);
+}
+.cm-line.cm-atomic-callout-example {
+  border-left-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.06);
+}
+.cm-line.cm-atomic-callout-success {
+  border-left-color: #22c55e;
+  background: rgba(34, 197, 94, 0.06);
+}
 
 /* ── Frontmatter form card ──────────────────────────────────────────── */
 
@@ -939,7 +970,9 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.cm-fm-header:hover { opacity: 0.7; }
+.cm-fm-header:hover {
+  opacity: 0.7;
+}
 
 .cm-fm-label {
   font-size: 11px;
@@ -985,9 +1018,16 @@
   gap: 10px;
   padding: 4px 0;
 }
-.cm-fm-field-row + .cm-fm-field-row { border-top: 1px solid rgba(255,255,255,0.03); }
+.cm-fm-field-row + .cm-fm-field-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
 
-.cm-fm-field-new { background: rgba(61,184,114,0.04); border-radius: 4px; padding: 4px 6px; margin: 4px -6px; }
+.cm-fm-field-new {
+  background: rgba(61, 184, 114, 0.04);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin: 4px -6px;
+}
 
 .cm-fm-key-area {
   min-width: 72px;
@@ -1034,12 +1074,16 @@
   font-size: 13px;
   padding: 4px 8px;
   outline: none;
-  transition: border-color 120ms ease, background 120ms ease;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
 }
 .cm-fm-text-input:hover,
 .cm-fm-number-input:hover,
 .cm-fm-date-input:hover,
-.cm-fm-key-input:hover { border-color: var(--color-border, #3a3a3c); }
+.cm-fm-key-input:hover {
+  border-color: var(--color-border, #3a3a3c);
+}
 .cm-fm-text-input:focus,
 .cm-fm-number-input:focus,
 .cm-fm-date-input:focus,
@@ -1074,14 +1118,18 @@
   cursor: pointer;
   transition: border-color 120ms ease;
 }
-.cm-fm-select:hover { border-color: var(--color-border, #3a3a3c); }
+.cm-fm-select:hover {
+  border-color: var(--color-border, #3a3a3c);
+}
 .cm-fm-select:focus {
   border-color: var(--color-accent, #3db872);
   background-color: var(--color-surface-active, #333335);
 }
 
 /* Checkbox */
-.cm-fm-bool-area { padding-top: 5px; }
+.cm-fm-bool-area {
+  padding-top: 5px;
+}
 .cm-fm-check-wrap {
   display: inline-flex;
   align-items: center;
@@ -1147,9 +1195,13 @@
   line-height: 1.7;
   transition: background 100ms ease;
 }
-.cm-fm-pill:hover { background: var(--color-accent-25, rgba(61, 184, 114, 0.32)); }
+.cm-fm-pill:hover {
+  background: var(--color-accent-25, rgba(61, 184, 114, 0.32));
+}
 
-.cm-fm-pill-text { white-space: nowrap; }
+.cm-fm-pill-text {
+  white-space: nowrap;
+}
 
 .cm-fm-pill-x {
   cursor: pointer;
@@ -1159,7 +1211,10 @@
   padding: 0 2px;
   transition: opacity 100ms ease;
 }
-.cm-fm-pill-x:hover { opacity: 1; color: #f87171; }
+.cm-fm-pill-x:hover {
+  opacity: 1;
+  color: #f87171;
+}
 
 .cm-fm-pill-input {
   flex: 1;
@@ -1172,7 +1227,10 @@
   padding: 2px 4px;
   outline: none;
 }
-.cm-fm-pill-input::placeholder { color: var(--color-text-tertiary, #7c7c7e); opacity: 0.5; }
+.cm-fm-pill-input::placeholder {
+  color: var(--color-text-tertiary, #7c7c7e);
+  opacity: 0.5;
+}
 
 /* ── Footer ── */
 .cm-fm-footer {
@@ -1210,11 +1268,18 @@
   border-radius: 3px;
   line-height: 1;
   opacity: 0;
-  transition: opacity 100ms ease, color 100ms ease;
+  transition:
+    opacity 100ms ease,
+    color 100ms ease;
   align-self: center;
 }
-.cm-fm-field-row:hover .cm-fm-del-btn { opacity: 0.5; }
-.cm-fm-del-btn:hover { opacity: 1 !important; color: #f87171; }
+.cm-fm-field-row:hover .cm-fm-del-btn {
+  opacity: 0.5;
+}
+.cm-fm-del-btn:hover {
+  opacity: 1 !important;
+  color: #f87171;
+}
 
 /* Title field row */
 .cm-fm-field-title {
@@ -1222,7 +1287,9 @@
   align-items: center;
   gap: 10px;
 }
-.cm-fm-field-title .cm-fm-field-label { min-width: 72px; }
+.cm-fm-field-title .cm-fm-field-label {
+  min-width: 72px;
+}
 
 /* Complex field (read-only, nested object arrays like relationships) */
 .cm-fm-field-complex {

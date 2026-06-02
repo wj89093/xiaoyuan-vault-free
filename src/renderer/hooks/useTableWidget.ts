@@ -7,14 +7,8 @@
  * No globalThis needed — atomic-editor pattern.
  */
 import { syntaxTree } from '@codemirror/language'
-import {
-  type EditorState, StateField, type Range,
-  type Extension, Facet,
-} from '@codemirror/state'
-import {
-  EditorView, Decoration, WidgetType,
-  type DecorationSet,
-} from '@codemirror/view'
+import { type EditorState, StateField, type Range, type Extension, Facet } from '@codemirror/state'
+import { EditorView, Decoration, WidgetType, type DecorationSet } from '@codemirror/view'
 import { treeGrowthEffect } from './useInlinePreview'
 
 // ── Table Model ─────────────────────────────────────────────────────────────
@@ -83,13 +77,22 @@ function parseTableModel(state: EditorState, tableNode: any): TableModel | null 
 function parseTableFromRaw(raw: string): TableModel | null {
   const lines = raw.trim().split('\n')
   if (lines.length < 2) return null
-  const headerCells = lines[0].split('|').map(c => c.trim()).filter(Boolean)
+  const headerCells = lines[0]
+    .split('|')
+    .map((c) => c.trim())
+    .filter(Boolean)
   const sep = lines[1].replace(/\s/g, '')
   if (!/^\|?(:?-{3,}:?\|?)+$/.test(sep)) return null // not a separator line
   if (!headerCells.length) return null
-  const rows = lines.slice(2)
-    .map(line => line.split('|').map(c => c.trim()).filter(Boolean))
-    .filter(r => r.length > 0)
+  const rows = lines
+    .slice(2)
+    .map((line) =>
+      line
+        .split('|')
+        .map((c) => c.trim())
+        .filter(Boolean)
+    )
+    .filter((r) => r.length > 0)
   // Pad rows to match header column count
   for (const row of rows) {
     while (row.length < headerCells.length) row.push('')
@@ -112,7 +115,12 @@ function serializeTable(model: TableModel): string {
 
 // ── Tab Navigation ──────────────────────────────────────────────────────────
 
-function getCellAtIndex(cells: HTMLElement[], rowIdx: number, colIdx: number, colCount: number): HTMLElement | null {
+function getCellAtIndex(
+  cells: HTMLElement[],
+  rowIdx: number,
+  colIdx: number,
+  colCount: number
+): HTMLElement | null {
   const idx = rowIdx * colCount + colIdx
   return cells[idx] ?? null
 }
@@ -156,10 +164,16 @@ function moveCellFocus(view: EditorView, cell: HTMLElement, dir: -1 | 1): void {
   } else if (nextCol >= totalCols) {
     nextCol = 0
     nextRow = row + 1
-    if (nextRow >= totalRows) { appendRow(view, wrap); return }
+    if (nextRow >= totalRows) {
+      appendRow(view, wrap)
+      return
+    }
   }
   const nextCell = getCellAtIndex(cells, nextRow, nextCol, totalCols)
-  if (nextCell) { nextCell.focus(); placeCaretAtEnd(nextCell) }
+  if (nextCell) {
+    nextCell.focus()
+    placeCaretAtEnd(nextCell)
+  }
 }
 
 function appendRow(view: EditorView, wrap: HTMLElement): void {
@@ -176,14 +190,22 @@ function appendRow(view: EditorView, wrap: HTMLElement): void {
       let target: HTMLElement | null = null
       for (const el of tables) {
         try {
-          if (view.posAtDOM(el) === from) { target = el; break }
-        } catch { /* posAtDOM throws on detached */ }
+          if (view.posAtDOM(el) === from) {
+            target = el
+            break
+          }
+        } catch {
+          /* posAtDOM throws on detached */
+        }
       }
       if (!target) return
       const rows = target.querySelectorAll<HTMLElement>('tbody tr')
       const newRow = rows[rows.length - 1]
       const firstCell = newRow?.querySelector<HTMLElement>('td')
-      if (firstCell) { firstCell.focus(); placeCaretAtEnd(firstCell) }
+      if (firstCell) {
+        firstCell.focus()
+        placeCaretAtEnd(firstCell)
+      }
     })
   })
 }
@@ -198,13 +220,17 @@ function findTableRange(view: EditorView, wrap: HTMLElement): { from: number; to
     }
     if (node?.name !== 'Table') return null
     return { from: node?.from, to: node?.to }
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 function readModelFromDom(wrap: HTMLElement): TableModel {
-  const header = Array.from(wrap.querySelectorAll<HTMLElement>('thead th')).map(el => el.textContent ?? '')
-  const rows = Array.from(wrap.querySelectorAll<HTMLElement>('tbody tr')).map(
-    tr => Array.from(tr.querySelectorAll<HTMLElement>('td')).map(td => td.textContent ?? '')
+  const header = Array.from(wrap.querySelectorAll<HTMLElement>('thead th')).map(
+    (el) => el.textContent ?? ''
+  )
+  const rows = Array.from(wrap.querySelectorAll<HTMLElement>('tbody tr')).map((tr) =>
+    Array.from(tr.querySelectorAll<HTMLElement>('td')).map((td) => td.textContent ?? '')
   )
   return { header, rows }
 }
@@ -231,7 +257,7 @@ function dispatchTableModel(
   wrap: HTMLElement,
   from: number,
   to: number,
-  nextModel: TableModel,
+  nextModel: TableModel
 ): void {
   const next = serializeTable(nextModel)
   view.dispatch({ changes: { from, to, insert: next } })
@@ -243,7 +269,7 @@ function openCellMenu(
   tableFrom: number,
   tableTo: number,
   x: number,
-  y: number,
+  y: number
 ): void {
   const existing = document.querySelector('.cm-atomic-table-menu')
   if (existing) existing.remove()
@@ -267,17 +293,25 @@ function openCellMenu(
       label: '在上方插入行',
       action: () => {
         const m = readModelFromDom(wrap)
-        m.rows.splice(row, 0, m.header.map(() => ''))
+        m.rows.splice(
+          row,
+          0,
+          m.header.map(() => '')
+        )
         dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-      },
+      }
     })
     items.push({
       label: '在下方插入行',
       action: () => {
         const m = readModelFromDom(wrap)
-        m.rows.splice(row + 1, 0, m.header.map(() => ''))
+        m.rows.splice(
+          row + 1,
+          0,
+          m.header.map(() => '')
+        )
         dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-      },
+      }
     })
     items.push({
       label: '删除行',
@@ -285,7 +319,7 @@ function openCellMenu(
         const m = readModelFromDom(wrap)
         if (row >= 0 && row < m.rows.length) m.rows.splice(row, 1)
         dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-      },
+      }
     })
     items.push('separator')
   }
@@ -297,7 +331,7 @@ function openCellMenu(
       m.header.splice(col, 0, '')
       for (const r of m.rows) r.splice(col, 0, '')
       dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-    },
+    }
   })
   items.push({
     label: '在右侧插入列',
@@ -306,7 +340,7 @@ function openCellMenu(
       m.header.splice(col + 1, 0, '')
       for (const r of m.rows) r.splice(col + 1, 0, '')
       dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-    },
+    }
   })
   items.push({
     label: '删除列',
@@ -316,7 +350,7 @@ function openCellMenu(
       m.header.splice(col, 1)
       for (const r of m.rows) r.splice(col, 1)
       dispatchTableModel(view, wrap, tableFrom, tableTo, m)
-    },
+    }
   })
 
   const dismiss = () => {
@@ -362,8 +396,10 @@ function openCellMenu(
 class TableWidget extends WidgetType {
   constructor(
     private _from: number,
-    private _to: number,
-  ) { super() }
+    private _to: number
+  ) {
+    super()
+  }
 
   toDOM(view: EditorView): HTMLElement {
     const wrap = document.createElement('div')
@@ -429,7 +465,8 @@ class TableWidget extends WidgetType {
   }
 
   private _attachCellHandlers(cell: HTMLElement, view: EditorView): void {
-    const tableFrom = this._from, tableTo = this._to
+    const tableFrom = this._from,
+      tableTo = this._to
 
     const inputHandler = () => {
       const model = readModelFromDom(cell.closest<HTMLElement>('.cm-atomic-table')!)
@@ -459,32 +496,42 @@ class TableWidget extends WidgetType {
     return false
   }
 
-  updateDOM(): boolean { return false }
+  updateDOM(): boolean {
+    return false
+  }
 }
 
 // ── StateField ──────────────────────────────────────────────────────────────
 
 const tableDecorationField = StateField.define<DecorationSet>({
-  create(state) { return buildTableDecorations(state) },
+  create(state) {
+    return buildTableDecorations(state)
+  },
   update(deco, tr) {
     if (tr.docChanged || tr.selectionSet) return buildTableDecorations(tr.state)
-    for (const e of tr.effects) { if (e.is(treeGrowthEffect)) return buildTableDecorations(tr.state) }
+    for (const e of tr.effects) {
+      if (e.is(treeGrowthEffect)) return buildTableDecorations(tr.state)
+    }
     return deco.map(tr.changes)
   },
-  provide: f => EditorView.decorations.from(f),
+  provide: (f) => EditorView.decorations.from(f)
 })
 
 function buildTableDecorations(state: EditorState): DecorationSet {
   const ranges: Range<Decoration>[] = []
   syntaxTree(state).iterate({
-    from: 0, to: state.doc.length,
+    from: 0,
+    to: state.doc.length,
     enter(node) {
       if (node.name !== 'Table') return
       const widget = new TableWidget(node.from, node.to)
       ranges.push(Decoration.replace({ widget, block: true }).range(node.from, node.to))
-    },
+    }
   })
-  return Decoration.set(ranges.sort((a, b) => a.from - b.from), true)
+  return Decoration.set(
+    ranges.sort((a, b) => a.from - b.from),
+    true
+  )
 }
 
 // ── Extension ──────────────────────────────────────────────────────────────
@@ -494,11 +541,8 @@ function buildTableDecorations(state: EditorState): DecorationSet {
  * current link-click callback without threading config through constructors.
  * Based on atomic-editor's tableLinkClickFacet.
  */
-export const tableLinkClickFacet = Facet.define<
-  (url: string) => void,
-  (url: string) => void
->({
-  combine: (values) => values[0] ?? defaultLinkOpener,
+export const tableLinkClickFacet = Facet.define<(url: string) => void, (url: string) => void>({
+  combine: (values) => values[0] ?? defaultLinkOpener
 })
 
 function defaultLinkOpener(url: string): void {

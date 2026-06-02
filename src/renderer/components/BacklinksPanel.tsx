@@ -1,5 +1,3 @@
- 
-
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowLeft, ExternalLink, X } from 'lucide-react'
 
@@ -14,7 +12,11 @@ interface BacklinksPanelProps {
   onClose: () => void
 }
 
-export function BacklinksPanel({ selectedFile, onNavigate, onClose }: BacklinksPanelProps): JSX.Element {
+export function BacklinksPanel({
+  selectedFile,
+  onNavigate,
+  onClose
+}: BacklinksPanelProps): JSX.Element {
   const [backlinks, setBacklinks] = useState<BacklinkFile[]>([])
   const [loading, setLoading] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -46,7 +48,9 @@ export function BacklinksPanel({ selectedFile, onNavigate, onClose }: BacklinksP
   }, [selectedFile, currentName])
 
   useEffect(() => {
-    const id = requestAnimationFrame(() => { void loadBacklinks() })
+    const id = requestAnimationFrame(() => {
+      void loadBacklinks()
+    })
     return () => cancelAnimationFrame(id)
   }, [loadBacklinks])
 
@@ -61,10 +65,10 @@ export function BacklinksPanel({ selectedFile, onNavigate, onClose }: BacklinksP
     const current = activeIndexRef.current
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex(i => Math.min(i + 1, backlinks.length - 1))
+      setActiveIndex((i) => Math.min(i + 1, backlinks.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setActiveIndex(i => Math.max(i - 1, 0))
+      setActiveIndex((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Enter' && current >= 0) {
       e.preventDefault()
       onNavigate(backlinks[current].path)
@@ -93,7 +97,9 @@ export function BacklinksPanel({ selectedFile, onNavigate, onClose }: BacklinksP
 
       <div className="backlinks-content">
         {loading ? (
-          <div className="backlinks-empty" role="status" aria-live="polite">加载中...</div>
+          <div className="backlinks-empty" role="status" aria-live="polite">
+            加载中...
+          </div>
         ) : backlinks.length === 0 ? (
           <div className="backlinks-empty" role="status" aria-live="polite">
             无反向链接

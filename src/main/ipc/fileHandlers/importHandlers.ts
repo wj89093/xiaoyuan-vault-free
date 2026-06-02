@@ -24,7 +24,9 @@ export function registerImportHandlers(): void {
       try {
         await copyFile(srcPath, dest)
         results.push({ name: fileName, path: dest, status: 'ok' })
-        if (ext === '.md') { markConverted(dest) }
+        if (ext === '.md') {
+          markConverted(dest)
+        }
       } catch (e) {
         results.push({ name: fileName, path: dest, status: 'error', error: String(e) })
       }
@@ -36,7 +38,8 @@ export function registerImportHandlers(): void {
     const { writeFile } = await import('fs/promises')
     const { extname } = await import('path')
     const { isConverted, markConverted } = await import('./utils')
-    if (await isConverted(rawPath)) return { success: true, mdPath: rawPath.replace(extname(rawPath), '.md') }
+    if (await isConverted(rawPath))
+      return { success: true, mdPath: rawPath.replace(extname(rawPath), '.md') }
     const markdown: string = await convertWithJS(rawPath)
     if (markdown) {
       const mdPath = rawPath.replace(extname(rawPath), '.md')
@@ -55,11 +58,18 @@ export function registerImportHandlers(): void {
     const rawDir = join(vaultPath, '_raw')
     if (!existsSync(rawDir)) return []
     const months = await readdir(rawDir)
-    const result: Array<{ month: string; files: Array<{ name: string; path: string; converted: boolean }> }> = []
+    const result: Array<{
+      month: string
+      files: Array<{ name: string; path: string; converted: boolean }>
+    }> = []
     const inboxPath = join(rawDir, 'inbox')
     if (existsSync(inboxPath)) {
       const inboxFiles = await readdir(inboxPath)
-      const files = inboxFiles.map(name => ({ name, path: join(inboxPath, name), converted: false }))
+      const files = inboxFiles.map((name) => ({
+        name,
+        path: join(inboxPath, name),
+        converted: false
+      }))
       result.unshift({ month: 'inbox', files })
     }
     for (const month of months) {
@@ -67,9 +77,13 @@ export function registerImportHandlers(): void {
       const monthPath = join(rawDir, month)
       if (!(await stat(monthPath)).isDirectory()) continue
       const files = await readdir(monthPath)
-      const fileList = files.filter(f => !f.startsWith('.')).map(name => ({
-        name, path: join(monthPath, name), converted: isConverted(join(monthPath, name)),
-      }))
+      const fileList = files
+        .filter((f) => !f.startsWith('.'))
+        .map((name) => ({
+          name,
+          path: join(monthPath, name),
+          converted: isConverted(join(monthPath, name))
+        }))
       result.push({ month, files: fileList })
     }
     return result
@@ -79,7 +93,9 @@ export function registerImportHandlers(): void {
     const { mkdir, writeFile } = await import('fs/promises')
     const { join } = await import('path')
     const vaultPath = getVaultPath()
-    if (!vaultPath) { throw new Error('No vault open') }
+    if (!vaultPath) {
+      throw new Error('No vault open')
+    }
     const { getTrashDir } = await import('./utils')
     const trashDir = getTrashDir(vaultPath)
     await mkdir(trashDir, { recursive: true })

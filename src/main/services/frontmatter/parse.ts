@@ -21,7 +21,12 @@ export function parseFrontmatter(content: string): { frontmatter: Frontmatter; c
     if (inArray) {
       const trimmed = line.trim()
       if (trimmed.startsWith('- ')) {
-        currentArray.push(trimmed.slice(2).trim().replace(/^['"]|['"]$/g, ''))
+        currentArray.push(
+          trimmed
+            .slice(2)
+            .trim()
+            .replace(/^['"]|['"]$/g, '')
+        )
         continue
       } else {
         setValue(fm, currentKey, currentArray)
@@ -53,7 +58,11 @@ export function parseFrontmatter(content: string): { frontmatter: Frontmatter; c
     else if (/^\d+\.\d+$/.test(value)) setValue(fm, currentKey, parseFloat(value))
     else if (value.startsWith('[') && value.endsWith(']')) {
       // Inline array: [tag1, tag2, tag3]
-      const arr = value.slice(1, -1).split(',').map((s: string) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean)
+      const arr = value
+        .slice(1, -1)
+        .split(',')
+        .map((s: string) => s.trim().replace(/^['"]|['"]$/g, ''))
+        .filter(Boolean)
       setValue(fm, currentKey, arr)
     } else {
       setValue(fm, currentKey, value)

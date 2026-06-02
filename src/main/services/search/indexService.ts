@@ -24,10 +24,15 @@ export async function rebuildIndexFile(vaultPath: string, changedFiles?: string[
     byFolder[folder].push(relPath)
   }
 
-  const lines: string[] = ['# 页面索引', '', `> 自动生成 (${new Date().toISOString().slice(0, 10)})`, '']
+  const lines: string[] = [
+    '# 页面索引',
+    '',
+    `> 自动生成 (${new Date().toISOString().slice(0, 10)})`,
+    ''
+  ]
   for (const [folder, entries] of Object.entries(byFolder).sort()) {
     lines.push(`## ${folder === '.' ? '根目录' : folder}`, '')
-    for (const e of entries.filter(f => f.endsWith('.md'))) {
+    for (const e of entries.filter((f) => f.endsWith('.md'))) {
       const name = e.split('/').pop()?.replace('.md', '') ?? e
       lines.push(`- [[${name}]]`)
     }
@@ -42,8 +47,16 @@ export async function rebuildIndexFile(vaultPath: string, changedFiles?: string[
   }
 
   if (changedFiles?.length) {
-    const diff = ['', `### ${new Date().toISOString().slice(0, 19)}`, ...changedFiles.map(f => `  - ${f}`)].join('\n')
-    await writeFile(logPath, (await readFile(logPath, 'utf-8').catch(() => '')) + '\n' + diff, 'utf-8')
+    const diff = [
+      '',
+      `### ${new Date().toISOString().slice(0, 19)}`,
+      ...changedFiles.map((f) => `  - ${f}`)
+    ].join('\n')
+    await writeFile(
+      logPath,
+      (await readFile(logPath, 'utf-8').catch(() => '')) + '\n' + diff,
+      'utf-8'
+    )
   }
 }
 

@@ -9,7 +9,6 @@ import log from 'electron-log/main'
 
 // ============ Types ============
 
-
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
 export const SESSION_TITLE_MAX_LEN = 50
@@ -32,7 +31,7 @@ export interface ChatSession {
 
 interface RAGResult {
   path: string
-  file: string  // alias for path
+  file: string // alias for path
   title: string
   content: string
   score: number
@@ -43,10 +42,14 @@ function _isValidSession(obj: unknown): obj is ChatSession {
   return (
     typeof obj === 'object' &&
     obj !== null &&
-    'id' in obj && typeof (obj as Record<string, unknown>).id === 'string' &&
-    'title' in obj && typeof (obj as Record<string, unknown>).title === 'string' &&
-    'created_at' in obj && typeof (obj as Record<string, unknown>).created_at === 'number' &&
-    'updated_at' in obj && typeof (obj as Record<string, unknown>).updated_at === 'number'
+    'id' in obj &&
+    typeof (obj as Record<string, unknown>).id === 'string' &&
+    'title' in obj &&
+    typeof (obj as Record<string, unknown>).title === 'string' &&
+    'created_at' in obj &&
+    typeof (obj as Record<string, unknown>).created_at === 'number' &&
+    'updated_at' in obj &&
+    typeof (obj as Record<string, unknown>).updated_at === 'number'
   )
 }
 
@@ -61,20 +64,22 @@ function _isValidMessage(obj: unknown): obj is ChatMessage {
   )
 }
 
-
-
 // ── Dynamic system prompt loader ─────────────────────────────────
 
 /**
  * Load Agent system prompt from vault or template.
- * 
+ *
  * Precedence:
  * 1. vault/system.md (user override)
  * 2. built-in template (XML-structured)
  *
  * Fallback: legacy LLM-wiki.md + Agents.md (existing vaults)
  */
-const _cache: { vaultPath: string; content: string; ts: number } = { vaultPath: '', content: '', ts: 0 }
+const _cache: { vaultPath: string; content: string; ts: number } = {
+  vaultPath: '',
+  content: '',
+  ts: 0
+}
 const _CACHE_TTL_MS = 30_000
 
 export async function loadVaultSystemPrompt(vaultPath: string): Promise<string> {
@@ -87,7 +92,11 @@ export async function loadVaultSystemPrompt(vaultPath: string): Promise<string> 
   // 1. Vault override: system.md
   const vaultSystemPath = join(vaultPath, 'system.md')
   if (existsSync(vaultSystemPath)) {
-    try { parts.push(await readFile(vaultSystemPath, 'utf-8')) } catch { /* skip */ }
+    try {
+      parts.push(await readFile(vaultSystemPath, 'utf-8'))
+    } catch {
+      /* skip */
+    }
   } else {
     // 2. Built-in template: system.md (XML-structured, preferred)
     const tmpl = resolveTemplatePath('system.md')
@@ -98,7 +107,11 @@ export async function loadVaultSystemPrompt(vaultPath: string): Promise<string> 
   if (parts.length === 0) {
     const vaultWikiPath = join(vaultPath, 'LLM-wiki.md')
     if (existsSync(vaultWikiPath)) {
-      try { parts.push(await readFile(vaultWikiPath, 'utf-8')) } catch { /* skip */ }
+      try {
+        parts.push(await readFile(vaultWikiPath, 'utf-8'))
+      } catch {
+        /* skip */
+      }
     } else {
       const tmpl = resolveTemplatePath('LLM-wiki.md')
       if (tmpl) parts.push(tmpl)
@@ -109,7 +122,11 @@ export async function loadVaultSystemPrompt(vaultPath: string): Promise<string> 
   if (parts.length === 0) {
     const vaultAgentsPath = join(vaultPath, 'Agents.md')
     if (existsSync(vaultAgentsPath)) {
-      try { parts.push(await readFile(vaultAgentsPath, 'utf-8')) } catch { /* skip */ }
+      try {
+        parts.push(await readFile(vaultAgentsPath, 'utf-8'))
+      } catch {
+        /* skip */
+      }
     } else {
       const tmpl = resolveTemplatePath('Agents.md')
       if (tmpl) parts.push(tmpl)
@@ -138,7 +155,8 @@ export async function matchSkills(vaultPath: string, question: string): Promise<
   const tmplDir = resolveSkillsDir()
   if (tmplDir) await loadSkillsFromDir(tmplDir, question, skills, /* trusted */ true)
   const vaultSkillsDir = join(vaultPath, '.xiaoyuan', 'skills')
-  if (existsSync(vaultSkillsDir)) await loadSkillsFromDir(vaultSkillsDir, question, skills, /* trusted */ false)
+  if (existsSync(vaultSkillsDir))
+    await loadSkillsFromDir(vaultSkillsDir, question, skills, /* trusted */ false)
   return skills.join('\n\n')
 }
 
@@ -150,9 +168,18 @@ function resolveSkillsDir(): string | null {
   return null
 }
 
-async function loadSkillsFromDir(dir: string, question: string, out: string[], trusted: boolean): Promise<void> {
+async function loadSkillsFromDir(
+  dir: string,
+  question: string,
+  out: string[],
+  trusted: boolean
+): Promise<void> {
   let files: string[]
-  try { files = await readdir(dir) } catch { return }
+  try {
+    files = await readdir(dir)
+  } catch {
+    return
+  }
   const q = question.toLowerCase()
   for (const file of files) {
     if (!file.endsWith('.md')) continue
@@ -164,11 +191,13 @@ async function loadSkillsFromDir(dir: string, question: string, out: string[], t
         out.push(trusted ? raw : sanitizeSkillContent(raw, meta.name))
         continue
       }
-      if (meta.noTriggers.some(t => q.includes(t.toLowerCase()))) continue
-      if (meta.triggers.some(t => q.includes(t.toLowerCase()))) {
+      if (meta.noTriggers.some((t) => q.includes(t.toLowerCase()))) continue
+      if (meta.triggers.some((t) => q.includes(t.toLowerCase()))) {
         out.push(trusted ? raw : sanitizeSkillContent(raw, meta.name))
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 }
 
@@ -181,10 +210,13 @@ function sanitizeSkillContent(raw: string, name: string): string {
   // Strip everything else (instructions, role-play, prompt injection attempts)
   const afterFm = fmMatch ? raw.slice(fmMatch[0].length) : raw
   const dangerous = [
-    /you are/gi, /ignore previous/gi, /disregard/gi,
-    /system prompt/gi, /override/gi, ///g,
+    /you are/gi,
+    /ignore previous/gi,
+    /disregard/gi,
+    /system prompt/gi,
+    /override/gi ///g,
   ]
-  const isDangerous = dangerous.some(p => p.test(afterFm))
+  const isDangerous = dangerous.some((p) => p.test(afterFm))
   if (isDangerous) {
     log.warn('[matchSkills] blocked dangerous skill content:', name)
     // Return frontmatter only with safety notice
@@ -206,10 +238,25 @@ function parseSkillFrontmatter(raw: string): SkillMeta | null {
   let inTriggers = false
   let inNoTriggers = false
   for (const line of fm.split('\n')) {
-    if (line.trim() === 'triggers:') { inTriggers = true; inNoTriggers = false; continue }
-    if (line.trim() === 'noTriggers:') { inNoTriggers = true; inTriggers = false; continue }
-    if (line.trim() === 'autoTrigger: true') { autoTrigger = true; continue }
-    if (!line.startsWith('  - ')) { inTriggers = false; inNoTriggers = false; continue }
+    if (line.trim() === 'triggers:') {
+      inTriggers = true
+      inNoTriggers = false
+      continue
+    }
+    if (line.trim() === 'noTriggers:') {
+      inNoTriggers = true
+      inTriggers = false
+      continue
+    }
+    if (line.trim() === 'autoTrigger: true') {
+      autoTrigger = true
+      continue
+    }
+    if (!line.startsWith('  - ')) {
+      inTriggers = false
+      inNoTriggers = false
+      continue
+    }
     const val = line.slice(4).trim()
     if (inTriggers) triggers.push(val)
     else if (inNoTriggers) noTriggers.push(val)
@@ -226,7 +273,7 @@ function resolveTemplatePath(filename: string): string | null {
   return null
 }
 
-const MAX_CONTEXT_LENGTH = 200000  // DeepSeek 1M tokens, 20% budget ≈ 200K chars
+const MAX_CONTEXT_LENGTH = 200000 // DeepSeek 1M tokens, 20% budget ≈ 200K chars
 const _SESSIONS_FILE = 'chat-sessions.json'
 
 /**
@@ -234,10 +281,7 @@ const _SESSIONS_FILE = 'chat-sessions.json'
  * Priority: section titles first → section content by budget.
  * Ensures headers survive even if content overflows.
  */
-export async function buildIndexContext(
-  vaultPath: string,
-  maxChars = 3000
-): Promise<string> {
+export async function buildIndexContext(vaultPath: string, maxChars = 3000): Promise<string> {
   try {
     const indexPath = join(vaultPath, 'index.md')
     if (!existsSync(indexPath)) return ''
@@ -329,10 +373,10 @@ export async function askQuestion(
     const { answer, confidence } = await generateAnswer(question, results, contextMessages)
 
     // Format sources
-    const sources = results.slice(0, 3).map(r => ({
+    const sources = results.slice(0, 3).map((r) => ({
       file: r.path,
       title: r.title,
-      snippet: r.content,
+      snippet: r.content
     }))
 
     return { answer, sources, confidence }
@@ -341,7 +385,7 @@ export async function askQuestion(
     return {
       answer: `抱歉，搜索时出现错误：${(err as any).message}`,
       sources: [],
-      confidence: 0,
+      confidence: 0
     }
   }
 }
@@ -361,7 +405,7 @@ export async function askQuestionStream(
     log.info(`[RAG] stream found ${results.length} pages for: ${question.slice(0, 50)}`)
     return {
       results,
-      confidence: Math.min(0.3 + results.length * 0.15, 1.0),
+      confidence: Math.min(0.3 + results.length * 0.15, 1.0)
     }
   } catch (err) {
     log.error('[RAG] stream retrieve failed:', (err as any).message)
@@ -381,9 +425,15 @@ export async function buildAnswerPrompt(
   let totalChars = 0
 
   for (const r of results) {
-      const path = r.file || r.path
-      if (!path) { contextParts.push("[来源: " + (r.title||"") + "]\n(r.file missing)"); i += 0; continue }
-      const fullContent = existsSync(path) ? (await readFile(path, "utf-8")).slice(0, 30000) : r.snippet ?? ""
+    const path = r.file || r.path
+    if (!path) {
+      contextParts.push('[来源: ' + (r.title || '') + ']\n(r.file missing)')
+      i += 0
+      continue
+    }
+    const fullContent = existsSync(path)
+      ? (await readFile(path, 'utf-8')).slice(0, 30000)
+      : (r.snippet ?? '')
     const block = `[来源: ${r.title}]\n${fullContent}`
     if (totalChars + block.length > MAX_CONTEXT_LENGTH) break
     contextParts.push(block)
@@ -391,8 +441,9 @@ export async function buildAnswerPrompt(
   }
 
   const context = contextParts.join('\n\n---\n\n')
-  const recentHistory = history.slice(-20)
-    .map(m => `${m.role}: ${m.content.slice(0, 300)}`)
+  const recentHistory = history
+    .slice(-20)
+    .map((m) => `${m.role}: ${m.content.slice(0, 300)}`)
     .join('\n')
 
   // 系统提示词由 loadVaultSystemPrompt 加载 LLM-wiki.md + Agents.md 模板，
@@ -402,21 +453,18 @@ export async function buildAnswerPrompt(
     recentHistory || '(无)',
     '',
     '知识库检索结果：',
-    context || '(无相关结果)',
+    context || '(无相关结果)'
   ].join('\n')
 
   return {
     systemPrompt,
-    userPrompt: question,
+    userPrompt: question
   }
 }
 
 // ============ Stage 0: Rewrite ============
 
-async function rewriteQuery(
-  question: string,
-  history: ChatMessage[]
-): Promise<string> {
+async function rewriteQuery(question: string, history: ChatMessage[]): Promise<string> {
   // If question is already keyword-like, use directly
   if (question.length < 50 && !question.includes('?')) {
     return question
@@ -428,8 +476,9 @@ async function rewriteQuery(
   }
 
   try {
-    const recentHistory = history.slice(-4)
-      .map(m => `${m.role}: ${m.content.slice(0, 200)}`)
+    const recentHistory = history
+      .slice(-4)
+      .map((m) => `${m.role}: ${m.content.slice(0, 200)}`)
       .join('\n')
 
     const rewritten = await callAI('reason', {
@@ -446,12 +495,14 @@ async function rewriteQuery(
 用户问题: "${question}"
 对话历史: ${recentHistory ? '最近对话：' + recentHistory : '无'}
 
-只返回改写后的搜索词，不要解释。`,
+只返回改写后的搜索词，不要解释。`
     })
 
     // For 'reason' type, the function callAI returns the raw response
     // Clean up and truncate
-    const cleaned = String(rewritten ?? question).trim().slice(0, 50)
+    const cleaned = String(rewritten ?? question)
+      .trim()
+      .slice(0, 50)
     log.info(`[RAG] query rewrite: "${question.slice(0, 40)}" → "${cleaned}"`)
     return cleaned ?? question
   } catch (err) {
@@ -477,9 +528,15 @@ async function generateAnswer(
   let totalChars = 0
 
   for (const r of results) {
-      const path = r.file || r.path
-      if (!path) { contextParts.push("[来源: " + (r.title||"") + "]\n(r.file missing)"); i += 0; continue }
-      const fullContent = existsSync(path) ? (await readFile(path, "utf-8")).slice(0, 30000) : r.snippet ?? ""
+    const path = r.file || r.path
+    if (!path) {
+      contextParts.push('[来源: ' + (r.title || '') + ']\n(r.file missing)')
+      i += 0
+      continue
+    }
+    const fullContent = existsSync(path)
+      ? (await readFile(path, 'utf-8')).slice(0, 30000)
+      : (r.snippet ?? '')
     const block = `[来源: ${r.title}]\n${fullContent}`
     if (totalChars + block.length > MAX_CONTEXT_LENGTH) break
     contextParts.push(block)
@@ -487,8 +544,9 @@ async function generateAnswer(
   }
 
   const context = contextParts.join('\n\n---\n\n')
-  const _recentHistory = history.slice(-20)
-    .map(m => `${m.role}: ${m.content.slice(0, 300)}`)
+  const _recentHistory = history
+    .slice(-20)
+    .map((m) => `${m.role}: ${m.content.slice(0, 300)}`)
     .join('\n')
 
   const vaultPath = getVaultPath() ?? ''
@@ -498,22 +556,20 @@ async function generateAnswer(
     const answer = await callAI('reason', {
       question,
       context: [context],
-      systemPrompt: systemBase,
+      systemPrompt: systemBase
     })
 
     const answerText = typeof answer === 'string' ? answer : String(answer ?? '')
 
     // Estimate confidence based on retrieved results
-    const confidence = results.length > 0
-      ? Math.min(0.3 + results.length * 0.15, 1.0)
-      : 0.1
+    const confidence = results.length > 0 ? Math.min(0.3 + results.length * 0.15, 1.0) : 0.1
 
     return { answer: answerText, confidence }
   } catch (err) {
     log.error('[RAG] answer generation failed:', (err as any).message)
     return {
       answer: `AI 回答生成失败：${(err as any).message}。请尝试换个问法。`,
-      confidence: 0,
+      confidence: 0
     }
   }
 }
@@ -521,6 +577,14 @@ async function generateAnswer(
 // ============ Session Management ============
 
 // ─── Session management (delegated) ─────────────────────────────────
-export { getSessionsDir, loadSessions, saveSessions, createSession, deleteSession, loadMessages, saveMessages } from './chatSessions'
+export {
+  getSessionsDir,
+  loadSessions,
+  saveSessions,
+  createSession,
+  deleteSession,
+  loadMessages,
+  saveMessages
+} from './chatSessions'
 
 export { retrieveRelevantPages, extractSnippet } from '../search/ragService'

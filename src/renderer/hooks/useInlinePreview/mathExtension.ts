@@ -17,8 +17,10 @@ import { registerBlockMathBuilder } from '../blockDecorationsField'
 class KatexWidget extends WidgetType {
   constructor(
     private code: string,
-    private displayMode: boolean,
-  ) { super() }
+    private displayMode: boolean
+  ) {
+    super()
+  }
 
   eq(other: KatexWidget): boolean {
     return other.code === this.code && other.displayMode === this.displayMode
@@ -31,7 +33,7 @@ class KatexWidget extends WidgetType {
         displayMode: this.displayMode,
         throwOnError: false,
         trust: true,
-        strict: false,
+        strict: false
       })
     } catch {
       el.textContent = this.code
@@ -68,8 +70,8 @@ export function buildInlineMathDecorations(docText: string): Range<Decoration>[]
       const code = extractMathCode(m)
       ranges.push(
         Decoration.replace({
-          widget: new KatexWidget(code, false),
-        }).range(m.index, m.index + m[0].length),
+          widget: new KatexWidget(code, false)
+        }).range(m.index, m.index + m[0].length)
       )
     }
   }
@@ -89,12 +91,15 @@ export function buildBlockMathDecorations(state: EditorState): DecorationSet {
     decorations.push(
       Decoration.replace({
         widget: new KatexWidget(code, true),
-        block: true,
-      }).range(m.index, m.index + m[0].length),
+        block: true
+      }).range(m.index, m.index + m[0].length)
     )
   }
   return decorations.length
-    ? Decoration.set(decorations.sort((a: any, b: any) => a.from - b.from), true)
+    ? Decoration.set(
+        decorations.sort((a: any, b: any) => a.from - b.from),
+        true
+      )
     : Decoration.none
 }
 

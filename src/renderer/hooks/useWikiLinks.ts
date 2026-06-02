@@ -17,5 +17,5 @@ export {
   type WikiLinkSuggestion,
   type WikiLinkResolvedTarget,
   type WikiLinksConfig,
-  type ParsedWikiLink,
+  type ParsedWikiLink
 } from './useWikiLinks'

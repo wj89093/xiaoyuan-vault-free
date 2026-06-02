@@ -8,7 +8,7 @@ describe('graph service', () => {
       const tokens = tokenize(text)
       expect(tokens.size).toBeGreaterThan(0)
       // Check for Chinese character tokens (2-3 character grams)
-      const hasChineseTokens = Array.from(tokens.keys()).some(t => /[\u4e00-\u9fff]{2,}/.test(t))
+      const hasChineseTokens = Array.from(tokens.keys()).some((t) => /[\u4e00-\u9fff]{2,}/.test(t))
       expect(hasChineseTokens).toBe(true)
     })
 
@@ -45,8 +45,14 @@ describe('graph service', () => {
 
   describe('cosineSimilarity', () => {
     it('should return 1 for identical vectors', () => {
-      const vecA = new Map([['a', 1], ['b', 2]])
-      const vecB = new Map([['a', 1], ['b', 2]])
+      const vecA = new Map([
+        ['a', 1],
+        ['b', 2]
+      ])
+      const vecB = new Map([
+        ['a', 1],
+        ['b', 2]
+      ])
       expect(cosineSimilarity(vecA, vecB)).toBeCloseTo(1)
     })
 
@@ -66,8 +72,26 @@ describe('graph service', () => {
   describe('computeTFIDF', () => {
     it('should compute TF-IDF vectors', () => {
       const docs = [
-        { file: 'a.md', title: 'A', tags: ['tag1'], tokens: new Map([['word', 2], ['test', 1]]), relationships: [] },
-        { file: 'b.md', title: 'B', tags: ['tag1'], tokens: new Map([['word', 1], ['other', 3]]), relationships: [] }
+        {
+          file: 'a.md',
+          title: 'A',
+          tags: ['tag1'],
+          tokens: new Map([
+            ['word', 2],
+            ['test', 1]
+          ]),
+          relationships: []
+        },
+        {
+          file: 'b.md',
+          title: 'B',
+          tags: ['tag1'],
+          tokens: new Map([
+            ['word', 1],
+            ['other', 3]
+          ]),
+          relationships: []
+        }
       ]
       const { vectors, idf } = computeTFIDF(docs)
       expect(vectors).toHaveLength(2)
@@ -98,12 +122,36 @@ describe('graph service', () => {
 
     it('should create content-based edges', () => {
       const docs = [
-        { file: 'a.md', title: 'A', tags: [], tokens: new Map([['word', 5], ['foo', 1], ['bar', 1], ['baz', 1], ['qux', 1]]), relationships: [] },
-        { file: 'b.md', title: 'B', tags: [], tokens: new Map([['word', 5], ['foo', 1], ['bar', 1], ['baz', 1], ['qux', 1]]), relationships: [] }
+        {
+          file: 'a.md',
+          title: 'A',
+          tags: [],
+          tokens: new Map([
+            ['word', 5],
+            ['foo', 1],
+            ['bar', 1],
+            ['baz', 1],
+            ['qux', 1]
+          ]),
+          relationships: []
+        },
+        {
+          file: 'b.md',
+          title: 'B',
+          tags: [],
+          tokens: new Map([
+            ['word', 5],
+            ['foo', 1],
+            ['bar', 1],
+            ['baz', 1],
+            ['qux', 1]
+          ]),
+          relationships: []
+        }
       ]
       const { vectors, idf } = computeTFIDF(docs)
       const edges = buildEdges(docs, vectors, idf)
-      expect(edges.some(e => e.relation === 'similar_content')).toBe(true)
+      expect(edges.some((e) => e.relation === 'similar_content')).toBe(true)
     })
 
     it('should cap edges at MAX_EDGES', () => {
@@ -125,7 +173,6 @@ describe('graph service', () => {
       const { rebuildGraphIncremental } = await import('../graph/graph')
       expect(typeof rebuildGraphIncremental).toBe('function')
     })
-
 
     it('should accept changedFiles array parameter', async () => {
       const { rebuildGraphIncremental } = await import('../graph/graph')

@@ -7,15 +7,22 @@
  * 3. Resolves links asynchronously and updates decorations
  * 4. Handles click on wiki links → calls config.onClick
  */
+import { StateEffect, StateField, Prec } from '@codemirror/state'
 import {
-  StateEffect, StateField, Prec,
-} from '@codemirror/state'
-import {
-  type EditorView, ViewPlugin, Decoration, keymap,
-  type DecorationSet, type ViewUpdate,
+  type EditorView,
+  ViewPlugin,
+  Decoration,
+  keymap,
+  type DecorationSet,
+  type ViewUpdate
 } from '@codemirror/view'
 import { type EditorState, RangeSetBuilder } from '@codemirror/state'
-import type { WikiLinksConfig, WikiLinkDecorationState, ResolutionPayload, ParsedWikiLink } from './types'
+import type {
+  WikiLinksConfig,
+  WikiLinkDecorationState,
+  ResolutionPayload,
+  ParsedWikiLink
+} from './types'
 import { parseWikiLinks } from './wikiLinksParser'
 import { WikiLinkWidget } from './WikiLinkWidget'
 import { shouldResolveWikiLink, wikiLinkElementFromEvent } from './helpers'
@@ -32,7 +39,7 @@ function buildInitialState(): WikiLinkDecorationState {
 
 function _computeDecorations(
   state: EditorState,
-  resolved: Map<string, WikiLinkResolvedTarget | null>,
+  resolved: Map<string, WikiLinkResolvedTarget | null>
 ): DecorationSet {
   const links = parseWikiLinks(state.doc, 0, state.doc.length)
   const builder = new RangeSetBuilder<Decoration>()
@@ -45,8 +52,8 @@ function _computeDecorations(
       link.to,
       Decoration.replace({
         widget: new WikiLinkWidget(link.target, link.label, status),
-        inclusive: false,
-      }),
+        inclusive: false
+      })
     )
   }
 
@@ -80,7 +87,7 @@ const wikiLinksStateField = StateField.define<WikiLinkDecorationState>({
     }
 
     return state
-  },
+  }
   // NOTE: provide is intentionally REMOVED — wiki link decorations are now
   // handled by unifiedDecorationsPlugin to avoid EditorView.decorations Facet conflict.
   // This StateField only stores the resolved link map for async resolution.
@@ -107,11 +114,11 @@ function createViewPlugin(config: WikiLinksConfig) {
   }
 
   const resolveBatch = async (view: EditorView, links: ParsedWikiLink[]) => {
-    const toFetch = links.filter(l => shouldResolveWikiLink(config, l.target))
+    const toFetch = links.filter((l) => shouldResolveWikiLink(config, l.target))
     if (!toFetch.length) return
 
     const results = await Promise.allSettled(
-      toFetch.map(l => (config.resolve ?? (() => Promise.resolve(null)))(l.target)),
+      toFetch.map((l) => (config.resolve ?? (() => Promise.resolve(null)))(l.target))
     )
 
     const effects: ResolutionPayload[] = []
@@ -123,7 +130,7 @@ function createViewPlugin(config: WikiLinksConfig) {
     }
 
     if (effects.length > 0) {
-      view.dispatch({ effects: effects.map(e => wikiLinkResolved.of(e)) })
+      view.dispatch({ effects: effects.map((e) => wikiLinkResolved.of(e)) })
     }
   }
 
@@ -173,9 +180,9 @@ function createViewPlugin(config: WikiLinksConfig) {
 
           config.onClick?.(target, resolved, event as unknown as MouseEvent)
           return false // don't prevent default
-        },
-      },
-    },
+        }
+      }
+    }
   )
 }
 
@@ -204,7 +211,7 @@ function revealWikiLinkBeforeCursor(view: EditorView): boolean {
 
   view.dispatch({
     selection: { anchor: Math.max(link.from + 2, link.to - 2) },
-    scrollIntoView: true,
+    scrollIntoView: true
   })
   return true
 }
@@ -212,11 +219,9 @@ function revealWikiLinkBeforeCursor(view: EditorView): boolean {
 function findWikiLinkEndingAt(doc: any, pos: number): ParsedWikiLink | null {
   if (pos <= 0 || pos > doc.length) return null
   const links = parseWikiLinks(doc, 0, doc.length)
-  return links.find(link => link.to === pos) ?? null
+  return links.find((link) => link.to === pos) ?? null
 }
 
 function wikiLinkEditKeymap(): ReturnType<typeof keymap.of> {
-  return Prec.highest(
-    keymap.of([{ key: 'Backspace', run: revealWikiLinkBeforeCursor }]),
-  )
+  return Prec.highest(keymap.of([{ key: 'Backspace', run: revealWikiLinkBeforeCursor }]))
 }

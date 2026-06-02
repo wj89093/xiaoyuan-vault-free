@@ -9,10 +9,7 @@
  * - tags    → pill editor
  * - enum    → select dropdown
  */
-import {
-  Decoration, type EditorView, WidgetType,
-  type DecorationSet,
-} from '@codemirror/view'
+import { Decoration, type EditorView, WidgetType, type DecorationSet } from '@codemirror/view'
 import type { EditorState } from '@codemirror/state'
 import { syntaxTree } from '@codemirror/language'
 import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete'
@@ -22,7 +19,7 @@ import {
   getFieldSchema,
   COMMON_PROPERTIES,
   type ParsedField,
-  type FrontmatterMatch,
+  type FrontmatterMatch
 } from './frontmatter-utils'
 import { registerFrontmatterBuilder } from './blockDecorationsField'
 
@@ -33,7 +30,10 @@ function findFrontmatter(state: EditorState): FrontmatterMatch | null {
   if (doc.length < 8 || doc.sliceString(0, 3) !== '---') return null
   let close = -1
   for (let p = 3; p < doc.length - 3; p++)
-    if (doc.sliceString(p, p + 4) === '\n---') { close = p + 4; break }
+    if (doc.sliceString(p, p + 4) === '\n---') {
+      close = p + 4
+      break
+    }
   if (close < 0) return null
   const raw = doc.sliceString(3, close - 4)
   const fields = parseFm(raw)
@@ -58,16 +58,16 @@ export function frontmatterCompletion(context: CompletionContext): CompletionRes
   if (!word) return null
 
   const match = findFrontmatter(context.state)
-  const existingKeys = new Set(match?.fields.map(f => f.key) ?? [])
+  const existingKeys = new Set(match?.fields.map((f) => f.key) ?? [])
 
   return {
     from: word.from,
-    options: COMMON_PROPERTIES.filter(k => !existingKeys.has(k)).map(k => ({
+    options: COMMON_PROPERTIES.filter((k) => !existingKeys.has(k)).map((k) => ({
       label: k,
       type: 'property' as const,
-      detail: 'frontmatter',
+      detail: 'frontmatter'
     })),
-    validFor: /^\w*$/,
+    validFor: /^\w*$/
   }
 }
 
@@ -78,23 +78,27 @@ class FrontmatterWidget extends WidgetType {
 
   constructor(
     private fields: ParsedField[],
-    private range: { from: number; to: number },
-  ) { super() }
+    private range: { from: number; to: number }
+  ) {
+    super()
+  }
 
   eq(o: FrontmatterWidget): boolean {
     return o.range.from === this.range.from && o.range.to === this.range.to
   }
 
-  updateDOM(): boolean { return false }
+  updateDOM(): boolean {
+    return false
+  }
 
   toDOM(view: EditorView): HTMLElement {
     this.view = view
     const root = el('div', 'cm-fm-card')
-    const titleF = this.fields.find(f => f.key === 'title')
-    const others = this.fields.filter(f => f.key !== 'title')
+    const titleF = this.fields.find((f) => f.key === 'title')
+    const others = this.fields.filter((f) => f.key !== 'title')
     // Complex fields (nested objects) are preserved but not editable in form
-    const editable = others.filter(f => f.type !== 'complex')
-    const complex = others.filter(f => f.type === 'complex')
+    const editable = others.filter((f) => f.type !== 'complex')
+    const complex = others.filter((f) => f.type === 'complex')
 
     // ── Title Block (above the card) ──
     const titleBlock = el('div', 'cm-fm-title-block')
@@ -103,8 +107,12 @@ class FrontmatterWidget extends WidgetType {
       titleInput.type = 'text'
       titleInput.value = String(titleF.value ?? '')
       titleInput.placeholder = 'Untitled'
-      titleInput.addEventListener('change', () => this.sync(titleBlock.closest<HTMLElement>('.cm-fm-card')!))
-      titleInput.addEventListener('blur', () => this.sync(titleBlock.closest<HTMLElement>('.cm-fm-card')!))
+      titleInput.addEventListener('change', () =>
+        this.sync(titleBlock.closest<HTMLElement>('.cm-fm-card')!)
+      )
+      titleInput.addEventListener('blur', () =>
+        this.sync(titleBlock.closest<HTMLElement>('.cm-fm-card')!)
+      )
       titleBlock.append(titleInput)
     }
 
@@ -180,7 +188,7 @@ class FrontmatterWidget extends WidgetType {
       if (f.type === 'complex') fields.push({ ...f })
     }
 
-    root.querySelectorAll<HTMLElement>('.cm-fm-field-row').forEach(row => {
+    root.querySelectorAll<HTMLElement>('.cm-fm-field-row').forEach((row) => {
       if (!row.dataset.key && row.dataset['new'] === 'true') {
         // New empty field - extract from DOM
         const keyInput = qs<HTMLInputElement>(row, '.cm-fm-key-input')
@@ -190,10 +198,13 @@ class FrontmatterWidget extends WidgetType {
         const value = this.extractFieldValue(row, type)
         const schema = getFieldSchema(key)
         fields.push({
-          key, value, raw: key, type: schema?.type ?? (type as any),
+          key,
+          value,
+          raw: key,
+          type: schema?.type ?? (type as any),
           isList: type === 'tags',
           items: type === 'tags' ? this.extractTags(row) : undefined,
-          options: schema?.options,
+          options: schema?.options
         })
         return
       }
@@ -204,11 +215,13 @@ class FrontmatterWidget extends WidgetType {
       const value = this.extractFieldValue(row, fType)
       const schema = getFieldSchema(key)
       fields.push({
-        key, value, raw: key,
+        key,
+        value,
+        raw: key,
         type: schema?.type ?? (fType as any),
         isList: fType === 'tags',
         items: fType === 'tags' ? this.extractTags(row) : undefined,
-        options: schema?.options,
+        options: schema?.options
       })
     })
 
@@ -245,7 +258,7 @@ class FrontmatterWidget extends WidgetType {
 
   private extractTags(row: HTMLElement): string[] {
     const pills = row.querySelectorAll<HTMLElement>('.cm-fm-pill-text')
-    return Array.from(pills, p => p.textContent ?? '').filter(Boolean)
+    return Array.from(pills, (p) => p.textContent ?? '').filter(Boolean)
   }
 
   // ── Add empty field ─────────────────────────────────────────────────
@@ -322,7 +335,9 @@ class FrontmatterWidget extends WidgetType {
       if (e.key === 'Enter') {
         e.preventDefault()
         // Move focus to value control
-        const next = row.querySelector<HTMLElement>('.cm-fm-text-input, .cm-fm-checkbox, .cm-fm-select, .cm-fm-date-input, .cm-fm-number-input')
+        const next = row.querySelector<HTMLElement>(
+          '.cm-fm-text-input, .cm-fm-checkbox, .cm-fm-select, .cm-fm-date-input, .cm-fm-number-input'
+        )
         next?.focus()
       }
     })
@@ -343,7 +358,18 @@ class FrontmatterWidget extends WidgetType {
           row.dataset.type = schema.type
           // Swap control to match type
           valWrap.innerHTML = ''
-          valWrap.append(this.buildValueControl({ key: typedKey, value: '', raw: typedKey, type: schema.type, options: schema.options }, schema.type))
+          valWrap.append(
+            this.buildValueControl(
+              {
+                key: typedKey,
+                value: '',
+                raw: typedKey,
+                type: schema.type,
+                options: schema.options
+              },
+              schema.type
+            )
+          )
         }
       }
       this.sync(row.closest<HTMLElement>('.cm-fm-card')!)
@@ -366,12 +392,18 @@ class FrontmatterWidget extends WidgetType {
 
   private buildValueControl(f: ParsedField, type: string): HTMLElement {
     switch (type) {
-      case 'boolean': return this.buildBoolControl(f)
-      case 'number':  return this.buildNumControl(f)
-      case 'date':    return this.buildDateControl(f)
-      case 'tags':    return this.buildTagsControl(f)
-      case 'enum':    return this.buildSelectControl(f)
-      default:        return this.buildTextControl(f)
+      case 'boolean':
+        return this.buildBoolControl(f)
+      case 'number':
+        return this.buildNumControl(f)
+      case 'date':
+        return this.buildDateControl(f)
+      case 'tags':
+        return this.buildTagsControl(f)
+      case 'enum':
+        return this.buildSelectControl(f)
+      default:
+        return this.buildTextControl(f)
     }
   }
 
@@ -418,7 +450,9 @@ class FrontmatterWidget extends WidgetType {
     input.checked = val === 'true' || val === 'yes' || val === 'on'
     input.addEventListener('change', () => this.sync(input.closest<HTMLElement>('.cm-fm-card')!))
     const txt = el('span', 'cm-fm-check-label', input.checked ? 'Yes' : 'No')
-    input.addEventListener('change', () => { txt.textContent = input.checked ? 'Yes' : 'No' })
+    input.addEventListener('change', () => {
+      txt.textContent = input.checked ? 'Yes' : 'No'
+    })
     label.append(input, txt)
     wrap.append(label)
     return wrap
@@ -448,9 +482,14 @@ class FrontmatterWidget extends WidgetType {
 
   private buildTagsControl(f: ParsedField): HTMLElement {
     const wrap = el('div', 'cm-fm-value-area cm-fm-tags-area')
-    const existingItems = f.items ?? (typeof f.value === 'string' && f.value
-      ? f.value.split(',').map(s => s.trim()).filter(Boolean)
-      : [])
+    const existingItems =
+      f.items ??
+      (typeof f.value === 'string' && f.value
+        ? f.value
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [])
 
     const renderPills = () => {
       // Update pill list from DOM (after user edits) or from field data
@@ -518,9 +557,9 @@ class FrontmatterWidget extends WidgetType {
   }
 
   get estimatedHeight(): number {
-    if (this.collapsed) return 44  // title block only
-    const hasTitle = this.fields.some(f => f.key === 'title')
-    const n = this.fields.filter(f => f.key !== 'title').length
+    if (this.collapsed) return 44 // title block only
+    const hasTitle = this.fields.some((f) => f.key === 'title')
+    const n = this.fields.filter((f) => f.key !== 'title').length
     return (hasTitle ? 44 : 0) + 32 + n * 36 + 16 + 40
   }
 }
@@ -532,7 +571,9 @@ function qs<T extends HTMLElement>(root: HTMLElement, selector: string): T | nul
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K, cls: string, text?: string,
+  tag: K,
+  cls: string,
+  text?: string
 ): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag)
   e.className = cls
@@ -548,8 +589,8 @@ function buildFrontmatterDecorations(state: EditorState): DecorationSet {
   return Decoration.set([
     Decoration.replace({
       widget: new FrontmatterWidget(m.fields, { from: m.from, to: m.to }),
-      block: true,
-    }).range(m.from, m.to),
+      block: true
+    }).range(m.from, m.to)
   ])
 }
 

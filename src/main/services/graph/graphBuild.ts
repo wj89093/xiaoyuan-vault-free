@@ -37,7 +37,7 @@ export async function scanMarkdownFiles(vaultPath: string, dir = ''): Promise<st
 
 export async function tokenizeDocument(
   file: string,
-  vaultPath: string,
+  vaultPath: string
 ): Promise<TFIDFDocument | null> {
   const fullPath = join(vaultPath, file)
   const raw = await readFile(fullPath, 'utf-8')
@@ -50,7 +50,7 @@ export async function tokenizeDocument(
   const bodyRelationships = extractTypedLinks(body)
   const fmRelationships: Relationship[] = Array.isArray(fm.relationships) ? fm.relationships : []
   const seenKeys = new Set<string>()
-  const relationships: Relationship[] = [...fmRelationships, ...bodyRelationships].filter(r => {
+  const relationships: Relationship[] = [...fmRelationships, ...bodyRelationships].filter((r) => {
     const key = `${r.type}:${r.target}`
     if (seenKeys.has(key)) return false
     seenKeys.add(key)
@@ -65,14 +65,14 @@ export async function tokenizeDocument(
 function makeNodes(
   documents: TFIDFDocument[],
   folderToType: Record<string, string>,
-  existingGraph: GraphData | null,
+  existingGraph: GraphData | null
 ): GraphNode[] {
-  return documents.map(doc => {
+  return documents.map((doc) => {
     const folder = doc.file.split('/')[0] || ''
     const entity_count = doc.relationships.length
     const is_entity = entity_count > 0
     const primaryType = doc.relationships[0]?.type || folderToType[folder] || 'note'
-    const existing = existingGraph?.nodes.find(n => n.id === doc.file)
+    const existing = existingGraph?.nodes.find((n) => n.id === doc.file)
     return {
       id: doc.file,
       title: doc.title,
@@ -81,7 +81,7 @@ function makeNodes(
       edge_count: existing?.edge_count ?? 0,
       is_entity,
       entity_type: is_entity ? primaryType : undefined,
-      entity_count: is_entity ? entity_count : 0,
+      entity_count: is_entity ? entity_count : 0
     }
   })
 }
@@ -115,7 +115,9 @@ export async function rebuildGraph(): Promise<{ nodes: number; edges: number }> 
       try {
         const doc = await tokenizeDocument(file, vaultPath)
         if (doc) documents.push(doc)
-      } catch { log.warn('[Graph] tokenize skipped:', file) }
+      } catch {
+        log.warn('[Graph] tokenize skipped:', file)
+      }
     }
 
     const { vectors, idf } = computeTFIDF(documents)
@@ -139,7 +141,7 @@ export async function rebuildGraph(): Promise<{ nodes: number; edges: number }> 
 // ── Incremental rebuild ───────────────────────────────────────────────
 
 export async function rebuildGraphIncremental(
-  changedFiles: string[],
+  changedFiles: string[]
 ): Promise<{ nodes: number; edges: number }> {
   const vaultPath = getVaultPath()
   if (!vaultPath) throw new Error('No vault open')
@@ -157,7 +159,9 @@ export async function rebuildGraphIncremental(
       try {
         const doc = await tokenizeDocument(file, vaultPath)
         if (doc) documents.push(doc)
-      } catch { log.warn('[Graph] tokenize skipped:', file) }
+      } catch {
+        log.warn('[Graph] tokenize skipped:', file)
+      }
     }
 
     const { vectors } = computeTFIDF(documents)
@@ -168,36 +172,48 @@ export async function rebuildGraphIncremental(
 
     // Remove stale edges (involving changed files)
     const edges: GraphEdge[] = existingGraph
-      ? existingGraph.edges.filter(e => !changedSet.has(e.source) && !changedSet.has(e.target))
+      ? existingGraph.edges.filter((e) => !changedSet.has(e.source) && !changedSet.has(e.target))
       : []
 
     // Rebuild edges for changed files vs all files
     const SIMILARITY_THRESHOLD = 0.15
     const seen = new Set<string>()
     const changedIndices = new Map<string, number>()
-    documents.forEach((doc, i) => { if (changedSet.has(doc.file)) changedIndices.set(doc.file, i) })
+    documents.forEach((doc, i) => {
+      if (changedSet.has(doc.file)) changedIndices.set(doc.file, i)
+    })
 
     for (const [changedFile, ci] of changedIndices) {
       for (let j = 0; j < documents.length; j++) {
         if (j === ci) continue
         const docj = documents[j]
 
-        const sharedTags = documents[ci].tags.filter(t => docj.tags.includes(t))
+        const sharedTags = documents[ci].tags.filter((t) => docj.tags.includes(t))
         const keyTag = `${changedFile}|${docj.file}|shared_tag`
         if (sharedTags.length > 0 && !seen.has(keyTag)) {
           seen.add(keyTag)
-          edges.push({ source: changedFile, target: docj.file, relation: 'shared_tag', weight: sharedTags.length * 0.3 })
+          edges.push({
+            source: changedFile,
+            target: docj.file,
+            relation: 'shared_tag',
+            weight: sharedTags.length * 0.3
+          })
         }
 
         const docI = documents[ci]
         for (const rel of docI.relationships) {
           const targetNorm = rel.target.toLowerCase().replace(/\s+/g, '')
-          const docjTitles = [docj.title, ...docj.relationships.map(r => r.target)]
-          if (docjTitles.some(t => t.toLowerCase().replace(/\s+/g, '') === targetNorm)) {
+          const docjTitles = [docj.title, ...docj.relationships.map((r) => r.target)]
+          if (docjTitles.some((t) => t.toLowerCase().replace(/\s+/g, '') === targetNorm)) {
             const keyTyped = `${changedFile}|${docj.file}|typed_link`
             if (!seen.has(keyTyped)) {
               seen.add(keyTyped)
-              edges.push({ source: changedFile, target: docj.file, relation: 'typed_link', weight: 1.0 })
+              edges.push({
+                source: changedFile,
+                target: docj.file,
+                relation: 'typed_link',
+                weight: 1.0
+              })
             }
           }
         }
@@ -208,7 +224,12 @@ export async function rebuildGraphIncremental(
             const keySim = `${changedFile}|${docj.file}|similar_content`
             if (!seen.has(keySim)) {
               seen.add(keySim)
-              edges.push({ source: changedFile, target: docj.file, relation: 'similar_content', weight: similarity })
+              edges.push({
+                source: changedFile,
+                target: docj.file,
+                relation: 'similar_content',
+                weight: similarity
+              })
             }
           }
         }
@@ -220,7 +241,9 @@ export async function rebuildGraphIncremental(
     await saveGraph(graph)
 
     const elapsed = Date.now() - start
-    log.info(`[Graph] incremental done: ${nodes.length} nodes, ${edges.length} edges (${elapsed}ms)`)
+    log.info(
+      `[Graph] incremental done: ${nodes.length} nodes, ${edges.length} edges (${elapsed}ms)`
+    )
     return { nodes: nodes.length, edges: edges.length }
   } catch (err) {
     log.error('[Graph] incremental rebuild failed:', (err as Error).message)

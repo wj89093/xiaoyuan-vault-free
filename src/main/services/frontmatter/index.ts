@@ -6,6 +6,11 @@
  */
 
 export type { Relationship, OpenThread, Frontmatter } from './types'
-export { parseFrontmatter, stringifyFrontmatter, applyFrontmatter, extractDisplayTitle } from './parse'
+export {
+  parseFrontmatter,
+  stringifyFrontmatter,
+  applyFrontmatter,
+  extractDisplayTitle
+} from './parse'
 export { extractWikiLinks, extractTypedLinks, addRelationship } from './links'
 export { generateFileTemplate, touchFrontmatter } from './template'

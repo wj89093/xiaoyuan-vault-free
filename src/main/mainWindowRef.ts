@@ -1,4 +1,3 @@
- 
 import type { BrowserWindow } from 'electron'
 
 let _mainWindow: BrowserWindow | null = null

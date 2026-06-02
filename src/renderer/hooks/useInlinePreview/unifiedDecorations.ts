@@ -19,7 +19,7 @@ import {
   StateField,
   type Extension,
   type Range,
-  type Text,
+  type Text
 } from '@codemirror/state'
 import {
   Decoration,
@@ -28,7 +28,7 @@ import {
   WidgetType,
   keymap,
   type DecorationSet,
-  type ViewUpdate,
+  type ViewUpdate
 } from '@codemirror/view'
 import { treeGrowthEffect, treeProgressPlugin } from './freezableStates'
 import { buildInlineMathDecorations } from './mathExtension'
@@ -52,7 +52,7 @@ const previewFrozenField = StateField.define<boolean>({
       if (effect.is(setFrozen)) return effect.value
     }
     return prev
-  },
+  }
 })
 
 const FREEZE_TAIL_MS = 100
@@ -69,7 +69,8 @@ const freezeMousePlugin = ViewPlugin.fromClass(
       if (!(target instanceof Node) || !this.view.contentDOM.contains(target)) return
       this.down = true
       if (this.releaseTimer != null) {
-        window.clearTimeout(this.releaseTimer); this.releaseTimer = null
+        window.clearTimeout(this.releaseTimer)
+        this.releaseTimer = null
       }
       if (!this.view.state.field(previewFrozenField)) {
         this.view.dispatch({ effects: setFrozen.of(true) })
@@ -82,7 +83,11 @@ const freezeMousePlugin = ViewPlugin.fromClass(
       this.releaseTimer = window.setTimeout(() => {
         this.releaseTimer = null
         if (!this.view.state.field(previewFrozenField)) return
-        try { this.view.dispatch({ effects: setFrozen.of(false) }) } catch { /* view gone */ }
+        try {
+          this.view.dispatch({ effects: setFrozen.of(false) })
+        } catch {
+          /* view gone */
+        }
       }, FREEZE_TAIL_MS)
     }
     constructor(readonly view: EditorView) {
@@ -97,22 +102,31 @@ const freezeMousePlugin = ViewPlugin.fromClass(
       window.removeEventListener('pointercancel', this.onUp)
       if (this.releaseTimer != null) window.clearTimeout(this.releaseTimer)
     }
-  },
+  }
 )
 
 // ── Widgets ────────────────────────────────────────────────────────────
 
 class TaskCheckboxWidget extends WidgetType {
-  constructor(readonly checked: boolean) { super() }
-  eq(other: TaskCheckboxWidget) { return other.checked === this.checked }
+  constructor(readonly checked: boolean) {
+    super()
+  }
+  eq(other: TaskCheckboxWidget) {
+    return other.checked === this.checked
+  }
   toDOM(view: EditorView): HTMLElement {
     const input = document.createElement('input')
-    input.type = 'checkbox'; input.checked = this.checked
+    input.type = 'checkbox'
+    input.checked = this.checked
     input.className = 'cm-atomic-list-marker cm-atomic-task-checkbox'
     input.setAttribute('contenteditable', 'false')
-    input.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation() })
+    input.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
     input.addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation()
+      e.preventDefault()
+      e.stopPropagation()
       const pos = view.posAtDOM(input)
       if (pos < 0) return
       const current = view.state.doc.sliceString(pos, pos + 3)
@@ -122,24 +136,34 @@ class TaskCheckboxWidget extends WidgetType {
     })
     return input
   }
-  ignoreEvent(event: Event) { return event.type === 'mousedown' || event.type === 'click' }
+  ignoreEvent(event: Event) {
+    return event.type === 'mousedown' || event.type === 'click'
+  }
 }
 
 class BulletWidget extends WidgetType {
-  eq() { return true }
+  eq() {
+    return true
+  }
   toDOM(): HTMLElement {
     const span = document.createElement('span')
     span.className = 'cm-atomic-list-marker cm-atomic-bullet'
     span.textContent = '•'
     return span
   }
-  ignoreEvent() { return false }
+  ignoreEvent() {
+    return false
+  }
 }
 const BULLET_WIDGET = new BulletWidget()
 
 class EmbedWidget extends WidgetType {
-  constructor(readonly noteRef: string) { super() }
-  eq(other: EmbedWidget) { return other.noteRef === this.noteRef }
+  constructor(readonly noteRef: string) {
+    super()
+  }
+  eq(other: EmbedWidget) {
+    return other.noteRef === this.noteRef
+  }
   toDOM(): HTMLElement {
     const wrap = document.createElement('div')
     wrap.className = 'cm-atomic-embed'
@@ -147,7 +171,9 @@ class EmbedWidget extends WidgetType {
     wrap.textContent = `📄 Embedded: ${this.noteRef}`
     return wrap
   }
-  ignoreEvent() { return false }
+  ignoreEvent() {
+    return false
+  }
 }
 
 // ── Line classes for block nodes ───────────────────────────────────────
@@ -162,7 +188,7 @@ const LINE_CLASS_BY_BLOCK: Record<string, string> = {
   SetextHeading1: 'cm-atomic-h1',
   SetextHeading2: 'cm-atomic-h2',
   Blockquote: 'cm-atomic-blockquote',
-  FencedCode: 'cm-atomic-fenced-code',
+  FencedCode: 'cm-atomic-fenced-code'
 }
 
 const INLINE_MARK_CLASS: Record<string, string> = {
@@ -170,12 +196,19 @@ const INLINE_MARK_CLASS: Record<string, string> = {
   Emphasis: 'cm-atomic-em',
   InlineCode: 'cm-atomic-inline-code',
   Strikethrough: 'cm-atomic-strike',
-  Link: 'cm-atomic-link',
+  Link: 'cm-atomic-link'
 }
 
 const HIDEABLE_SYNTAX = new Set([
-  'HeaderMark', 'EmphasisMark', 'CodeMark', 'CodeInfo',
-  'LinkMark', 'URL', 'LinkTitle', 'StrikethroughMark', 'QuoteMark',
+  'HeaderMark',
+  'EmphasisMark',
+  'CodeMark',
+  'CodeInfo',
+  'LinkMark',
+  'URL',
+  'LinkTitle',
+  'StrikethroughMark',
+  'QuoteMark'
 ])
 
 // ── Cross-line safe replace ────────────────────────────────────────────
@@ -183,13 +216,18 @@ const HIDEABLE_SYNTAX = new Set([
 function pushReplace(
   ranges: Range<Decoration>[],
   doc: Text,
-  from: number, to: number,
-  spec: Parameters<typeof Decoration.replace>[0] = {},
+  from: number,
+  to: number,
+  spec: Parameters<typeof Decoration.replace>[0] = {}
 ): void {
   if (from >= to) return
   const startLine = doc.lineAt(from)
-  if (to <= startLine.to) { ranges.push(Decoration.replace(spec).range(from, to)); return }
-  let cursor = from; let firstSegment = true
+  if (to <= startLine.to) {
+    ranges.push(Decoration.replace(spec).range(from, to))
+    return
+  }
+  let cursor = from
+  let firstSegment = true
   while (cursor < to) {
     const line = doc.lineAt(cursor)
     const segEnd = Math.min(to, line.to)
@@ -209,14 +247,14 @@ const EMPHASIS_PATTERNS: { re: RegExp; markClass: string }[] = [
   { re: /\*\*([^*]+)\*\*|(?<=\*\*)[^*]+$|^\*\*[^*]+$/g, markClass: 'cm-atomic-strong' },
   { re: /\*([^*]+)\*|(?<=\*)[^*]+$|^\*[^*]+$/g, markClass: 'cm-atomic-em' },
   { re: /~~([^~]+)~~|(?<=~~)[^~]+$|^~~[^~]+$/g, markClass: 'cm-atomic-strike' },
-  { re: /`([^`]+)`|(?<=`)[^`]+$|^`[^`]+$/g, markClass: 'cm-atomic-inline-code' },
+  { re: /`([^`]+)`|(?<=`)[^`]+$|^`[^`]+$/g, markClass: 'cm-atomic-inline-code' }
 ]
 
 function supplementMidTypingEmphasis(
   ranges: Range<Decoration>[],
   doc: Text,
   activeLines: Set<number>,
-  hasFocus: boolean,
+  hasFocus: boolean
 ): void {
   if (!hasFocus || activeLines.size === 0) return
   // Only scan active lines where the cursor is
@@ -241,7 +279,8 @@ function supplementMidTypingEmphasis(
 // ── Build ALL decorations in one tree walk ─────────────────────────────
 
 function buildAllDecorations(view: EditorView): DecorationSet {
-  const { state } = view; const { doc } = state
+  const { state } = view
+  const { doc } = state
   const ranges: Range<Decoration>[] = []
 
   const tree = ensureSyntaxTree(state, doc.length, 200) ?? syntaxTree(state)
@@ -261,7 +300,9 @@ function buildAllDecorations(view: EditorView): DecorationSet {
         // If task is checked, dim the whole line
         const markerText = doc.sliceString(node.from, node.to)
         if (/\[x\]/i.test(markerText)) {
-          ranges.push(Decoration.line({ class: 'cm-atomic-task-done' }).range(doc.line(lineNum).from))
+          ranges.push(
+            Decoration.line({ class: 'cm-atomic-task-done' }).range(doc.line(lineNum).from)
+          )
         }
       }
 
@@ -279,7 +320,7 @@ function buildAllDecorations(view: EditorView): DecorationSet {
           _lastHeadingLine = lastLine
         }
       }
-    },
+    }
   })
 
   // ── 2. Active lines (has focus + selection) ──────────────────────────
@@ -297,7 +338,8 @@ function buildAllDecorations(view: EditorView): DecorationSet {
     enter(node) {
       if (!node.name || node.from >= doc.length) return
 
-      const from = node.from, to = node.to
+      const from = node.from,
+        to = node.to
       const lineNum = doc.lineAt(from).number
       const isActive = activeLines.has(lineNum)
 
@@ -345,7 +387,7 @@ function buildAllDecorations(view: EditorView): DecorationSet {
         // Check if it might be a tag (starts with #)
         // Note: Lezer doesn't handle '#tag', so we do a text-level regex
       }
-    },
+    }
   })
 
   // ── 4. Text-level decorations (regex — tags, callouts) ────────────────
@@ -356,7 +398,9 @@ function buildAllDecorations(view: EditorView): DecorationSet {
   let match: RegExpExecArray | null
   TAG_RE.lastIndex = 0
   while ((match = TAG_RE.exec(docText)) !== null) {
-    ranges.push(Decoration.mark({ class: 'cm-atomic-tag' }).range(match.index, match.index + match[0].length))
+    ranges.push(
+      Decoration.mark({ class: 'cm-atomic-tag' }).range(match.index, match.index + match[0].length)
+    )
   }
 
   // Callouts — Obsidian-style block-level callouts
@@ -371,10 +415,12 @@ function buildAllDecorations(view: EditorView): DecorationSet {
   WIKI_RE.lastIndex = 0
   while ((match = WIKI_RE.exec(docText)) !== null) {
     const target = match[1].includes('|') ? match[1].split('|')[0].trim() : match[1].trim()
-    ranges.push(Decoration.mark({
-      class: 'cm-atomic-wiki-link',
-      attributes: { 'data-wiki-link-target': target },
-    }).range(match.index, match.index + match[0].length))
+    ranges.push(
+      Decoration.mark({
+        class: 'cm-atomic-wiki-link',
+        attributes: { 'data-wiki-link-target': target }
+      }).range(match.index, match.index + match[0].length)
+    )
   }
 
   // Embeds (![[note]] / ![text](url)) — only on inactive lines
@@ -387,7 +433,9 @@ function buildAllDecorations(view: EditorView): DecorationSet {
     const embedLineNum = embedLine.number
     const isEmbedActive = activeLines.has(embedLineNum)
     if (!isEmbedActive && embedTo <= embedLine.to) {
-      ranges.push(Decoration.replace({ widget: new EmbedWidget(match[1].trim()) }).range(embedFrom, embedTo))
+      ranges.push(
+        Decoration.replace({ widget: new EmbedWidget(match[1].trim()) }).range(embedFrom, embedTo)
+      )
     }
   }
 
@@ -395,7 +443,10 @@ function buildAllDecorations(view: EditorView): DecorationSet {
   // Styles incomplete **bold** / *italic* / ~~strike~~ / `code` while typing
   supplementMidTypingEmphasis(ranges, doc, activeLines, view.hasFocus)
 
-  return Decoration.set(ranges.sort((a: any, b: any) => a.from - b.from), true)
+  return Decoration.set(
+    ranges.sort((a: any, b: any) => a.from - b.from),
+    true
+  )
 }
 
 // ── ViewPlugin ─────────────────────────────────────────────────────────
@@ -403,14 +454,21 @@ function buildAllDecorations(view: EditorView): DecorationSet {
 const inlinePreviewPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
-    constructor(view: EditorView) { this.decorations = buildAllDecorations(view) }
+    constructor(view: EditorView) {
+      this.decorations = buildAllDecorations(view)
+    }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.selectionSet || update.focusChanged || update.viewportChanged) {
+      if (
+        update.docChanged ||
+        update.selectionSet ||
+        update.focusChanged ||
+        update.viewportChanged
+      ) {
         this.decorations = buildAllDecorations(update.view)
       }
     }
   },
-  { decorations: (v) => v.decorations },
+  { decorations: (v) => v.decorations }
 )
 
 // ── Tight list Enter handler ───────────────────────────────────────────
@@ -425,7 +483,10 @@ function insertTightListItem(view: EditorView): boolean {
   const cursor = tree.resolveInner(from, -1).cursor()
   let inBulletList = false
   for (;;) {
-    if (cursor.name === 'BulletList' || cursor.name === 'TaskList') { inBulletList = true; break }
+    if (cursor.name === 'BulletList' || cursor.name === 'TaskList') {
+      inBulletList = true
+      break
+    }
     if (!cursor.parent()) break
   }
   if (!inBulletList) return false
@@ -443,12 +504,14 @@ function insertTightListItem(view: EditorView): boolean {
       const taskPrefix = prefix[4] || ''
       view.dispatch({
         changes: { from: line.from, to: line.to, insert: `${outerIndent}${marker} ${taskPrefix}` },
-        selection: EditorSelection.cursor(line.from + outerIndent.length + marker.length + 1 + taskPrefix.length),
+        selection: EditorSelection.cursor(
+          line.from + outerIndent.length + marker.length + 1 + taskPrefix.length
+        )
       })
     } else {
       view.dispatch({
         changes: { from: line.from, to: line.to, insert: '' },
-        selection: EditorSelection.cursor(line.from),
+        selection: EditorSelection.cursor(line.from)
       })
     }
     return true
@@ -458,7 +521,7 @@ function insertTightListItem(view: EditorView): boolean {
   const insert = `\n${indent}${marker} ${taskPrefix}`
   view.dispatch({
     changes: { from, to: from, insert },
-    selection: EditorSelection.cursor(from + insert.length),
+    selection: EditorSelection.cursor(from + insert.length)
   })
   return true
 }
@@ -471,7 +534,7 @@ export function unifiedDecorationsExtension(_config: UnifiedDecorationsConfig = 
     inlinePreviewPlugin,
     freezeMousePlugin,
     treeProgressPlugin,
-    Prec.highest(keymap.of([{ key: 'Enter', run: insertTightListItem }])),
+    Prec.highest(keymap.of([{ key: 'Enter', run: insertTightListItem }]))
   ]
 }
 

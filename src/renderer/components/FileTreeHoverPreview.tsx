@@ -8,7 +8,13 @@ interface FileTreeHoverPreviewProps {
   onClose: () => void
 }
 
-export function FileTreeHoverPreview({ x, y, name, summary, onClose = () => {} }: FileTreeHoverPreviewProps): JSX.Element {
+export function FileTreeHoverPreview({
+  x,
+  y,
+  name,
+  summary,
+  onClose = () => {}
+}: FileTreeHoverPreviewProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -28,11 +34,7 @@ export function FileTreeHoverPreview({ x, y, name, summary, onClose = () => {} }
   const clampedY = Math.min(y, window.innerHeight - 80)
 
   return (
-    <div
-      className="file-preview-tooltip"
-      ref={ref}
-      style={{ left: clampedX, top: clampedY }}
-    >
+    <div className="file-preview-tooltip" ref={ref} style={{ left: clampedX, top: clampedY }}>
       <div className="file-preview-name">{name}</div>
       <div className="file-preview-summary">{summary}</div>
     </div>
