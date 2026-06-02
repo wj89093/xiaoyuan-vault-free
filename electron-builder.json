@@ -24,13 +24,21 @@
     "target": [
       {
         "target": "dmg",
-        "arch": ["x64"]
+        "arch": ["x64", "arm64"]
       }
     ],
-    "category": "public.app-category.productivity"
+    "category": "public.app-category.productivity",
+    "extendInfo": {
+      "CFBundleName": "XiaoYuanVault"
+    }
   },
   "win": {
-    "target": ["nsis"]
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ]
   },
   "linux": {
     "target": [

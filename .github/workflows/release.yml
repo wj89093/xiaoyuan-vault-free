@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & upload on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact_glob: |
+              dist/*.dmg
+              dist/*.dmg.blockmap
+              dist/latest-mac.yml
+          - os: windows-latest
+            artifact_glob: |
+              dist/*.exe
+              dist/latest.yml
+          - os: ubuntu-latest
+            artifact_glob: |
+              dist/*.AppImage
+              dist/latest-linux.yml
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Package (macOS)
+        if: matrix.os == 'macos-latest'
+        run: npx electron-builder --config electron-builder.json --mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Skip code signing for unsigned CI builds
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npx electron-builder --config electron-builder.json --win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: npx electron-builder --config electron-builder.json --linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          fail_on_unmatched_files: false
+          files: ${{ matrix.artifact_glob }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
