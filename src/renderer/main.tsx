@@ -10,6 +10,7 @@ import './styles/panels.css'
 import 'katex/dist/katex.min.css'
 import './styles/callout.css'
 import './styles/variables.css'
+import './styles/skeleton.css'
 import { initTheme } from './utils/theme/themeManager'
 
 // Initialize theme (must be before App renders to prevent FOUC)

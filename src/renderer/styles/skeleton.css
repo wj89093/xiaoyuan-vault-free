@@ -1,0 +1,57 @@
+/* Skeleton — shimmer 动画 + 基础样式
+ * P2-2026-06-02: 统一加载占位
+ */
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--color-border, #d1d1d6) 0%,
+    var(--color-bg-secondary, #f5f5f7) 50%,
+    var(--color-border, #d1d1d6) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s linear infinite;
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border, #3a3a3c) 0%,
+    var(--color-bg-secondary, #1c1c1e) 50%,
+    var(--color-border, #3a3a3c) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+/* ── Micro-interaction: 按钮按下反馈 ───────────────────────────────── */
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+  transition: transform 100ms ease;
+}
+
+/* 全局应用,所有 .btn 都有 active 反馈 */
+
+/* ── 列表 stagger(留给未来用) ───────────────────────────────────────── */
+
+@keyframes skeleton-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.skeleton-fade-in {
+  animation: skeleton-fade-in 240ms ease forwards;
+}

@@ -1,16 +1,13 @@
- 
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import { memo, useState, useRef, useEffect, useMemo, type JSX } from 'react'
-import { FixedSizeList } from 'react-window'
+import { memo, useState, useRef, useEffect, useMemo } from 'react'
 import type { FileInfo } from '../types'
 import { FileTreeContextMenu } from './FileTreeContextMenu'
 import { Skeleton } from './Skeleton'
 import { FileTreeHoverPreview } from './FileTreeHoverPreview'
-import { Row } from './FileTreeRow'
+import { FileTreeNode } from './FileTreeNode'
+import { FileTreeFlatRow } from './FileTreeFlatRow'
 import { flattenTree, type FlatTreeItem } from '../utils/flattenTree'
-
-/** react-window FixedSizeList 行高(px) */
-const FILE_TREE_ROW_HEIGHT = 28
 
 interface FileTreeProps {
   files: FileInfo[]
@@ -18,9 +15,7 @@ interface FileTreeProps {
   onSelect: (path: string) => void
   onRefresh?: () => void
   onNewFile?: (folderPath: string) => void
-  // P3-2026-06-02: Pro 仓 FileTree 用了 _onNewFolder 但 Free 仓没声明
   onNewFolder?: (parentPath: string) => void
-  _onNewFolder?: (parentPath: string) => void
   vaultPath: string
   isSourceTab?: boolean
   isLoading?: boolean
@@ -41,48 +36,30 @@ function flattenToList(
 }
 
 export const FileTree = memo(function FileTree({
-  files,
-  selectedFile,
-  onSelect,
-  onRefresh,
-  onNewFile,
-  _onNewFolder,
-  vaultPath,
-  isSourceTab,
-  isLoading
+  files, selectedFile, onSelect, onRefresh,
+  onNewFile, _onNewFolder, vaultPath, isSourceTab, isLoading,
 }: FileTreeProps): JSX.Element {
+
   // ── State ─────────────────────────────────────────────────────────
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set([vaultPath, vaultPath + '/_wiki'])
   )
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(
-    null
-  )
-  const [hoverPreview, setHoverPreview] = useState<{
-    x: number
-    y: number
-    name: string
-    summary: string
-  } | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(null)
+  const [hoverPreview, setHoverPreview] = useState<{ x: number; y: number; name: string; summary: string } | null>(null)
   const [hoverError, setHoverError] = useState(false)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [dragError, setDragError] = useState<string | null>(null)
   const [focusedIndex, setFocusedIndex] = useState(-1)
-  // P3-2026-06-03 (Free 仓): 容器高度,FixedSizeList 需要
-  const [containerHeight, setContainerHeight] = useState(400)
 
   // ── Refs ───────────────────────────────────────────────────────────
-  // P3-2026-06-03: 虚拟化后 itemRefs 改由 FixedSizeList 内部 style 定位
-  // 保留 hoverTimer / flatItems / scrollTopRef
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | number | null>(null)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const flatItems = useRef<{ path: string; isDirectory: boolean }[]>([])
   // P3-1: preserve scroll position ref to avoid scrolling to top on files reload
   const scrollTopRef = useRef(0)
-  // P3-2026-06-03: FixedSizeList ref,用于 scrollToItem
-  const listRef = useRef<FixedSizeList>(null)
 
   // ── Derived ──────────────────────────────────────────────────────
-  const roots = files[0]?.children ? files : files.filter((f) => !f.path.includes('/'))
+  const roots = files[0]?.children ? files : files.filter(f => !f.path.includes('/'))
 
   // P3-1: capture scroll position before files refresh, restore after
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -90,25 +67,6 @@ export const FileTree = memo(function FileTree({
     if (!containerRef.current) return
     scrollTopRef.current = containerRef.current.scrollTop
   }, [files])
-
-  // P3-2026-06-03: ResizeObserver 测容器高度,FixedSizeList 需要
-  useEffect(() => {
-    if (!containerRef.current) return
-    const el = containerRef.current
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const h = entry.contentRect.height
-        if (h > 0 && Math.abs(h - containerHeight) > 1) {
-          setContainerHeight(h)
-        }
-      }
-    })
-    observer.observe(el)
-    // 初始 measure
-    if (el.clientHeight > 0) setContainerHeight(el.clientHeight)
-    return () => observer.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -125,13 +83,13 @@ export const FileTree = memo(function FileTree({
     if (focusedIndex >= flatItems.current.length) {
       setFocusedIndex(flatItems.current.length - 1)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files, expandedFolders, roots])
 
   // Auto-expand top-level directories when files become available
   useEffect(() => {
     if (files.length === 0) return
-    setExpandedFolders((prev) => {
+    setExpandedFolders(prev => {
       const next = new Set(prev)
       next.add(vaultPath)
       for (const f of files) {
@@ -171,8 +129,7 @@ export const FileTree = memo(function FileTree({
 
   const toggleFolder = (path: string) => {
     const next = new Set(expandedFolders)
-    if (next.has(path)) next.delete(path)
-    else next.add(path)
+    if (next.has(path)) next.delete(path); else next.add(path)
     setExpandedFolders(next)
   }
 
@@ -192,19 +149,9 @@ export const FileTree = memo(function FileTree({
         }
         if (!summary) {
           const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
-          summary = body
-            .split('\n')
-            .filter((l) => l.trim())
-            .slice(0, 2)
-            .join(' ')
-            .slice(0, 120)
+          summary = body.split('\n').filter(l => l.trim()).slice(0, 2).join(' ').slice(0, 120)
         }
-        setHoverPreview({
-          x: rect.right + 8,
-          y: rect.top,
-          name: file.name,
-          summary: summary || '(无内容)'
-        })
+        setHoverPreview({ x: rect.right + 8, y: rect.top, name: file.name, summary: summary || '(无内容)' })
         setHoverError(false)
       } catch (err) {
         console.error('[FileTree] hover preview failed:', err)
@@ -213,9 +160,7 @@ export const FileTree = memo(function FileTree({
     }, 300)
   }
 
-  const handleMouseLeave = () => {
-    clearTimeout(hoverTimer.current as ReturnType<typeof setTimeout>)
-  }
+  const handleMouseLeave = () => { clearTimeout(hoverTimer.current) }
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     e.dataTransfer.setData('text/plain', path)
@@ -243,9 +188,7 @@ export const FileTree = memo(function FileTree({
     setDropTarget(null)
     const srcPath = e.dataTransfer.getData('text/plain')
     if (srcPath && srcPath !== filePath) {
-      const parentDir = filePath.includes('/')
-        ? filePath.substring(0, filePath.lastIndexOf('/'))
-        : ''
+      const parentDir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : ''
       if (!parentDir) {
         setDragError('无法移动到根目录')
         setTimeout(() => setDragError(null), 5000)
@@ -291,7 +234,7 @@ export const FileTree = memo(function FileTree({
   const handleDragLeave = () => setDropTarget(null)
 
   const handleContextMenu = (e: React.MouseEvent, file: FlatTreeItem) => {
-    setContextMenu({ x: e.clientX, y: e.clientY, file: file as unknown as FileInfo })
+    setContextMenu({ x: e.clientX, y: e.clientY, file })
   }
 
   const handleTreeKeyDown = (e: React.KeyboardEvent) => {
@@ -300,13 +243,16 @@ export const FileTree = memo(function FileTree({
       e.preventDefault()
       const next = Math.min(focusedIndex + 1, items.length - 1)
       setFocusedIndex(next)
-      // P3-2026-06-03: 虚拟化模式,scrollToItem + 容器 focus,不再聚焦单行
-      listRef.current?.scrollToItem(next, 'smart')
+      itemRefs.current[next]?.focus()
+      // P3-1: scroll focused item into view
+      itemRefs.current[next]?.scrollIntoView({ block: 'nearest' })
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       const prev = Math.max(focusedIndex - 1, 0)
       setFocusedIndex(prev)
-      listRef.current?.scrollToItem(prev, 'smart')
+      itemRefs.current[prev]?.focus()
+      // P3-1: scroll focused item into view
+      itemRefs.current[prev]?.scrollIntoView({ block: 'nearest' })
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       const item = items[focusedIndex]
@@ -320,15 +266,10 @@ export const FileTree = memo(function FileTree({
 
   // ── Render ────────────────────────────────────────────────────────
 
-  // P3-2026-06-02: 派生拍平列表(给 FileTreeFlatRow 用)
-  // 暂未接入 react-window FixedSizeList,见 docs/PHASE3_PLAN_2026-06-02.md
-  // 必须放在 early return 之前,避免违反 React Hooks 顺序规则
-  const flatRows = useMemo(() => flattenTree(roots, expandedFolders), [roots, expandedFolders])
-
   if (isLoading) {
     return (
       <div className="file-tree" role="tree">
-        <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
+        <div style={{ padding: '12px 16px' }}>
           <Skeleton lines={4} />
         </div>
       </div>
@@ -337,41 +278,25 @@ export const FileTree = memo(function FileTree({
 
   const emptyLabel = vaultPath ? '暂无文件' : '知识库还是空的'
 
+  // P3-2026-06-02: 派生拍平列表(给 FileTreeFlatRow 用)
+  // 暂未接入 react-window FixedSizeList,见 docs/PHASE3_PLAN_2026-06-02.md
+  const flatRows = useMemo(
+    () => flattenTree(roots, expandedFolders),
+    [roots, expandedFolders],
+  )
+
   if (files.length === 0) {
     return (
       <div className="file-tree" role="tree">
         <div className="file-tree-empty">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#a1a1a6"
-            strokeWidth="1.2"
-          >
-            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" strokeWidth="1.2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
           </svg>
           <p>{emptyLabel}</p>
-          <p className="file-tree-empty-hint">
-            {vaultPath
-              ? '拖拽文件到此处，或点击上方 + 新建'
-              : '拖拽文件到此处，或点击下方打开知识库'}
-          </p>
-          <button
-            className="btn btn-secondary"
-            onClick={() => onNewFile?.('')}
-            style={{ marginTop: 8 }}
-            tabIndex={0}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M7 2v10M2 7h10" />
+          <p className="file-tree-empty-hint">{vaultPath ? '拖拽文件到此处，或点击上方 + 新建' : '拖拽文件到此处，或点击下方打开知识库'}</p>
+          <button className="btn btn-secondary" onClick={() => onNewFile?.()} style={{ marginTop: 8 }} tabIndex={0}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M7 2v10M2 7h10"/>
             </svg>
             {isSourceTab ? '导入文件' : '新建第一个文件'}
           </button>
@@ -387,10 +312,7 @@ export const FileTree = memo(function FileTree({
       onKeyDown={handleTreeKeyDown}
       tabIndex={-1}
       ref={containerRef}
-      onDragOver={(e) => {
-        e.preventDefault()
-        e.dataTransfer.dropEffect = 'move'
-      }}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
       onDrop={handleDropOnRoot}
     >
       {dragError && (
@@ -398,36 +320,54 @@ export const FileTree = memo(function FileTree({
           {dragError}
         </div>
       )}
-      {/* P3-2026-06-03 (Free 仓): FixedSizeList 虚拟化 — 只渲染可见 ~30 个节点 */}
-      {flatRows.length > 0 && (
-        <FixedSizeList
-          ref={listRef}
-          height={containerHeight}
-          width="100%"
-          itemCount={flatRows.length}
-          itemSize={FILE_TREE_ROW_HEIGHT}
-          itemData={{
-            items: flatRows,
-            expandedFolders,
-            selectedFile,
-            focusedIndex,
-            dropTarget,
-            callbacks: {
-              onToggle: toggleFolder,
-              onSelect,
-              onContextMenu: handleContextMenu,
-              onMouseEnter: handleMouseEnter,
-              onMouseLeave: handleMouseLeave,
-              onDragStart: handleDragStart,
-              onDropOnFolder: handleDropOnFolder,
-              onDropOnFile: handleDropOnFile,
-              onDragOver: handleDragOver,
-              onDragLeave: handleDragLeave,
-            },
-          }}
-        >
-          {Row}
-        </FixedSizeList>
+      {flatRows.length > 0 ? (
+        flatRows.map((item, i) => (
+          <FileTreeFlatRow
+            key={item.path}
+            item={item}
+            flatIdx={i}
+            expandedFolders={expandedFolders}
+            selectedFile={selectedFile}
+            focusedIndex={focusedIndex}
+            dropTarget={dropTarget}
+            onToggle={toggleFolder}
+            onSelect={onSelect}
+            onContextMenu={handleContextMenu}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnFile={handleDropOnFile}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            itemRefs={itemRefs}
+          />
+        ))
+      ) : (
+        // 拍平后为空(理论上不会发生,roots 一定非空)
+        roots.map((file, i) => (
+          <FileTreeNode
+            key={file.path}
+            file={file}
+            depth={0}
+            flatIdx={i}
+            expandedFolders={expandedFolders}
+            selectedFile={selectedFile}
+            focusedIndex={focusedIndex}
+            dropTarget={dropTarget}
+            onToggle={toggleFolder}
+            onSelect={onSelect}
+            onContextMenu={handleContextMenu}
+            onMouseLeave={handleMouseLeave}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnFile={handleDropOnFile}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            itemRefs={itemRefs}
+            flatItemsRef={flatItems}
+          />
+        ))
       )}
 
       {/* Hover preview */}
@@ -437,8 +377,7 @@ export const FileTree = memo(function FileTree({
           y={hoverPreview.y}
           name={hoverPreview.name}
           summary={hoverPreview.summary}
-          onClose={() => setHoverPreview(null)}
-              />
+        />
       )}
 
       {/* Context menu */}
@@ -450,34 +389,21 @@ export const FileTree = memo(function FileTree({
           onClose={() => setContextMenu(null)}
           onRename={async (oldPath, newName) => {
             try {
-              const parentDir = oldPath.includes('/')
-                ? oldPath.substring(0, oldPath.lastIndexOf('/'))
-                : vaultPath
+              const parentDir = oldPath.includes('/') ? oldPath.substring(0, oldPath.lastIndexOf('/')) : vaultPath
               await window.api.moveFile(oldPath, `${parentDir}/${newName}`)
               setContextMenu(null)
               onRefresh?.()
-            } catch (err) {
-              console.error('[FileTree] rename failed:', err)
-              setContextMenu(null)
-            }
+            } catch (err) { console.error('[FileTree] rename failed:', err); setContextMenu(null) }
           }}
           onDelete={async (filePath) => {
             try {
               await window.api.deleteFile(filePath)
               setContextMenu(null)
               onRefresh?.()
-            } catch (err) {
-              console.error('[FileTree] delete failed:', err)
-              setContextMenu(null)
-            }
+            } catch (err) { console.error('[FileTree] delete failed:', err); setContextMenu(null) }
           }}
           vaultPath={vaultPath}
-        
-              onRefresh={() => window.api.file.list?.()}
-              onNewFile={() => {}}
-              onNewFolder={() => {}}
-              onSelect={onSelect}
-            />
+        />
       )}
     </div>
   )

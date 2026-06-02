@@ -4,7 +4,7 @@
  * P2-2026-06-02: 之前 8+ 处 "加载中..." 硬编码,样式不统一。
  * 用 Skeleton 替代,提供 shimmer 动画 + 3 个 variant。
  */
-import { memo, type JSX } from 'react'
+import { memo } from 'react'
 
 export type SkeletonVariant = 'text' | 'block' | 'circle'
 
