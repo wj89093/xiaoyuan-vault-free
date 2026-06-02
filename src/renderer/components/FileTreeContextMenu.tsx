@@ -1,6 +1,5 @@
- 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, FolderPlus, FileText, Pencil, Trash2, Sparkles } from 'lucide-react'
+import { Plus, FolderPlus, FileText, Pencil, Trash2 } from 'lucide-react'
 import type { FileInfo } from '../types'
 import log from 'electron-log/renderer'
 
@@ -26,19 +25,19 @@ interface MenuItemDef {
 }
 
 export function FileTreeContextMenu({
-  x, y, file, vaultPath,
-  onClose, onRefresh, onNewFile, onNewFolder, onSelect,
+  x,
+  y,
+  file,
+  vaultPath,
+  onClose,
+  onRefresh,
+  onNewFile,
+  onNewFolder,
+  onSelect
 }: FileTreeContextMenuProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null)
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [visible, setVisible] = useState(false)
-  const [isPro, setIsPro] = useState(true)  // default true to keep Pro UX during initial render
-
-  useEffect(() => {
-    void (window.api.getBuildInfo?.() as Promise<{ isPro: boolean }> | undefined)
-      ?.then(info => setIsPro(info.isPro))
-      .catch(() => { /* ignore */ })
-  }, [])
 
   // Outside-click and Escape key handler
   useEffect(() => {
@@ -62,37 +61,116 @@ export function FileTreeContextMenu({
     }
   }, [onClose])
 
-  const baseItems: MenuItemDef[] = file.isDirectory ? [
-    { icon: <Plus size={14} />, label: '新建文件', action: () => { onClose(); onNewFile(file.path) } },
-    { icon: <FolderPlus size={14} />, label: '新建文件夹', action: () => { onClose(); onNewFolder(file.path) } },
-    { separator: true, icon: null, label: '', action: () => {} },
-    { icon: <FileText size={14} />, label: '打开', action: () => { onClose(); onSelect(file.path) } },
-    { separator: true, icon: null, label: '', action: () => {} },
-    { icon: <Pencil size={14} />, label: '重命名', action: () => { void handleRename() } },
-    { icon: <FileText size={14} />, label: '复制路径', action: () => { void handleCopyPath() } },
-    { icon: <FileText size={14} />, label: '在 Finder 中显示', action: () => { void handleReveal() } },
-    { separator: true, icon: null, label: '', action: () => {} },
-    { icon: <Trash2 size={14} />, label: '删除', action: () => { void handleDelete() }, danger: true },
-  ] : [
-    { icon: <FileText size={14} />, label: '打开', action: () => { onClose(); onSelect(file.path) } },
-    { icon: <Sparkles size={14} />, label: '转化', action: () => { void handleIngest() }, condition: isPro },
-    { separator: true, icon: null, label: '', action: () => {} },
-    { icon: <Pencil size={14} />, label: '重命名', action: () => { void handleRename() } },
-    { icon: <FileText size={14} />, label: '复制路径', action: () => { void handleCopyPath() } },
-    { icon: <FileText size={14} />, label: '在 Finder 中显示', action: () => { void handleReveal() } },
-    { separator: true, icon: null, label: '', action: () => {} },
-    { icon: <Trash2 size={14} />, label: '删除', action: () => { void handleDelete() }, danger: true },
-  ]
+  const baseItems: MenuItemDef[] = file.isDirectory
+    ? [
+        {
+          icon: <Plus size={14} />,
+          label: '新建文件',
+          action: () => {
+            onClose()
+            onNewFile(file.path)
+          }
+        },
+        {
+          icon: <FolderPlus size={14} />,
+          label: '新建文件夹',
+          action: () => {
+            onClose()
+            onNewFolder(file.path)
+          }
+        },
+        { separator: true, icon: null, label: '', action: () => {} },
+        {
+          icon: <FileText size={14} />,
+          label: '打开',
+          action: () => {
+            onClose()
+            onSelect(file.path)
+          }
+        },
+        { separator: true, icon: null, label: '', action: () => {} },
+        {
+          icon: <Pencil size={14} />,
+          label: '重命名',
+          action: () => {
+            void handleRename()
+          }
+        },
+        {
+          icon: <FileText size={14} />,
+          label: '复制路径',
+          action: () => {
+            void handleCopyPath()
+          }
+        },
+        {
+          icon: <FileText size={14} />,
+          label: '在 Finder 中显示',
+          action: () => {
+            void handleReveal()
+          }
+        },
+        { separator: true, icon: null, label: '', action: () => {} },
+        {
+          icon: <Trash2 size={14} />,
+          label: '删除',
+          action: () => {
+            void handleDelete()
+          },
+          danger: true
+        }
+      ]
+    : [
+        {
+          icon: <FileText size={14} />,
+          label: '打开',
+          action: () => {
+            onClose()
+            onSelect(file.path)
+          }
+        },
+        { separator: true, icon: null, label: '', action: () => {} },
+        {
+          icon: <Pencil size={14} />,
+          label: '重命名',
+          action: () => {
+            void handleRename()
+          }
+        },
+        {
+          icon: <FileText size={14} />,
+          label: '复制路径',
+          action: () => {
+            void handleCopyPath()
+          }
+        },
+        {
+          icon: <FileText size={14} />,
+          label: '在 Finder 中显示',
+          action: () => {
+            void handleReveal()
+          }
+        },
+        { separator: true, icon: null, label: '', action: () => {} },
+        {
+          icon: <Trash2 size={14} />,
+          label: '删除',
+          action: () => {
+            void handleDelete()
+          },
+          danger: true
+        }
+      ]
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const items = baseItems.filter(item => !item.separator && !item.condition)
+    const items = baseItems.filter((item) => !item.separator && !item.condition)
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setFocusedIndex(prev => (prev + 1) % items.length)
+      setFocusedIndex((prev) => (prev + 1) % items.length)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setFocusedIndex(prev => (prev - 1 + items.length) % items.length)
+      setFocusedIndex((prev) => (prev - 1 + items.length) % items.length)
     } else if (e.key === 'Enter' && focusedIndex >= 0) {
       e.preventDefault()
       items[focusedIndex]?.action()
@@ -124,15 +202,6 @@ export function FileTreeContextMenu({
     window.api.revealInFinder(file.path)
   }
 
-  const handleIngest = async () => {
-    log.info('[FileTree] handleIngest: opening AIChat with', file.path)
-    onClose()
-    const fileName = file.path.split('/').pop() ?? file.path
-    const prompt = `请帮我分析并转化这个文件：${fileName}`
-     
-    await (window.api as any).aiChat.showWithFiles([file.path], prompt)
-  }
-
   const handleCopyPath = async () => {
     onClose()
     await navigator.clipboard.writeText(file.path)
@@ -153,33 +222,38 @@ export function FileTreeContextMenu({
           opacity: visible ? 1 : 0,
           transform: visible ? 'scale(1)' : 'scale(0.95)',
           transition: 'opacity 100ms ease, transform 100ms ease',
-          transformOrigin: 'top left',
+          transformOrigin: 'top left'
         }}
-        onClick={e => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation() }}
+        onClick={(e) => {
+          e.stopPropagation()
+          e.nativeEvent.stopImmediatePropagation()
+        }}
         onKeyDown={handleKeyDown}
       >
-      {baseItems.filter(item => !item.separator || true).map((item, i) => {
-        if (item.separator) {
-          return <div key={i} className="context-menu-separator" />
-        }
-        // Skip items with condition === false
-        if (item.condition === false) return null
-        const isFocused = itemIndex === focusedIndex
-        const currentItemIndex = itemIndex
-        itemIndex++
-        return (
-          <div
-            key={i}
-            role="menuitem"
-            className={`context-menu-item${item.danger ? ' danger' : ''}${isFocused ? ' focused' : ''}`}
-            onClick={item.action}
-            onMouseEnter={() => setFocusedIndex(currentItemIndex)}
-            style={isFocused ? { background: 'var(--color-surface-hover, #f0f0f5)' } : {}}
-          >
-            {item.icon} {item.label}
-          </div>
-        )
-      })}
+        {baseItems
+          .filter((item) => !item.separator || true)
+          .map((item, i) => {
+            if (item.separator) {
+              return <div key={i} className="context-menu-separator" />
+            }
+            // Skip items with condition === false
+            if (item.condition === false) return null
+            const isFocused = itemIndex === focusedIndex
+            const currentItemIndex = itemIndex
+            itemIndex++
+            return (
+              <div
+                key={i}
+                role="menuitem"
+                className={`context-menu-item${item.danger ? ' danger' : ''}${isFocused ? ' focused' : ''}`}
+                onClick={item.action}
+                onMouseEnter={() => setFocusedIndex(currentItemIndex)}
+                style={isFocused ? { background: 'var(--color-surface-hover, #f0f0f5)' } : {}}
+              >
+                {item.icon} {item.label}
+              </div>
+            )
+          })}
       </div>
     </>
   )
