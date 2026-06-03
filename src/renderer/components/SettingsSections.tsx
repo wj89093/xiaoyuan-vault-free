@@ -114,15 +114,10 @@ export const SkillSection = memo(function SkillSection({ vaultPath, onOpenFile }
     } catch { /* ignore */ }
   }
 
-  const handleOpen = async () => {
+  const handleOpen = () => {
     if (!vaultPath || !onOpenFile) return
-    try {
-      const files: Array<{ path: string }> = (await window.api.listFiles?.()) ?? []
-      const skillFile = files.find((f) => f.path === 'Skill.md' || f.path === 'AGENTS.md')
-      if (skillFile) {
-        onOpenFile(vaultPath + '/' + skillFile.path)
-      }
-    } catch { /* ignore */ }
+    // 优先 Skill.md，其次 AGENTS.md
+    onOpenFile(vaultPath + '/Skill.md')
   }
 
   return (
