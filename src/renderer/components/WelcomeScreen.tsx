@@ -12,10 +12,6 @@ import {
   Layers,
   Bot,
   ArrowDownToLine,
-  User,
-  LogIn,
-  LogOut,
-  Loader2,
   Copy,
   Download
 } from 'lucide-react'
@@ -56,36 +52,10 @@ export function WelcomeScreen({
   // P2-3: document count per vault
   const [docCounts, setDocCounts] = useState<Record<string, number>>({})
 
-  // Login state
-  const [authEmail, setAuthEmail] = useState<string | null>(null)
-  const [authLoading, setAuthLoading] = useState(false)
-  const [loginEmail, setLoginEmail] = useState('')
-  const [loginCode, setLoginCode] = useState('')
-  const [loginHint, setLoginHint] = useState('')
-  const [loginOpen, setLoginOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-
   useEffect(() => {
     // Trigger mount animation
     const t = setTimeout(() => setMounted(true), 16)
-    // Check existing auth
-    void (async () => {
-      try {
-        const e = await window.api.authGetEmail?.()
-        setAuthEmail(e)
-      } catch {
-        /* ignore */
-      }
-      const unsub = (window.api as any).onAuthTokenReceived?.(
-        (data: { token: string; email: string }) => {
-          setAuthEmail(data.email)
-        }
-      )
-      return () => {
-        unsub?.()
-      }
-    })()
-    void (async () => {
+void (async () => {
       const counts: Record<string, number> = {}
       for (const vault of vaults) {
         try {
@@ -105,24 +75,6 @@ export function WelcomeScreen({
     })()
     return () => clearTimeout(t)
   }, [vaults])
-
-  const handleLogin = async () => {
-    if (!loginEmail || !loginCode) {
-      setLoginHint('请输入邮箱和验证码')
-      return
-    }
-    setAuthLoading(true)
-    setLoginHint('')
-    try {
-      const result = await (window.api as any).authDebugLogin?.(loginEmail, loginCode)
-      setAuthEmail(result?.email ?? loginEmail)
-      setLoginOpen(false)
-      setLoginHint('')
-    } catch (err) {
-      setLoginHint('登录失败：' + (err instanceof Error ? err.message : String(err)))
-    }
-    setAuthLoading(false)
-  }
 
   if (showOnboarding) {
     const handleCopySkill = async () => {
@@ -296,184 +248,6 @@ export function WelcomeScreen({
         transition: 'opacity 300ms ease'
       }}
     >
-      {/* ── 账户状态栏 ── */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 16,
-          right: 20,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8
-        }}
-      >
-        {authEmail ? (
-          <div style={{ position: 'relative' }}>
-            <button
-              className="btn btn-ghost"
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 12,
-                padding: '4px 10px',
-                color: 'var(--color-accent)'
-              }}
-            >
-              <User size={14} />
-              <span>{authEmail.split('@')[0]}</span>
-            </button>
-            {userMenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: 4,
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 8,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                  overflow: 'hidden',
-                  minWidth: 140,
-                  zIndex: 100
-                }}
-              >
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    setUserMenuOpen(false)
-                    setAuthEmail(null)
-                    setLoginEmail('')
-                    setLoginCode('')
-                    setLoginOpen(true)
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    width: '100%',
-                    padding: '8px 14px',
-                    fontSize: 12,
-                    borderRadius: 0,
-                    border: 'none'
-                  }}
-                >
-                  <User size={13} /> 切换账号
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    setUserMenuOpen(false)
-                    await window.api.authClear?.()
-                    setAuthEmail(null)
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    width: '100%',
-                    padding: '8px 14px',
-                    fontSize: 12,
-                    borderRadius: 0,
-                    border: 'none',
-                    color: 'var(--color-red)'
-                  }}
-                >
-                  <LogOut size={13} /> 退出登录
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <button
-              className="btn btn-ghost"
-              onClick={() => setLoginOpen(!loginOpen)}
-              style={{ fontSize: 12, padding: '4px 12px' }}
-            >
-              <User size={13} /> 注册
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={() => setLoginOpen(!loginOpen)}
-              style={{ fontSize: 12, padding: '4px 12px' }}
-            >
-              <LogIn size={13} /> 登录
-            </button>
-          </>
-        )}
-        {loginHint && <span style={{ fontSize: 10, color: 'var(--color-red)' }}>{loginHint}</span>}
-      </div>
-
-      {/* ── 登录/注册弹窗 ── */}
-      {loginOpen && !authEmail && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 48,
-            right: 20,
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 10,
-            padding: 16,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-            zIndex: 100,
-            minWidth: 280
-          }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>邮箱登录</div>
-          <input
-            type="email"
-            placeholder="邮箱地址"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            autoFocus
-            style={{
-              width: '100%',
-              padding: '6px 10px',
-              borderRadius: 6,
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-bg-secondary)',
-              color: 'var(--color-text)',
-              fontSize: 12,
-              marginBottom: 8
-            }}
-          />
-          <input
-            type="text"
-            placeholder="验证码 (调试: 123456)"
-            value={loginCode}
-            onChange={(e) => setLoginCode(e.target.value)}
-            maxLength={6}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') void handleLogin()
-            }}
-            style={{
-              width: '100%',
-              padding: '6px 10px',
-              borderRadius: 6,
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-bg-secondary)',
-              color: 'var(--color-text)',
-              fontSize: 12,
-              marginBottom: 10
-            }}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              void handleLogin()
-            }}
-            disabled={authLoading}
-            style={{ width: '100%', fontSize: 13, padding: '6px 0' }}
-          >
-            {authLoading ? <Loader2 size={13} className="animate-spin" /> : '登录'}
-          </button>
-        </div>
-      )}
-
       <Library className="welcome-icon" size={48} strokeWidth={1.5} />
 
       <div className="welcome-hero">
