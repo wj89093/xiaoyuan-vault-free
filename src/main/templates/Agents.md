@@ -50,7 +50,8 @@
    - 生成 summary（30-60 字）
    - 提取 tags（3-5 个）
 4. write(_wiki/{topic}/{title}.md, frontmatter + 正文)
-5. edit(log.md, lastEntry, newEntry)   → 追加操作日志（append-only，不重写历史）
+5. edit(index.md)                      → 更新索引（新增/更新 topic 条目 + 页面链接）
+6. edit(log.md, lastEntry, newEntry)   → 追加操作日志（append-only，不重写历史）
 ```
 
 **⚠️ 注意事项：**
