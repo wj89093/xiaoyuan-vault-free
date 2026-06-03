@@ -55,14 +55,6 @@ export function IconSidebar({
       setClicked(id)
 
       try {
-        // toggle: 同一视图开着 → 关
-        if (activeView === id) {
-          window.api.bubbleExpand?.()
-          lastClickedRef.current = null
-          setTimeout(() => setClicked((c) => (c === id ? null : c)), 500)
-          return
-        }
-
         if (id === 'search') {
           await onSearchFocus?.()
         } else if (id === 'review') {
@@ -94,7 +86,6 @@ export function IconSidebar({
       }
     },
     [
-      activeView,
       onViewChange,
       onSearchFocus,
       onBriefingClick,

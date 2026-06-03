@@ -120,7 +120,6 @@ export function VaultRouter({
         onViewChange={handleViewChange}
         onSearchFocus={() => ui.setShowSearchFloat(((v) => !v) as any)}
         onBriefingClick={() => {
-          ui.setActiveView('review')
           ui.setShowBriefing(((v) => !v) as any)
         }}
         onSchemaClick={() => ui.setShowSchema(((v) => !v) as any)}

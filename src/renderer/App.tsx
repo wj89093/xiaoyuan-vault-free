@@ -249,6 +249,15 @@ function App(): JSX.Element {
   // ── IconSidebar view routing ──────────────────────────────────────
   const handleViewChange = useCallback(
     (view: string) => {
+      // Toggle: if already on this view, close the panel
+      if (ui.activeView === view) {
+        if (view === 'graph') setShowGraph(false)
+        if (view === 'lint') ui.setShowLint(false)
+        if (view === 'log') ui.setShowLog(false)
+        if (view === 'settings') ui.setShowSettings(false)
+        ui.setActiveView('')
+        return
+      }
       ui.setActiveView(view)
       if (view === 'graph') {
         setShowGraph((v) => !v)
