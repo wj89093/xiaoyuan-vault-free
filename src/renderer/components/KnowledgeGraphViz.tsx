@@ -229,8 +229,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
 
     // Nodes
     const ng = mainG.append('g')
-    const nodeSel = ng
-      (mainG.selectAll('g') as any)
+    const nodeSel = (mainG.selectAll('g') as any)
       .data(connectedNodes)
       .enter()
       .append('g')
