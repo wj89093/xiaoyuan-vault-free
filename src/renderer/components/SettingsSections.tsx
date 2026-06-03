@@ -12,7 +12,7 @@
  * 减少 re-render 半径,避免 15 useState 单体组件。
  */
 import { useState, useEffect, memo, type JSX } from 'react'
-import { Sun, Moon, Monitor, User, LogIn, LogOut, Loader2, Plug, Copy, Check, Trash2, RefreshCw, Save } from 'lucide-react'
+import { Sun, Moon, Monitor, Plug, Copy, Check, Trash2, RefreshCw, Save } from 'lucide-react'
 
 // ─── ThemeSection ─────────────────────────────────────────────────────
 
