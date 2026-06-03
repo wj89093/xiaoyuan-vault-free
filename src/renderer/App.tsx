@@ -1,8 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, lazy, Suspense } from 'react'
 import React from 'react'
 import { QuickSwitch } from './components/QuickSwitch'
-import { KnowledgeGraph } from './components/KnowledgeGraph'
+// P4-2026-06-02 (backport): lazy 加载 - 知识图谱只在用户点击图标时显示,首屏不加载 vendor-d3(691KB)
+const KnowledgeGraph = lazy(() =>
+  import('./components/KnowledgeGraph').then(m => ({ default: m.KnowledgeGraph })),
+)
 import { ShortcutGuide } from './components/ShortcutGuide'
 import { MermaidTest } from './components/MermaidTest'
 import { VaultRouter } from './components/VaultRouter'
@@ -13,6 +16,7 @@ import { useKeyboardShortcuts, useGlobalShortcuts } from './hooks/useKeyboardSho
 
 import { useImportObserver } from './hooks/useImportObserver'
 import { useToasts } from './components/Toast'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // ── Settings event listener hook ────────────────────────────────────
 function useSettingsListener(
@@ -266,47 +270,70 @@ function App(): JSX.Element {
     [ui, setShowGraph, openSettings, openLint, openLog]
   )
 
+  // P1-2026-06-02 (backport): stable callbacks for memoized KnowledgeGraph / ShortcutGuide
+  const handleGraphSelect = useCallback((path: string) => {
+    void vaultState.handleSelectFile(path)
+    setShowGraph(false)
+  }, [vaultState.handleSelectFile, setShowGraph])
+  const handleGraphClose = useCallback(() => setShowGraph(false), [setShowGraph])
+  const handleShortcutsClose = useCallback(() => setShowShortcuts(false), [setShowShortcuts])
+
   // ── Render ────────────────────────────────────────────────────────
   return (
-    <div className="app-container">
-      {showQuickSwitch && (
-        <QuickSwitch
-          files={files}
-          recentFiles={vaultState.recentFiles}
-          onSelect={(path: string) => {
-            setSelectedFile(path)
-            setShowQuickSwitch(false)
-          }}
-          onClose={() => setShowQuickSwitch(false)}
-        />
-      )}
-      {showGraph && vaultPath && (
-        <div className="kg-overlay">
-          <KnowledgeGraph
+    <ErrorBoundary>
+      <div className="app-container">
+        {showQuickSwitch && (
+          <QuickSwitch
             files={files}
-            selectedFile={selectedFile}
-            onSelect={(path) => {
-              vaultState.handleSelectFile(path)
-              setShowGraph(false)
+            recentFiles={vaultState.recentFiles}
+            onSelect={(path: string) => {
+              setSelectedFile(path)
+              setShowQuickSwitch(false)
             }}
-            onClose={() => setShowGraph(false)}
+            onClose={() => setShowQuickSwitch(false)}
           />
-        </div>
-      )}
-      {showShortcuts && <ShortcutGuide onClose={() => setShowShortcuts(false)} />}
+        )}
+        {showGraph && vaultPath && (
+          <div className="kg-overlay">
+            <Suspense
+              fallback={
+                <div className="kg-skeleton" role="status" aria-live="polite" aria-label="加载中">
+                  <div className="kg-skeleton-header">
+                    <div className="skeleton-line skeleton-line-title" />
+                    <div className="skeleton-line skeleton-line-stat" />
+                  </div>
+                  <div className="kg-skeleton-body">
+                    <div className="kg-skeleton-node kg-skeleton-node-1" />
+                    <div className="kg-skeleton-node kg-skeleton-node-2" />
+                    <div className="kg-skeleton-node kg-skeleton-node-3" />
+                  </div>
+                </div>
+              }
+            >
+              <KnowledgeGraph
+                files={files}
+                selectedFile={selectedFile}
+                onSelect={handleGraphSelect}
+                onClose={handleGraphClose}
+              />
+            </Suspense>
+          </div>
+        )}
+        {showShortcuts && <ShortcutGuide onClose={handleShortcutsClose} />}
 
-      <VaultRouter
-        vaultState={vaultState}
-        ui={ui}
-        toasts={toasts}
-        dismissToast={dismissToast}
-        handleOpenVaultItem={handleOpenVaultItem}
-        handleDeleteVault={handleDeleteVault}
-        handleEditorWikiLink={handleEditorWikiLink}
-        handleReference={handleReference}
-        handleViewChange={handleViewChange}
-      />
-    </div>
+        <VaultRouter
+          vaultState={vaultState}
+          ui={ui}
+          toasts={toasts}
+          dismissToast={dismissToast}
+          handleOpenVaultItem={handleOpenVaultItem}
+          handleDeleteVault={handleDeleteVault}
+          handleEditorWikiLink={handleEditorWikiLink}
+          handleReference={handleReference}
+          handleViewChange={handleViewChange}
+        />
+      </div>
+    </ErrorBoundary>
   )
 }
 
