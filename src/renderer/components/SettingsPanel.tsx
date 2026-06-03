@@ -37,7 +37,7 @@ export const SettingsPanel = memo(function SettingsPanel({
     >
       <div className="settings-body">
         <ThemeSection />
-        <SkillSection onOpenFile={_onSelectFile} />
+        <SkillSection vaultPath={_vaultPath} onOpenFile={_onSelectFile} />
       </div>
     </FloatingPanel>
   )

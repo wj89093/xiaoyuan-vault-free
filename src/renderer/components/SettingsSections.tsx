@@ -102,7 +102,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
 //
 // Free 仓: 简化版 — 复制 + 打开 Skill.md
 
-export const SkillSection = memo(function SkillSection({ onOpenFile }: { onOpenFile?: (path: string) => void }): JSX.Element {
+export const SkillSection = memo(function SkillSection({ vaultPath, onOpenFile }: { vaultPath?: string | null; onOpenFile?: (path: string) => void }): JSX.Element {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -114,18 +114,15 @@ export const SkillSection = memo(function SkillSection({ onOpenFile }: { onOpenF
     } catch { /* ignore */ }
   }
 
-  const handleOpen = () => {
-    // 找 vault 根目录下的 Skill.md 或 AGENTS.md
-    window.api.getVaultPath?.().then((vaultPath: string | null) => {
-      if (!vaultPath) return
-      // 优先找 Skill.md，其次 AGENTS.md
-      window.api.listFiles?.().then((files: Array<{ path: string }>) => {
-        const skillFile = files.find((f) => f.path === 'Skill.md' || f.path === 'AGENTS.md')
-        if (skillFile && onOpenFile) {
-          onOpenFile(vaultPath + '/' + skillFile.path)
-        }
-      })
-    })
+  const handleOpen = async () => {
+    if (!vaultPath || !onOpenFile) return
+    try {
+      const files: Array<{ path: string }> = (await window.api.listFiles?.()) ?? []
+      const skillFile = files.find((f) => f.path === 'Skill.md' || f.path === 'AGENTS.md')
+      if (skillFile) {
+        onOpenFile(vaultPath + '/' + skillFile.path)
+      }
+    } catch { /* ignore */ }
   }
 
   return (
