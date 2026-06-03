@@ -128,7 +128,6 @@ export function VaultRouter({
         onOpenOutput={() => ui.setShowOutput(((v) => !v) as any)}
         onIndexClick={() => {
           ui.setShowIndexFloat(((v) => !v) as any)
-          ui.setActiveView('index')
         }}
       />
       <Sidebar
