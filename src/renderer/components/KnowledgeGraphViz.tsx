@@ -8,7 +8,9 @@
 import { memo, useEffect, useRef, useMemo, type JSX } from 'react'
 import { useD3 } from '../hooks/useD3'
 import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3-force'
-// P3-2026-06-03: d3 types are used via D3Context, not direct import
+// P3-2026-06-03: d3 main package 加 types (d3.zoom, d3.select 等)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as d3 from 'd3'
 
 export interface GLink extends SimulationLinkDatum<GNode> {
   source: string | GNode
