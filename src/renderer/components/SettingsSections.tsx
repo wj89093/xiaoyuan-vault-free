@@ -118,12 +118,16 @@ export const SkillSection = memo(function SkillSection({ vaultPath, onOpenFile }
     if (!vaultPath || !onOpenFile) return
     try {
       const files: Array<{ path: string; isDirectory?: boolean }> = (await window.api.listFiles?.()) ?? []
-      // 优先 AGENTS.md，其次 Skill.md
       const target = files.find((f) => !f.isDirectory && (f.path === 'AGENTS.md' || f.path === 'Skill.md'))
       if (target) {
         onOpenFile(vaultPath + '/' + target.path)
       } else {
-        alert('vault 中没有找到 AGENTS.md 或 Skill.md')
+        // vault 里没有，从 templates 复制过来
+        const content = (await window.api.skillLoadDefault?.()) || ''
+        if (content) {
+          await window.api.writeFile?.(vaultPath + '/AGENTS.md', content)
+          onOpenFile(vaultPath + '/AGENTS.md')
+        }
       }
     } catch { /* ignore */ }
   }
