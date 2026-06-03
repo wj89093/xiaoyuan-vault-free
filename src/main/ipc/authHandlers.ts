@@ -23,7 +23,7 @@ function isValidJWTPayload(
       email?: string
       exp?: number
     }
-    if (!decoded.sub && !decoded.email && !decoded.userId) return null // must have identity
+    if (!decoded.sub && !decoded.email) return null // must have identity
     if (decoded.exp !== undefined && decoded.exp < Date.now() / 1000) return null // expired
     return decoded
   } catch {

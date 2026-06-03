@@ -90,7 +90,7 @@ export function IconSidebar({
         // Failure: reset to previous value, log and notify user
         console.error('[IconSidebar] handleClick failed:', err)
         setClicked(prev)
-        if (window.toast) window.toast.error('操作失败，请重试')
+        if (window.toast) window.toast('操作失败，请重试')
       }
     },
     [

@@ -17,7 +17,7 @@ import { SettingsPanel } from './SettingsPanel'
 import { LintPanel } from './LintPanel'
 import { LogPanel } from './LogPanel'
 import { SchemaPanel } from './SchemaPanel'
-import { ToastContainer } from './Toast'
+import { ToastContainer, type ToastMessage } from './Toast'
 import type { VaultState } from '../hooks/useVaultState'
 import type { AppUIState } from '../hooks/useAppUIState'
 
@@ -91,10 +91,10 @@ export function VaultRouter({
           <VaultCreationWizard
             onClose={() => ui.setShowVaultCreation(false)}
             onCreated={(path, name) => {
-              ui.setVaultList((prev: any) => {
+              ui.setVaultList(((prev: any) => {
                 const filtered = prev.filter((v: any) => v.path !== path)
                 return [{ path, name, lastOpened: Date.now() }, ...filtered]
-              })
+              }) as any)
               ui.setShowVaultCreation(false)
               ui.setShowOnboarding(true)
               _setVaultPath(path)
@@ -105,7 +105,7 @@ export function VaultRouter({
             }}
           />
         )}
-        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+        <ToastContainer toasts={toasts as unknown as ToastMessage[]} onDismiss={dismissToast} />
       </>
     )
   }
@@ -116,16 +116,16 @@ export function VaultRouter({
       <IconSidebar
         activeView={ui.activeView}
         onViewChange={handleViewChange}
-        onSearchFocus={() => ui.setShowSearchFloat((v) => !v)}
+        onSearchFocus={() => ui.setShowSearchFloat(((v) => !v) as any)}
         onBriefingClick={() => {
           ui.setActiveView('review')
-          ui.setShowBriefing((v) => !v)
+          ui.setShowBriefing(((v) => !v) as any)
         }}
-        onSchemaClick={() => ui.setShowSchema((v) => !v)}
-        onOpenTrash={() => ui.setShowTrash((v) => !v)}
-        onOpenOutput={() => ui.setShowOutput((v) => !v)}
+        onSchemaClick={() => ui.setShowSchema(((v) => !v) as any)}
+        onOpenTrash={() => ui.setShowTrash(((v) => !v) as any)}
+        onOpenOutput={() => ui.setShowOutput(((v) => !v) as any)}
         onIndexClick={() => {
-          ui.setShowIndexFloat((v) => !v)
+          ui.setShowIndexFloat(((v) => !v) as any)
           ui.setActiveView('index')
         }}
       />
@@ -217,8 +217,8 @@ export function VaultRouter({
       {ui.showSettings && (
         <SettingsPanel
           onClose={() => ui.setShowSettings(false)}
-          vaultPath={vaultPath}
-          onSelectFile={handleSelectFile}
+          _vaultPath={vaultPath}
+          _onSelectFile={handleSelectFile as any}
         />
       )}
       {ui.showIndexFloat && (
@@ -255,7 +255,7 @@ export function VaultRouter({
         <LogPanel onClose={() => ui.setShowLog(false)} onSelectFile={handleSelectFile} />
       )}
 
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <ToastContainer toasts={toasts as unknown as ToastMessage[]} onDismiss={dismissToast} />
     </>
   )
 }

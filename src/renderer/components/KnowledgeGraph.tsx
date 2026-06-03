@@ -121,7 +121,7 @@ async function loadGraph(): Promise<{ nodes: GNode[]; links: GLink[] }> {
     linkedIds.add(typeof l.target === 'string' ? l.target : (l.target as GNode).id)
   }
   for (const [id, n] of nodeMap) {
-    if (n.edge_count > 0) linkedIds.add(id)
+    if ((n.edge_count ?? 0) > 0) linkedIds.add(id)
   }
 
   const nodes = [...nodeMap.values()].filter((n) => linkedIds.has(n.id))

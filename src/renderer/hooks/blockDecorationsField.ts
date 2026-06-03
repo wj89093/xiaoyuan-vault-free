@@ -54,7 +54,7 @@ export const blockDecorationsField = StateField.define<DecorationSet>({
     return buildAllBlockDecorations(state)
   },
   update(decos, tr) {
-    if (tr.docChanged || tr.viewportChanged) {
+    if (tr.docChanged || (tr as any).viewportChanged) {
       return buildAllBlockDecorations(tr.state)
     }
     return decos.map(tr.changes)

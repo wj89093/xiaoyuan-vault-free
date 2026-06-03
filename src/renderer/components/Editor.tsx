@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { memo, useRef, useState, useEffect, type JSX } from 'react'
+import { memo, useRef, useState, useEffect, useCallback, type JSX } from 'react'
 import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
@@ -7,11 +7,15 @@ import { EditorContextMenu } from '../components/EditorContextMenu'
 import { createFormatCommands, type EditorFormatCommands } from '../utils/editorFormat'
 
 interface EditorProps {
+  /** Free 仓 v1.4: Pro 仓用 key (vaultState.selectedFile) - 加 optional */
+  key?: string
   value: string
   onChange: (value: string) => void
   onWikiLinkNavigate?: (target: string) => void
   nativePreview?: any
   isNativePreview?: boolean
+  /** P3-2026-06-03: Pro 仓的 reference handler (cross-doc link) - Free 暂用 any */
+  onReference?: (ref: any) => void
 }
 
 export const DocxViewer = memo(function DocxViewer({
@@ -31,7 +35,7 @@ export const DocxViewer = memo(function DocxViewer({
     const wrapper = wrapperRef.current
     if (!wrapper) return
     let cancelled = false
-    let timeout: ReturnType<typeof setTimeout>
+    let timeout: ReturnType<typeof setTimeout> | null = null
     void (async () => {
       if (!dataUrl) {
         setState('fail')
@@ -62,11 +66,11 @@ export const DocxViewer = memo(function DocxViewer({
           breakPages: true,
           useBase64URL: true
         })
-        clearTimeout(timeout)
+        clearTimeout(timeout as ReturnType<typeof setTimeout>)
         if (!cancelled) setState('ready')
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_err) {
-        clearTimeout(timeout)
+        clearTimeout(timeout as ReturnType<typeof setTimeout>)
         if (!cancelled) setState('fail')
       }
     })()
@@ -139,7 +143,7 @@ export const XlsxViewer = memo(function XlsxViewer({ dataUrl }: { dataUrl: strin
 
   useEffect(() => {
     let cancelled = false
-    let timeout: ReturnType<typeof setTimeout>
+    let timeout: ReturnType<typeof setTimeout> | null = null
     void (async () => {
       try {
         const raw = dataUrl.split(',')[1]
@@ -160,16 +164,16 @@ export const XlsxViewer = memo(function XlsxViewer({ dataUrl }: { dataUrl: strin
           if (!cancelled) setState('fail')
         }, 15_000)
         if (cancelled) {
-          clearTimeout(timeout)
+          clearTimeout(timeout as ReturnType<typeof setTimeout>)
           return
         }
         setSheetNames(names)
         setSheets(sheetData)
         setActiveSheet(names[0] || '')
-        clearTimeout(timeout)
+        clearTimeout(timeout as ReturnType<typeof setTimeout>)
         if (!cancelled) setState('ready')
       } catch (err) {
-        clearTimeout(timeout)
+        clearTimeout(timeout as ReturnType<typeof setTimeout>)
         console.warn('[XlsxViewer] failed:', err)
         if (!cancelled) setState('fail')
       }
@@ -279,7 +283,7 @@ export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: strin
           }
         }, 20000)
         await viewer.preview(arrayBuffer)
-        clearTimeout(timeout)
+        clearTimeout(timeout as ReturnType<typeof setTimeout>)
         setTimeout(() => {
           if (!cancelled && content.children.length <= 1) setState('fail')
           else if (!cancelled) setState('ready')

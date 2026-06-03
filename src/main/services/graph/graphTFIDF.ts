@@ -178,7 +178,7 @@ export function tokenize(text: string): Map<string, number> {
 // ============ TF-IDF ============
 
 export function computeTFIDF(documents: TFIDFDocument[]): {
-  vectors: Map<string, Map<string, number>>[]
+  vectors: Map<string, number>[]
   idf: Map<string, number>
 } {
   const N = documents.length
@@ -209,7 +209,7 @@ export function computeTFIDF(documents: TFIDFDocument[]): {
   }
 
   // TF-IDF vectors
-  const vectors: Map<string, Map<string, number>>[] = []
+  const vectors: Map<string, number>[] = []
   for (const doc of documents) {
     const vec = new Map<string, number>()
     const totalTokens = [...doc.tokens.values()].reduce((a, b) => a + b, 0) || 1
@@ -256,7 +256,7 @@ function edgeKey(source: string, target: string, type: string): string {
 
 export function buildEdges(
   documents: TFIDFDocument[],
-  vectors: Map<string, Map<string, number>>[],
+  vectors: Map<string, number>[],
   _idf: Map<string, number>
 ): GraphEdge[] {
   const edges: GraphEdge[] = []

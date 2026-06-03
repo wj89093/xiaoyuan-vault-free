@@ -37,8 +37,8 @@ export function SchemaPanel({ onClose }: SchemaPanelProps): JSX.Element {
         setLoaded(true)
         return
       }
-      const schemas = await window.api.listSchemas(vaultPath)
-      setAllSchemas(schemas)
+      const schemas = await window.api.listSchemas?.(vaultPath)
+      setAllSchemas((schemas ?? []) as never)
     } catch (err) {
       console.error('[SchemaPanel] loadSchemas failed:', err) /* ignore */
     }

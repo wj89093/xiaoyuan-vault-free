@@ -33,7 +33,7 @@ export function registerImportHandlers(): void {
   ipcMain.handle('import:saveUrl', async (_, url: string, vaultPath: string) => {
     try {
       const result = await fetchURL(url)
-      return saveURLToVault(url, vaultPath, result)
+      return saveURLToVault(url, vaultPath, result.title)
     } catch (err) {
       log.error('saveUrl error:', err)
       throw err
@@ -46,7 +46,7 @@ export function registerImportHandlers(): void {
 
   ipcMain.handle('url:save', async (_, url: string, vaultPath: string) => {
     const result = await fetchURL(url)
-    return saveURLToVault(url, vaultPath, result)
+    return saveURLToVault(url, vaultPath, result.title)
   })
 
   // ── File import → vault ──────────────────────────────────────────────

@@ -5,17 +5,16 @@
  * All implementation has moved to ./useWikiLinks/
  *
  * Usage (unchanged):
- *   import { wikiLinksExtension, type WikiLinksConfig, ... } from './useWikiLinks'
+ *   import { wikiLinksExtension, type WikiLinksConfig, ... } from './useWikiLinks/index'
  */
 export {
   wikiLinksExtension,
   WikiLinkWidget,
   parseWikiLinks,
   findPartialLinkAt,
-  findLinkAtPos,
   type WikiLinkStatus,
   type WikiLinkSuggestion,
   type WikiLinkResolvedTarget,
   type WikiLinksConfig,
   type ParsedWikiLink
-} from './useWikiLinks'
+} from './useWikiLinks/index'

@@ -1,4 +1,4 @@
-import { ipcMain, dialog, app, type BrowserWindow } from 'electron'
+import { ipcMain, dialog, app, BrowserWindow } from 'electron'
 import { getMainWindowRef } from '../mainWindowRef'
 import { mkdir, writeFile, readFile, symlink } from 'fs/promises'
 import { join } from 'path'
@@ -114,7 +114,7 @@ function registerVaultLifecycleHandlers(): void {
     const result = await dialog.showSaveDialog(mainWindow!, {
       title: '新建知识库',
       buttonLabel: '创建知识库',
-      nameFieldStringValue: '我的知识库',
+      defaultPath: '我的知识库',
       properties: ['createDirectory']
     })
     if (!result.canceled && result.filePath) {

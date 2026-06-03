@@ -39,8 +39,7 @@ export function VersionHistoryPanel({
   useEffect(() => {
     if (!filePath) return
     setLoading(true)
-    window.api.file
-      .listBackups(filePath)
+    window.api.file.listBackups?.(filePath)
       .then((list: unknown) => {
         setBackups(list as BackupEntry[])
         setLoading(false)
@@ -52,7 +51,7 @@ export function VersionHistoryPanel({
     setSelected(entry)
     setPreviewLoading(true)
     try {
-      const content = await window.api.file.previewBackup(filePath, entry.timestamp)
+      const content = await (window.api.file.previewBackup as any)(filePath, entry.timestamp)
       setPreview(content)
     } catch {
       setPreview('加载失败')
@@ -64,7 +63,7 @@ export function VersionHistoryPanel({
     if (!confirm(`确定恢复到 ${entry.isoTime} 的版本？当前内容将被覆盖。`)) return
     setRestoring(true)
     try {
-      const ok = await window.api.file.restoreBackup(filePath, entry.timestamp)
+      const ok = await (window.api.file.restoreBackup as any)(filePath, entry.timestamp)
       if (ok) {
         onRestore()
         onClose()

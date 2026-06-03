@@ -9,7 +9,7 @@ import log from 'electron-log/main'
 
 // ============ Types ============
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
 export const SESSION_TITLE_MAX_LEN = 50
 
@@ -35,6 +35,8 @@ interface RAGResult {
   title: string
   content: string
   score: number
+  /** Optional snippet (used when full file content not loaded) */
+  snippet?: string
 }
 // ============ Validation Helpers ============
 
@@ -428,7 +430,6 @@ export async function buildAnswerPrompt(
     const path = r.file || r.path
     if (!path) {
       contextParts.push('[来源: ' + (r.title || '') + ']\n(r.file missing)')
-      i += 0
       continue
     }
     const fullContent = existsSync(path)
@@ -531,7 +532,6 @@ async function generateAnswer(
     const path = r.file || r.path
     if (!path) {
       contextParts.push('[来源: ' + (r.title || '') + ']\n(r.file missing)')
-      i += 0
       continue
     }
     const fullContent = existsSync(path)

@@ -13,6 +13,9 @@ interface FileTreeContextMenuProps {
   onNewFile: (folderPath: string) => void
   onNewFolder: (parentPath: string) => void
   onSelect: (path: string) => void
+  /** P3-2026-06-03: Pro 仓 rename/delete handlers, Free 仓暂用 optional */
+  onRename?: (oldPath: string, newName: string) => Promise<void>
+  onDelete?: (filePath: string) => Promise<void>
 }
 
 interface MenuItemDef {
@@ -28,7 +31,7 @@ export function FileTreeContextMenu({
   x,
   y,
   file,
-  vaultPath,
+  vaultPath: _vaultPath,
   onClose,
   onRefresh,
   onNewFile,
@@ -182,8 +185,8 @@ export function FileTreeContextMenu({
     onClose()
     log.info('[FileTree] handleDelete:', file.path, 'isDirectory:', file.isDirectory)
     const result = file.isDirectory
-      ? await window.api.deleteFolder(file.path)
-      : await window.api.deleteFile(vaultPath, file.path)
+      ? await (window.api as any).file.delete(file.path)
+      : await (window.api.file.delete as any)(file.path)
     log.info('[FileTree] delete result:', result)
     onRefresh()
   }
@@ -199,7 +202,7 @@ export function FileTreeContextMenu({
 
   const handleReveal = () => {
     onClose()
-    window.api.revealInFinder(file.path)
+    window.api.file.revealInFinder?.(file.path)
   }
 
   const handleCopyPath = async () => {

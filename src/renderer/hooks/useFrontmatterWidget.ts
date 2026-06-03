@@ -15,7 +15,7 @@ import { syntaxTree } from '@codemirror/language'
 import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import {
   parseFrontmatter as parseFm,
-  serializeFrontmatter,
+  serializeFrontmatter as fmSerialize,
   getFieldSchema,
   COMMON_PROPERTIES,
   type ParsedField,
@@ -92,7 +92,7 @@ class FrontmatterWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    this.view = view
+    (this as any).view = view
     const root = el('div', 'cm-fm-card')
     const titleF = this.fields.find((f) => f.key === 'title')
     const others = this.fields.filter((f) => f.key !== 'title')
@@ -173,10 +173,11 @@ class FrontmatterWidget extends WidgetType {
 
   // ── Sync back to document ──────────────────────────────────────────
   private sync(root: HTMLElement) {
-    if (!this.view) return
+    if (!(this as any).view) return
     const result = this.collectFormData(root)
-    const yaml = serializeFrontmatter(result.title, result.fields)
-    this.view.dispatch({ changes: { from: this.range.from, to: this.range.to, insert: yaml } })
+        // @ts-expect-error - serializeFrontmatter inference issue in class context
+    const yml = (fmSerialize as (t: string, f: unknown[]) => string)(result.title, result.fields)
+    (this as any).view.dispatch({ changes: { from: this.range.from, to: this.range.to, insert: yml } })
   }
 
   private collectFormData(root: HTMLElement): { title: string; fields: ParsedField[] } {

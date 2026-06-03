@@ -39,7 +39,7 @@ export async function downloadAndReplaceImages(
         headers: { 'User-Agent': 'Mozilla/5.0' }
       })
 
-      const ext = response.headers['content-type']?.split('/')?.[1] ?? 'png'
+      const ext = (response.headers['content-type'] as string | undefined)?.split('/')?.[1] ?? 'png'
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
       const filePath = join(assetDir, filename)
       await writeFile(filePath, Buffer.from(response.data))

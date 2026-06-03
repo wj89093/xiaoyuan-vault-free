@@ -5,7 +5,7 @@
  * Grouping: vault | file | schema | autoAI | url | converter | ai | chat | enrich | auth | provider | graph | maintenance | clipboard | shortcuts | import | agent
  */
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ChatMessage, AskResult, ImportFileResult } from '../../shared/chat'
+import type { ChatMessage, AskResult, ImportFileResult } from '../shared/chat'
 
 console.log('[preload] script started')
 
@@ -150,7 +150,7 @@ const auth = {
   clear: () => handler<boolean>('auth:clear'),
   openLogin: () => handler<string>('auth:openLogin'),
   debugLogin: (email: string, code: string) =>
-    handler<string, string>('auth:debugLogin', email, code),
+    handler<string>('auth:debugLogin', email, code),
   onTokenReceived: (cb: (data: { token: string; email: string }) => void) =>
     onEvent('auth:tokenReceived', cb as any)
 }
@@ -302,7 +302,6 @@ const api = {
   selectDirectory: () => handler<string | null>('dialog:selectDirectory'),
   getBuildInfo: () =>
     handler<{ isPro: boolean; isOpenSource: boolean; buildTarget: string }>('app:buildInfo'),
-  settingsGetTheme: () => settings.getTheme(),
   settingsGetTheme: () => settings.getTheme(),
   settingsSetTheme: (theme: 'light' | 'dark' | 'system') => settings.setTheme(theme),
   onImportCompleted: (cb: (filePaths?: string[]) => void) => shortcuts.onImportCompleted(cb),

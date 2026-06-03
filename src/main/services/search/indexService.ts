@@ -6,9 +6,10 @@
  */
 
 // import log from 'electron-log/main'
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+ 
 import { join } from 'path'
-import { existsSync, readFile, writeFile, readdir, stat } from 'fs/promises'
+import { readFile, writeFile, readdir, stat } from 'fs/promises'
+import { existsSync } from 'fs'
 
 export async function rebuildIndexFile(vaultPath: string, changedFiles?: string[]): Promise<void> {
   const wikiDir = join(vaultPath, '_wiki')

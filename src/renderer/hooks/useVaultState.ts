@@ -116,7 +116,7 @@ export function useVaultState() {
         setIsLoading(true)
         try {
           const preview = await api.renderFile?.(filePath)
-          setNativePreview(preview ?? ({ type: 'unsupported' } as any))
+          setNativePreview((preview ?? { type: 'unsupported' }) as any)
         } catch {
           setNativePreview({ type: 'unsupported' } as any)
         } finally {
@@ -236,7 +236,7 @@ export function useVaultState() {
       try {
         const result = await (api as any).archiveQuery?.(content)
         if (result?.success) {
-          const parts = []
+          const parts: string[] = []
           if (result.entitiesLinked?.length) parts.push(`实体: ${result.entitiesLinked.join(', ')}`)
           if (result.conceptsLinked?.length) parts.push(`概念: ${result.conceptsLinked.join(', ')}`)
           const msg = parts.length

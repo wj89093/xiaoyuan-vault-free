@@ -325,7 +325,7 @@ ${recentEntries}
 // ─── Helpers ──────────────────────────────────────────────────────
 
 function flattenFiles(files: FileRecord[]): FileRecord[] {
-  const result: unknown[] = []
+  const result: FileRecord[] = []
   for (const f of files) {
     result.push(f)
     if (f.children) result.push(...flattenFiles(f.children))

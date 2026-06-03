@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 /**
  * agentMemory.ts — Agent 记忆系统
  *
@@ -15,13 +15,15 @@
  *   queryMemory(query, date) — Agent 工具，搜索记忆存档
  *   generateWeeklyDigest() — 每周生成结构化摘要，写入 _briefing/summaries/
  */
-import { readFile, writeFile, mkdir, readdir, appendFile, access } from 'fs/promises'
+import { readFile, writeFile, mkdir, readdir, appendFile, access, unlink } from 'fs/promises'
+import log from 'electron-log/main'
 import { join } from 'path'
 import { constants } from 'fs'
 import { getVaultPath } from '../database/database'
 import { parseFrontmatter } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
-import type { AgentMessage } from '../agent/types'
+// P3-2026-06-03: Free 仓无 agent/ 目录, AgentMessage 改 inline 定义
+interface AgentMessage { role: string; content: string; timestamp?: number }
 
 // ─── Build memory context for a given date ──────────────────────────
 /**
@@ -256,7 +258,7 @@ ${sample}
       await mkdir(dir, { recursive: true })
       await appendFile(
         retryQueuePath,
-        JSON.stringify({ facts, time, date, ts: Date.now(), error: err.message }) + '\n',
+        JSON.stringify({ facts: 'unknown', time: 'unknown', date: new Date().toISOString(), ts: Date.now(), error: err.message }) + '\n',
         'utf-8'
       )
     } catch {
@@ -628,14 +630,14 @@ async function loadConversationSummaries(date: string): Promise<ConversationSumm
           time: frontmatter.time ?? '',
           title: frontmatter.title ?? file,
           topic: frontmatter.topic ?? '',
-          decisions,
-          nextSteps,
+          decisions: decisions as string[],
+          nextSteps: nextSteps as string[],
           raw: {
             discussion: '',
             title: frontmatter.title ?? file,
             files: (frontmatter.sources as string[]) ?? []
           }
-        })
+        } as ConversationSummary)
       } catch {
         /* skip unreadable file */
       }

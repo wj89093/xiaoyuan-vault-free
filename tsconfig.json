@@ -2,13 +2,20 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "strict": true,
-    "types": ["node", "vitest/globals"]
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
   },
   "files": [
     "src/test-setup.ts"
   ],
   "references": [
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.web.json" }
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.web.json"
+    }
   ]
 }

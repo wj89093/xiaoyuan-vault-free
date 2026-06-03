@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import axios from 'axios'
 import * as cheerio from 'cheerio'
@@ -244,7 +244,8 @@ export async function fetchReddit(url: string): Promise<URLFetchResult> {
       headers: { 'User-Agent': 'xiaoyuan-vault/1.0' }
     })
     const data = response.data as Array<Record<string, unknown>>
-    const post = data[0]?.data?.children?.[0]?.data as Record<string, unknown> | undefined
+    const wrapper = data[0] as { data?: { children?: Array<{ data?: Record<string, unknown> }> } } | undefined
+    const post = wrapper?.data?.children?.[0]?.data
     if (post) {
       return {
         title: String(post.title ?? ''),

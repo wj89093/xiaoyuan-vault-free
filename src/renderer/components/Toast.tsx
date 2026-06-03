@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, type JSX } from 'react'
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 /* eslint-disable */
 
-export type ToastType = 'success' | 'error' | 'info'
+export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 export interface ToastMessage {
   id: string
@@ -25,7 +25,8 @@ const iconMap = {
 const AUTO_DISMISS_MS: Record<ToastType, number> = {
   error: 6000,
   info: 3000,
-  success: 2000
+  success: 2000,
+  warning: 5000
 }
 
 export function ToastContainer({ toasts, onDismiss }: ToastProps): JSX.Element {

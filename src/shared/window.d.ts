@@ -300,6 +300,10 @@ export interface XyVaultAPI {
     listRaw(vaultPath: string): Promise<unknown[]>
     convertRaw(rawPath: string, vaultPath: string): Promise<unknown>
     listSchemas(vaultPath: string): Promise<unknown[]>
+    /** P3-2026-06-03: Pro 仓备份系统, Free 仓暂用 any cast */
+    listBackups?(filePath: string): Promise<unknown[]>
+    previewBackup?(backupId: string): Promise<string>
+    restoreBackup?(backupId: string): Promise<boolean>
   }
   // Settings namespace
   settings: {
@@ -338,6 +342,10 @@ export interface XyVaultAPI {
   getPathForFile?: (file: File) => string
   listSchemas?: (vaultPath: string) => Promise<unknown[]>
   fileExists?: (path: string) => Promise<boolean>
+
+  // Settings (flat namespace aliases)
+  settingsGetTheme(): Promise<'light' | 'dark' | 'system'>
+  settingsSetTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
 
   // Maintenance
   runMaintenance(): Promise<unknown>

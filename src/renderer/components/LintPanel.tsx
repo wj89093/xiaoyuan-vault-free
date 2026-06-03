@@ -55,7 +55,7 @@ export function LintPanel({ onClose, vaultPath }: LintPanelProps): JSX.Element {
     setLoading(true)
     try {
       const wikiDir = vaultPath.endsWith('/') ? vaultPath + '_wiki' : vaultPath + '/_wiki'
-      const exists = await window.api.fileExists(wikiDir)
+      const exists = await window.api.fileExists?.(wikiDir)
       if (!exists) {
         setReport(null)
         setLoading(false)

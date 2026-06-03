@@ -1,9 +1,10 @@
-import { existsSync, mkdir, readFile, readdir, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { mkdir, readFile, readdir, writeFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import { join, dirname } from 'path'
 import { getVaultPath } from '../database/database'
 import { parseFrontmatter } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/await-thenable */
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/await-thenable */
 import log from 'electron-log/main'
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
@@ -188,7 +189,7 @@ async function getVaultFolders(vaultPath: string): Promise<string[]> {
   async function scan(dir: string, parent = '') {
     let entries: string[]
     try {
-      entries = (await import('fs/promises')).readdir(dir)
+      entries = (await import('fs/promises')).readdir(dir) as unknown as string[]
     } catch {
       return
     }

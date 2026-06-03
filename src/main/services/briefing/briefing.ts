@@ -7,17 +7,35 @@ import { parseFrontmatter } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
 import { getLintReports } from '../lint/lintReports'
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+ 
 
 export interface BriefingReport {
   date: string
-  period: string // e.g. "2026-04-28 ~ 2026-05-01"
+  period?: string // e.g. "2026-04-28 ~ 2026-05-01"
   newPages: number
   updatedPages: number
   entities: string[] // 新建的实体类型（人/公司/项目）
   highlights: string[] // LLM 生成的要点列表
   health: string // wiki 健康状态
   raw: string // LLM 原始摘要
+  // P3-2026-06-03: optional summary fields (from conversation-summary frontmatter)
+  time?: string
+  title?: string
+  topic?: string
+  decisions?: string[]
+  relatedFiles?: string[]
+  nextSteps?: string[]
+  /** Array of summary reports (for daily/weekly aggregation) */
+  summaries?: Array<{
+    date: string
+    time: string
+    title: string
+    topic: string
+    decisions: string[]
+    relatedFiles: string[]
+    nextSteps: string[]
+    raw: string
+  }>
 }
 
 // ─── Daily/Weekly Briefing ─────────────────────────────────────────
@@ -253,11 +271,11 @@ export async function getConversationSummaries(date: string): Promise<Conversati
           time: frontmatter.time ?? '',
           title: frontmatter.title ?? file,
           topic: frontmatter.topic ?? '',
-          decisions,
+          decisions: decisions as string[],
           relatedFiles: (frontmatter.sources as string[]) ?? [],
-          nextSteps,
-          raw
-        })
+          nextSteps: nextSteps as string[],
+          raw: raw as string
+        } as BriefingReport['summaries'] extends Array<infer T> ? T : never)
       } catch {
         /* skip unreadable file */
       }
@@ -280,7 +298,7 @@ async function getRecentChanges(
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000
   const results: { path: string; title: string; type: string; updated: string }[] = []
 
-  for (const f of all) {
+  for (const f of all as Array<{ isDirectory?: boolean; path: string; name: string }>) {
     if (f.isDirectory || !f.path.endsWith('.md')) continue
     try {
       const raw = await readFile(f.path, 'utf-8')
@@ -312,11 +330,13 @@ function getPeriodString(days: number): string {
   return `${fmt(start)} ~ ${fmt(end)}`
 }
 
-function flattenFiles(files: unknown[]): any[] {
+function flattenFiles(files: unknown[]): unknown[] {
   const result: unknown[] = []
   for (const f of files) {
     result.push(f)
-    if (f.children) result.push(...flattenFiles(f.children))
+    if (f && typeof f === 'object' && 'children' in f && Array.isArray((f as { children?: unknown[] }).children)) {
+      result.push(...flattenFiles((f as { children: unknown[] }).children))
+    }
   }
   return result
 }

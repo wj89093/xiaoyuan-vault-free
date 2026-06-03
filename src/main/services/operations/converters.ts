@@ -5,7 +5,7 @@ import log from 'electron-log/main'
 import { transcribeAudio } from '../utils/whisper'
 
 // Supported JS-native formats (no Python needed)
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 const JS_CONVERTERS: Record<string, (filePath: string) => Promise<string>> = {
   '.pdf': convertPdf,
@@ -92,7 +92,7 @@ async function convertDocx(filePath: string): Promise<string> {
   log.info(`[JS] converting DOCX: ${filePath}`)
 
   const mammoth = await import('mammoth')
-  const result = await mammoth.default.convertToMarkdown({ path: filePath })
+  const result = await (mammoth as { convertToMarkdown: (opts: { path: string }) => Promise<{ value: string }> }).convertToMarkdown({ path: filePath })
   return result.value
 }
 
@@ -122,7 +122,7 @@ async function convertXlsx(filePath: string): Promise<string> {
 
 async function convertPptx(filePath: string): Promise<string> {
   const AdmZip = await import('adm-zip')
-  const zip = new AdmZip.default(filePath) as unknown as Record<string, unknown>
+  const zip = new AdmZip.default(filePath) as unknown as { getEntries(): Array<{ entryName: string; getData(): Buffer }> }
   const slideEntries = zip
     .getEntries()
     .filter((e) => e.entryName.match(/ppt\/slides\/slide\d+\.xml$/))
@@ -134,7 +134,7 @@ async function convertPptx(filePath: string): Promise<string> {
     const nb = parseInt(b.entryName.match(/slide(\d+)/)?.[1] ?? '0')
     return na - nb
   })) {
-    const xml = entry.getData().toString('utf-8')
+    const xml = (entry as { getData: () => Buffer }).getData().toString('utf-8')
     // Extract text from XML using regex (simple approach)
     const texts = [...xml.matchAll(/<a:t>([^<]+)<\/a:t>/g)].map((m) => m[1]).filter((t) => t.trim())
     if (texts.length > 0) {
@@ -166,7 +166,7 @@ async function convertZip(filePath: string): Promise<string> {
   log.info(`[JS] extracting ZIP: ${filePath}`)
   const AdmZip = await import('adm-zip')
   const zip = new AdmZip.default(filePath) as unknown as Record<string, unknown>
-  const entries = zip.getEntries().filter((e) => !e.isDirectory)
+  const entries = (zip as { getEntries: () => Array<{ entryName: string; isDirectory: boolean }> }).getEntries().filter((e) => !e.isDirectory)
   const names = entries.map((e) => `- ${e.entryName}`).join('\n')
   return `# ZIP Contents: ${basename(filePath)}\n\n${names}`
 }

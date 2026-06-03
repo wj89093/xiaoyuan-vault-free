@@ -4,5 +4,5 @@ export interface URLFetchResult {
   author?: string
   date?: string
   url: string
-  source: 'jina' | 'direct' | 'wechat' | 'youtube' | 'twitter' | 'github' | 'reddit'
+  source: 'jina' | 'direct' | 'wechat' | 'youtube' | 'twitter' | 'github' | 'reddit' | 'bilibili'
 }

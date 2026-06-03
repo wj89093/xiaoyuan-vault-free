@@ -57,7 +57,7 @@ export function ImportApp(): JSX.Element {
         ])
         return
       }
-      const res = await window.api.importFiles(filePaths)
+      const res = await window.api.file.import(vaultPath, filePaths)
       setResults((prev) => [
         ...prev,
         ...res.map((r: ImportFileResult) => ({ type: 'file' as const, ...r }))

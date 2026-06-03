@@ -5,7 +5,7 @@ import { join } from 'path'
 import { getVaultPath } from '../database/database'
 import { parseFrontmatter, applyFrontmatter, extractTypedLinks } from '../frontmatter/index'
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
 
 const FOLDER_MAP_DEFAULTS: Record<string, string> = {
   person: '1-人物',
@@ -29,7 +29,7 @@ export async function loadFolderMap(): Promise<Record<string, string>> {
     const mapPath = join(dir, 'folder-map.json')
     if (existsSync(mapPath)) {
       const raw = await readFile(mapPath, 'utf-8')
-      _folderMap = JSON.parse(raw)
+      _folderMap = JSON.parse(raw) as Record<string, string>
       return _folderMap
     }
   } catch {

@@ -8,6 +8,7 @@
 import { memo, useEffect, useRef, useMemo, type JSX } from 'react'
 import { useD3 } from '../hooks/useD3'
 import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3-force'
+// P3-2026-06-03: d3 types are used via D3Context, not direct import
 
 export interface GLink extends SimulationLinkDatum<GNode> {
   source: string | GNode
@@ -177,8 +178,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     svg.attr('width', w).attr('height', h)
     const mainG = svg.append('g')
 
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
+    const zoom = d3.zoom()
       .scaleExtent([0.1, 4])
       .on('zoom', (e) => {
         mainG.attr('transform', e.transform)
@@ -212,7 +212,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     // Links
     const lg = mainG.append('g')
     const linkSel = lg
-      .selectAll<SVGLineElement, GLink>('line')
+      (lg.selectAll('line') as any)
       .data(filteredLinks)
       .enter()
       .append('line')
@@ -229,7 +229,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     // Nodes
     const ng = mainG.append('g')
     const nodeSel = ng
-      .selectAll<SVGGElement, GNode>('g')
+      (mainG.selectAll('g') as any)
       .data(connectedNodes)
       .enter()
       .append('g')
@@ -245,8 +245,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
         }
       })
       .call(
-        d3
-          .drag<SVGGElement, GNode>()
+        d3.drag()
           .on('start', (e, d) => {
             if (!e.active && simRef.current) simRef.current.alphaTarget(0.3).restart()
             d.fx = d.x
@@ -377,12 +376,10 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     }
     // eslint-enable react-hooks/immutability
 
-    const sim = d3
-      .forceSimulation<GNode>(connectedNodes)
+    const sim = d3.forceSimulation()
       .force(
         'link',
-        d3
-          .forceLink<GNode, GLink>(links)
+        d3.forceLink()
           .id((d) => d.id)
           .distance((d) => (d.type === 'folder' ? 80 : 50))
           .strength((d) => (d.type === 'folder' ? 0.15 : 0.3))
@@ -391,7 +388,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
       .force('center', d3.forceCenter(w / 2, h / 2))
       .force(
         'collision',
-        d3.forceCollide<GNode>(
+        (d3.forceCollide as any)(
           (d) => (typeof scale === 'function' ? scale(deg.get(d.id) ?? 1) : 10) + 10
         )
       )

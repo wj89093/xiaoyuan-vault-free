@@ -4,7 +4,8 @@ import { existsSync } from 'fs'
 import { createHash } from 'crypto'
 import { getVaultPath } from '../database/database'
 import log from 'electron-log/main'
-import type { AgentMessage } from '../agent/types'
+// AgentMessage 在 Free 仓 inline 定义
+interface AgentMessage { role: string; content: string; timestamp?: number }
 import type { ChatSession, ChatMessage } from '../chat/chat'
 
 const SESSIONS_FILE = 'chat-sessions.json'
@@ -154,7 +155,9 @@ export async function loadMessages(sessionId: string): Promise<ChatMessage[]> {
 // We accept AgentMessage[] here so callers don't need a cast.
 export async function saveMessages(sessionId: string, messages: AgentMessage[]): Promise<void> {
   const validMessages = messages.filter(isValidMessage)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  const vaultPath = getVaultPath()
+  const dir = vaultPath ? join(vaultPath, '.xiaoyuan', 'chat', 'messages') : ''
+   
   await writeFile(join(dir, `${sessionId}.json`), JSON.stringify(validMessages, null, 2), 'utf-8')
 
   // Update session timestamp

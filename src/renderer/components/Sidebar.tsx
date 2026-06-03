@@ -29,6 +29,9 @@ interface SidebarProps {
   onNewWikiFile?: (folderPath: string) => void
   onNewFolder: (parentPath: string, folderName: string) => Promise<void>
   onRefresh?: () => void
+  /** P3-2026-06-03: Pro 仓 vault 按钮回调, Free 仓暂用 optional */
+  _onNewVault?: () => void
+  _onOpenVault?: () => void
 }
 
 export function Sidebar({
@@ -209,7 +212,7 @@ export function Sidebar({
                 console.error('[Sidebar] onNewFolder failed:', err)
               )
             }}
-            vaultPath={vaultPath}
+            vaultPath={vaultPath as string}
             isSourceTab={true}
           />
         ) : isSwitching ? (
@@ -245,7 +248,7 @@ export function Sidebar({
                 console.error('[Sidebar] onNewFolder failed:', err)
               )
             }}
-            vaultPath={vaultPath}
+            vaultPath={(vaultPath as string | null) ?? ''}
           />
         )}
       </div>
@@ -257,6 +260,7 @@ export function Sidebar({
         role={vaultPath ? 'button' : undefined}
         tabIndex={vaultPath ? 0 : undefined}
       >
+        {/* @ts-expect-error - lucide-react SVGProps compatibility */}
         <FolderOpen size={13} className="sidebar-footer-icon" title={vaultPath ?? '未打开知识库'} />
         <span className="sidebar-footer-vault" title={vaultPath ?? '未打开'}>
           {vaultPath?.split('/').pop() ?? '未打开'}

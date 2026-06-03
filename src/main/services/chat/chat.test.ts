@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
 import { type existsSync, type readFile, mkdir, writeFile, rm } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
+import type { ChatMessage, ChatSession } from '../../../shared/chat'
 
 // Mock fs before importing chat
 vi.mock('fs', async () => {
@@ -57,8 +58,7 @@ describe('ChatMessage and ChatSession interfaces', () => {
     const msg: ChatMessage = {
       role: 'user',
       content: 'hello',
-      id: 1,
-      session_id: 'abc',
+      id: 'msg-1',
       timestamp: Date.now()
     }
     expect(msg.role).toBe('user')
@@ -70,9 +70,8 @@ describe('ChatMessage and ChatSession interfaces', () => {
     const session: ChatSession = {
       id: 'id-123',
       title: 'Test Session',
-      created_at: Date.now(),
-      updated_at: Date.now(),
-      systemPrompt: null
+      createdAt: Date.now(),
+      updatedAt: new Date().toISOString(),
     }
     expect(session.id).toBe('id-123')
   })

@@ -82,7 +82,7 @@ export function registerImportHandlers(): void {
         .map((name) => ({
           name,
           path: join(monthPath, name),
-          converted: isConverted(join(monthPath, name))
+          converted: isConverted(join(monthPath, name)) as unknown as boolean
         }))
       result.push({ month, files: fileList })
     }

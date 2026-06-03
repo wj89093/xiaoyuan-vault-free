@@ -74,7 +74,7 @@ export const FileTree = memo(function FileTree({
   // ── Refs ───────────────────────────────────────────────────────────
   // P3-2026-06-03: 虚拟化后 itemRefs 改由 FixedSizeList 内部 style 定位
   // 保留 hoverTimer / flatItems / scrollTopRef
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | number | null>(null)
   const flatItems = useRef<{ path: string; isDirectory: boolean }[]>([])
   // P3-1: preserve scroll position ref to avoid scrolling to top on files reload
   const scrollTopRef = useRef(0)
@@ -214,7 +214,7 @@ export const FileTree = memo(function FileTree({
   }
 
   const handleMouseLeave = () => {
-    clearTimeout(hoverTimer.current)
+    clearTimeout(hoverTimer.current as ReturnType<typeof setTimeout>)
   }
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
@@ -291,7 +291,7 @@ export const FileTree = memo(function FileTree({
   const handleDragLeave = () => setDropTarget(null)
 
   const handleContextMenu = (e: React.MouseEvent, file: FlatTreeItem) => {
-    setContextMenu({ x: e.clientX, y: e.clientY, file })
+    setContextMenu({ x: e.clientX, y: e.clientY, file: file as unknown as FileInfo })
   }
 
   const handleTreeKeyDown = (e: React.KeyboardEvent) => {
@@ -359,7 +359,7 @@ export const FileTree = memo(function FileTree({
           </p>
           <button
             className="btn btn-secondary"
-            onClick={() => onNewFile?.()}
+            onClick={() => onNewFile?.('')}
             style={{ marginTop: 8 }}
             tabIndex={0}
           >
@@ -437,7 +437,8 @@ export const FileTree = memo(function FileTree({
           y={hoverPreview.y}
           name={hoverPreview.name}
           summary={hoverPreview.summary}
-        />
+          onClose={() => setHoverPreview(null)}
+              />
       )}
 
       {/* Context menu */}
@@ -471,7 +472,12 @@ export const FileTree = memo(function FileTree({
             }
           }}
           vaultPath={vaultPath}
-        />
+        
+              onRefresh={() => window.api.file.list?.()}
+              onNewFile={() => {}}
+              onNewFolder={() => {}}
+              onSelect={onSelect}
+            />
       )}
     </div>
   )

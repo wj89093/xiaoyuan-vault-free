@@ -22,7 +22,7 @@ export interface AssessResult {
 export function assessContentWorth(rawContent: string): AssessResult {
   const { frontmatter, content } = parseFrontmatter(rawContent)
 
-  if (frontmatter.summary && frontmatter.tags?.length > 0 && frontmatter.type) {
+  if (frontmatter.summary && (frontmatter.tags?.length ?? 0) > 0 && frontmatter.type) {
     return { worth: false, reason: 'already complete', score: 100 }
   }
 
