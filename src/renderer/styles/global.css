@@ -167,6 +167,9 @@ body {
   border-color: var(--color-border-hover);
 }
 .btn:active {
+  /* P2-2026-06-02 (backport): 按钮按下 scale 反馈,提升交互感知 */
+  transform: scale(0.97);
+  transition: transform 100ms ease;
   background: var(--color-surface-active);
 }
 .btn:disabled {

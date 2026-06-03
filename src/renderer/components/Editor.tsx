@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useRef, useState, useEffect } from 'react'
+import { memo, useRef, useState, useEffect } from 'react'
 import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
@@ -14,7 +14,7 @@ interface EditorProps {
   isNativePreview?: boolean
 }
 
-function DocxViewer({
+export const DocxViewer = memo(function DocxViewer({
   dataUrl,
   onDownload
 }: {
@@ -127,9 +127,9 @@ function DocxViewer({
       )}
     </div>
   )
-}
+})
 
-function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
+export const XlsxViewer = memo(function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
   const [activeSheet, setActiveSheet] = useState<string>('')
   const [sheetNames, setSheetNames] = useState<string[]>([])
   const [sheets, setSheets] = useState<Record<string, string>>({})
@@ -226,14 +226,14 @@ function XlsxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
       />
     </div>
   )
-}
+})
 
-function HtmlFrame({ content }: { content: string }): JSX.Element {
+export const HtmlFrame = memo(function HtmlFrame({ content }: { content: string }): JSX.Element {
   const [blobUrl, setBlobUrl] = useState<string>('')
   useEffect(() => {
     const blob = new Blob([content], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setBlobUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [content])
@@ -245,9 +245,9 @@ function HtmlFrame({ content }: { content: string }): JSX.Element {
       sandbox="allow-scripts allow-same-origin"
     />
   )
-}
+})
 
-function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
+export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'fail'>(() =>
@@ -348,9 +348,9 @@ function PptxViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
       )}
     </div>
   )
-}
+})
 
-function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
+export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [pageNum, setPageNum] = useState(1)
   const [numPages, setNumPages] = useState(0)
@@ -476,9 +476,9 @@ function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
       </div>
     </div>
   )
-}
+})
 
-export function Editor({
+export const Editor = memo(function Editor({
   value,
   onChange,
   onWikiLinkNavigate,
@@ -490,7 +490,7 @@ export function Editor({
   const { viewRef } = useCodeMirror(cmContainerRef, value, onChange, onWikiLinkNavigate)
 
   // Context menu
-  const handleFormat = (command: string, params?: Record<string, any>) => {
+  const handleFormat = useCallback((command: string, params?: Record<string, any>) => {
     const view = (window as any).__cmView
     if (!view) return
     const cmds: EditorFormatCommands = createFormatCommands(view)
@@ -537,7 +537,7 @@ export function Editor({
         cmds.hr()
         break
     }
-  }
+  }, [])
 
   const { contextMenu, showContextMenu, hideContextMenu } = useEditorContextMenu(
     viewRef as React.MutableRefObject<any>,
@@ -672,4 +672,4 @@ export function Editor({
       />
     </div>
   )
-}
+})

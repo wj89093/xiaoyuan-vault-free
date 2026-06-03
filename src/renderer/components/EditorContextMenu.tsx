@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { memo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   Scissors,
   ClipboardPaste,
@@ -68,7 +68,7 @@ export interface EditorContextMenuProps {
   onFormat?: (command: string, params?: any) => void
 }
 
-export function EditorContextMenu({
+export const EditorContextMenu = memo(function EditorContextMenu({
   x,
   y,
   editorView,
@@ -325,7 +325,7 @@ export function EditorContextMenu({
       </div>
     </>
   )
-}
+})
 
 // Mini toast helper — avoid importing the whole Toast module to keep this file self-contained
 function showToast(type: 'success' | 'error' | 'warning', message: string) {

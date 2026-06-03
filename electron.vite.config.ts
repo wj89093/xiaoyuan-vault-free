@@ -29,7 +29,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/preload/index.ts'),
+          index: resolve(__dirname, 'src/preload/index.ts')
+          // Free v1.4 已删 aiChat.html + bubblePreload (Pro 专用)
         }
       }
     }
@@ -48,6 +49,21 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html')
+        },
+        // P4-2026-06-02: 拆 vendor chunk,改善首屏加载和缓存友好
+        output: {
+          manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              if (id.includes('d3') || id.includes('d3-')) return 'vendor-d3'
+              if (id.includes('mermaid')) return 'vendor-mermaid'
+              if (id.includes('pptx-preview') || id.includes('pptxgenjs')) return 'vendor-pptx'
+              if (id.includes('xlsx') || id.includes('xlsx-style') || id.includes('exceljs')) return 'vendor-xlsx'
+              if (id.includes('pdfjs')) return 'vendor-pdf'
+              if (id.includes('katex')) return 'vendor-katex'
+              if (id.includes('codemirror') || id.includes('@codemirror')) return 'vendor-codemirror'
+              if (id.includes('react') || id.includes('scheduler')) return 'vendor-react'
+            }
+          }
         }
       }
     },
