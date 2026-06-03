@@ -82,6 +82,14 @@ export function registerCrudHandlers(): void {
     return getFileContent(filePath)
   })
 
+  ipcMain.handle('file:save', async (_, filePath: string, content: string) => {
+    const { writeFile, mkdir } = await import('fs/promises')
+    const { dirname } = await import('path')
+    await mkdir(dirname(filePath), { recursive: true })
+    await writeFile(filePath, content, 'utf-8')
+    return true
+  })
+
   ipcMain.handle('file:render', async (_, filePath: string) => {
     const vaultPath = getVaultPath()
     const fullPath = vaultPath
