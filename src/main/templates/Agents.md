@@ -3,8 +3,6 @@
 > 本文件定义 Agent 在不同场景下的行为规范和工作流程。
 > 版本：v2.4 | 更新：2026-06-02
 >
-> **工具约定：** Agent 只有 4 个原子工具（read / write / edit / bash）。
-> 工具使用规范和 Frontmatter 规范见 `LLM-wiki.md`。
 
 ---
 
