@@ -1,13 +1,16 @@
  
 
 import { memo, useState, useRef, useEffect, useMemo } from 'react'
+import { FixedSizeList } from 'react-window'
 import type { FileInfo } from '../types'
 import { FileTreeContextMenu } from './FileTreeContextMenu'
 import { Skeleton } from './Skeleton'
 import { FileTreeHoverPreview } from './FileTreeHoverPreview'
-import { FileTreeNode } from './FileTreeNode'
-import { FileTreeFlatRow } from './FileTreeFlatRow'
+import { Row } from './FileTreeRow'
 import { flattenTree, type FlatTreeItem } from '../utils/flattenTree'
+
+/** react-window FixedSizeList 行高(px) */
+const FILE_TREE_ROW_HEIGHT = 28
 
 interface FileTreeProps {
   files: FileInfo[]
@@ -63,13 +66,18 @@ export const FileTree = memo(function FileTree({
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [dragError, setDragError] = useState<string | null>(null)
   const [focusedIndex, setFocusedIndex] = useState(-1)
+  // P3-2026-06-03 (Free 仓): 容器高度,FixedSizeList 需要
+  const [containerHeight, setContainerHeight] = useState(400)
 
   // ── Refs ───────────────────────────────────────────────────────────
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  // P3-2026-06-03: 虚拟化后 itemRefs 改由 FixedSizeList 内部 style 定位
+  // 保留 hoverTimer / flatItems / scrollTopRef
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const flatItems = useRef<{ path: string; isDirectory: boolean }[]>([])
   // P3-1: preserve scroll position ref to avoid scrolling to top on files reload
   const scrollTopRef = useRef(0)
+  // P3-2026-06-03: FixedSizeList ref,用于 scrollToItem
+  const listRef = useRef<FixedSizeList>(null)
 
   // ── Derived ──────────────────────────────────────────────────────
   const roots = files[0]?.children ? files : files.filter((f) => !f.path.includes('/'))
@@ -80,6 +88,25 @@ export const FileTree = memo(function FileTree({
     if (!containerRef.current) return
     scrollTopRef.current = containerRef.current.scrollTop
   }, [files])
+
+  // P3-2026-06-03: ResizeObserver 测容器高度,FixedSizeList 需要
+  useEffect(() => {
+    if (!containerRef.current) return
+    const el = containerRef.current
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height
+        if (h > 0 && Math.abs(h - containerHeight) > 1) {
+          setContainerHeight(h)
+        }
+      }
+    })
+    observer.observe(el)
+    // 初始 measure
+    if (el.clientHeight > 0) setContainerHeight(el.clientHeight)
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -271,16 +298,13 @@ export const FileTree = memo(function FileTree({
       e.preventDefault()
       const next = Math.min(focusedIndex + 1, items.length - 1)
       setFocusedIndex(next)
-      itemRefs.current[next]?.focus()
-      // P3-1: scroll focused item into view
-      itemRefs.current[next]?.scrollIntoView({ block: 'nearest' })
+      // P3-2026-06-03: 虚拟化模式,scrollToItem + 容器 focus,不再聚焦单行
+      listRef.current?.scrollToItem(next, 'smart')
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       const prev = Math.max(focusedIndex - 1, 0)
       setFocusedIndex(prev)
-      itemRefs.current[prev]?.focus()
-      // P3-1: scroll focused item into view
-      itemRefs.current[prev]?.scrollIntoView({ block: 'nearest' })
+      listRef.current?.scrollToItem(prev, 'smart')
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       const item = items[focusedIndex]
@@ -372,53 +396,37 @@ export const FileTree = memo(function FileTree({
           {dragError}
         </div>
       )}
-      {flatRows.length > 0
-        ? flatRows.map((item, i) => (
-            <FileTreeFlatRow
-              key={item.path}
-              item={item}
-              flatIdx={i}
-              expandedFolders={expandedFolders}
-              selectedFile={selectedFile}
-              focusedIndex={focusedIndex}
-              dropTarget={dropTarget}
-              onToggle={toggleFolder}
-              onSelect={onSelect}
-              onContextMenu={handleContextMenu}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onDragStart={handleDragStart}
-              onDropOnFolder={handleDropOnFolder}
-              onDropOnFile={handleDropOnFile}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              itemRefs={itemRefs}
-            />
-          ))
-        : // 拍平后为空(理论上不会发生,roots 一定非空)
-          roots.map((file, i) => (
-            <FileTreeNode
-              key={file.path}
-              file={file}
-              depth={0}
-              flatIdx={i}
-              expandedFolders={expandedFolders}
-              selectedFile={selectedFile}
-              focusedIndex={focusedIndex}
-              dropTarget={dropTarget}
-              onToggle={toggleFolder}
-              onSelect={onSelect}
-              onContextMenu={handleContextMenu}
-              onMouseLeave={handleMouseLeave}
-              onDragStart={handleDragStart}
-              onDropOnFolder={handleDropOnFolder}
-              onDropOnFile={handleDropOnFile}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              itemRefs={itemRefs}
-              flatItemsRef={flatItems}
-            />
-          ))}
+      {/* P3-2026-06-03 (Free 仓): FixedSizeList 虚拟化 — 只渲染可见 ~30 个节点 */}
+      {flatRows.length > 0 && (
+        <FixedSizeList
+          ref={listRef}
+          height={containerHeight}
+          width="100%"
+          itemCount={flatRows.length}
+          itemSize={FILE_TREE_ROW_HEIGHT}
+          itemData={{
+            items: flatRows,
+            expandedFolders,
+            selectedFile,
+            focusedIndex,
+            dropTarget,
+            callbacks: {
+              onToggle: toggleFolder,
+              onSelect,
+              onContextMenu: handleContextMenu,
+              onMouseEnter: handleMouseEnter,
+              onMouseLeave: handleMouseLeave,
+              onDragStart: handleDragStart,
+              onDropOnFolder: handleDropOnFolder,
+              onDropOnFile: handleDropOnFile,
+              onDragOver: handleDragOver,
+              onDragLeave: handleDragLeave,
+            },
+          }}
+        >
+          {Row}
+        </FixedSizeList>
+      )}
 
       {/* Hover preview */}
       {hoverPreview && !hoverError && (

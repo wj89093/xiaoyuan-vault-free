@@ -31,7 +31,7 @@ export interface FileTreeFlatRowProps {
   onDropOnFile: (e: React.DragEvent, filePath: string) => void
   onDragOver: (e: React.DragEvent) => void
   onDragLeave: () => void
-  itemRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
+  itemRefs?: React.MutableRefObject<(HTMLDivElement | null)[]>
 }
 
 export const FileTreeFlatRow = memo(function FileTreeFlatRow({
@@ -64,7 +64,7 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
 
   return (
     <div
-      ref={el => { itemRefs.current[flatIdx] = el }}
+      ref={el => { if (itemRefs) itemRefs.current[flatIdx] = el }}
       className={[
         'file-tree-item',
         isSelected ? 'selected' : '',
