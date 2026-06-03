@@ -12,7 +12,7 @@
  * 减少 re-render 半径,避免 15 useState 单体组件。
  */
 import { useState, useEffect, memo, type JSX } from 'react'
-import { Sun, Moon, Monitor, Plug, Copy, Check, Trash2, RefreshCw, Save } from 'lucide-react'
+import { Sun, Moon, Monitor, Plug, Copy, Check, FileText } from 'lucide-react'
 
 // ─── ThemeSection ─────────────────────────────────────────────────────
 
@@ -100,28 +100,33 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
 
 // ─── SkillSection ─────────────────────────────────────────────────────
 //
-// Free 仓 v1.4 保留用户 Skill CRUD（写自己的 Skill.md 给 Agent 加载）。
-// 默认模板 = Agents.md 全文（替代 v1.3.1 的 skill-plugin-default.md）。
+// Free 仓: 简化版 — 复制 + 打开 Skill.md
 
-export const SkillSection = memo(function SkillSection(): JSX.Element {
-  const [skillContent, setSkillContent] = useState('')
+export const SkillSection = memo(function SkillSection({ onOpenFile }: { onOpenFile?: (path: string) => void }): JSX.Element {
   const [copied, setCopied] = useState(false)
-  const [userSkills, setUserSkills] = useState<Array<{ name: string; path: string }>>([])
-  const [currentSkillName, setCurrentSkillName] = useState<string>('')
-  const [skillStatus, setSkillStatus] = useState<{ msg: string; kind: 'info' | 'ok' | 'err' }>({ msg: '', kind: 'info' })
 
-  async function refreshLocal(): Promise<void> {
+  const handleCopy = async () => {
     try {
-      const users = (await window.api.skillList?.()) ?? []
-      setUserSkills(users)
-    } catch (e) {
-      console.error('[SkillSection] refresh failed:', e)
-    }
+      const content = (await window.api.skillLoadDefault?.()) || ''
+      await navigator.clipboard.writeText(content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
   }
 
-  useEffect(() => {
-    void refreshLocal()
-  }, [])
+  const handleOpen = () => {
+    // 找 vault 根目录下的 Skill.md 或 AGENTS.md
+    window.api.getVaultPath?.().then((vaultPath: string | null) => {
+      if (!vaultPath) return
+      // 优先找 Skill.md，其次 AGENTS.md
+      window.api.listFiles?.().then((files: Array<{ path: string }>) => {
+        const skillFile = files.find((f) => f.path === 'Skill.md' || f.path === 'AGENTS.md')
+        if (skillFile && onOpenFile) {
+          onOpenFile(vaultPath + '/' + skillFile.path)
+        }
+      })
+    })
+  }
 
   return (
     <div className="settings-section">
@@ -129,227 +134,18 @@ export const SkillSection = memo(function SkillSection(): JSX.Element {
         <Plug size={14} />
         Skill.md
       </div>
-      <div
-        className="settings-row"
-        style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6 }}
-      >
-        <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
-          写自己的 Skill.md 供 Agent 加载。Agent 工作流规范见{' '}
-          <code
-            style={{
-              background: 'var(--color-bg-secondary)',
-              padding: '1px 4px',
-              borderRadius: 3
-            }}
-          >
-            src/main/templates/Agents.md
-          </code>
-          ，9 个场景触发器在顶部索引里。
-        </div>
-
-        {/* 用户自定义列表 */}
-        {userSkills.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 3,
-              marginTop: 4,
-              padding: '6px 8px',
-              background: 'var(--color-bg-secondary)',
-              borderRadius: 6
-            }}
-          >
-            <div
-              style={{
-                fontSize: 10,
-                color: 'var(--color-text-tertiary)',
-                textTransform: 'uppercase'
-              }}
-            >
-              我的 Skill
-            </div>
-            {userSkills.map((s) => (
-              <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ flex: 1, fontSize: 12 }}>{s.name}.md</span>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    const content = (await window.api.skillRead?.(s.name)) ?? ''
-                    setSkillContent(content)
-                    setCurrentSkillName(s.name)
-                    setSkillStatus({ msg: `已加载:${s.name}`, kind: 'ok' })
-                  }}
-                  style={{ fontSize: 11, padding: '2px 6px' }}
-                  title="编辑"
-                >
-                  编辑
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    if (!confirm(`删除 Skill "${s.name}"?`)) return
-                    await window.api.skillDelete?.(s.name)
-                    await refreshLocal()
-                    if (currentSkillName === s.name) {
-                      setCurrentSkillName('')
-                      setSkillContent('')
-                    }
-                    setSkillStatus({ msg: `已删除:${s.name}`, kind: 'ok' })
-                  }}
-                  style={{
-                    fontSize: 11,
-                    padding: '2px 6px',
-                    color: 'var(--color-error, #c44)'
-                  }}
-                  title="删除"
-                >
-                  <Trash2 size={11} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* 编辑区 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-          <input
-            type="text"
-            value={currentSkillName}
-            onChange={(e) => setCurrentSkillName(e.target.value)}
-            placeholder="skill-name (字母/数字/-/_)"
-            style={{
-              flex: 1,
-              fontSize: 12,
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-bg-secondary)',
-              color: 'var(--color-text)'
-            }}
-          />
-          <button
-            className="btn btn-ghost"
-            onClick={async () => {
-              if (!currentSkillName) {
-                setSkillStatus({ msg: '请输入 Skill 名称', kind: 'err' })
-                return
-              }
-              if (!/^[a-zA-Z0-9_-]+$/.test(currentSkillName)) {
-                setSkillStatus({ msg: '名称只能含字母、数字、-、_', kind: 'err' })
-                return
-              }
-              try {
-                const ok = await window.api.skillSave?.(currentSkillName, skillContent)
-                if (ok) {
-                  await refreshLocal()
-                  setSkillStatus({ msg: `已保存:${currentSkillName}`, kind: 'ok' })
-                } else {
-                  setSkillStatus({ msg: '保存失败', kind: 'err' })
-                }
-              } catch (e) {
-                setSkillStatus({
-                  msg: '错误:' + (e instanceof Error ? e.message : String(e)),
-                  kind: 'err'
-                })
-              }
-            }}
-            style={{
-              fontSize: 12,
-              padding: '4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3
-            }}
-            title="保存"
-          >
-            <Save size={11} /> 保存
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(skillContent)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 1500)
-                setSkillStatus({ msg: '已复制全文', kind: 'ok' })
-              } catch {
-                setSkillStatus({ msg: '复制失败', kind: 'err' })
-              }
-            }}
-            style={{
-              fontSize: 12,
-              padding: '4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3
-            }}
-            title="复制全文到剪贴板"
-          >
-            {copied ? (
-              <>
-                <Check size={11} /> 已复制
-              </>
-            ) : (
-              <>
-                <Copy size={11} /> 复制
-              </>
-            )}
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={async () => {
-              const content = (await window.api.skillLoadDefault?.()) ?? ''
-              setSkillContent(content)
-              setCurrentSkillName('default')
-              setSkillStatus({ msg: '已加载默认模板 (Agents.md)', kind: 'ok' })
-            }}
-            style={{
-              fontSize: 12,
-              padding: '4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3
-            }}
-            title="重置为默认模板 (Agents.md)"
-          >
-            <RefreshCw size={11} /> 默认
-          </button>
-        </div>
-        <textarea
-          value={skillContent}
-          onChange={(e) => setSkillContent(e.target.value)}
-          placeholder="点默认按钮加载 Agents.md 全文,或直接编辑你的 Skill.md..."
-          style={{
-            minHeight: 200,
-            maxHeight: 400,
-            resize: 'vertical',
-            fontSize: 11,
-            fontFamily: 'monospace',
-            padding: 8,
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-bg-secondary)',
-            color: 'var(--color-text)',
-            whiteSpace: 'pre'
-          }}
-        />
-        {skillStatus.msg && (
-          <div
-            style={{
-              fontSize: 11,
-              color:
-                skillStatus.kind === 'ok'
-                  ? 'var(--color-accent)'
-                  : skillStatus.kind === 'err'
-                    ? 'var(--color-error, #c44)'
-                    : 'var(--color-text-tertiary)'
-            }}
-          >
-            {skillStatus.msg}
-          </div>
-        )}
+      <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 8 }}>
+        Agent 工作流规范，复制给你的 AI 助手使用。
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button className="btn btn-primary" onClick={() => void handleCopy()} style={{ flex: 1, fontSize: 12 }}>
+          {copied ? <><Check size={14} /> 已复制</> : <><Copy size={14} /> 复制</>}
+        </button>
+        <button className="btn btn-ghost" onClick={handleOpen} style={{ flex: 1, fontSize: 12 }}>
+          <FileText size={14} /> 打开
+        </button>
       </div>
     </div>
   )
 })
+
