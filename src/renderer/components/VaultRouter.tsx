@@ -98,6 +98,8 @@ export function VaultRouter({
               ui.setShowVaultCreation(false)
               ui.setShowOnboarding(true)
               _setVaultPath(path)
+              // Refresh file tree after creating vault
+              void handleRefresh()
               // Auto-open 使用说明.md shortly after wizard closes
               setTimeout(() => {
                 handleSelectFile(path + '/_wiki/使用说明.md')
