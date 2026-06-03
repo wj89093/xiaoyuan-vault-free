@@ -12,7 +12,7 @@
 import { memo, type JSX } from 'react'
 import { Settings } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
-import { ThemeSection, AuthSection, SkillSection } from './SettingsSections'
+import { ThemeSection, SkillSection } from './SettingsSections'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -37,7 +37,6 @@ export const SettingsPanel = memo(function SettingsPanel({
     >
       <div className="settings-body">
         <ThemeSection />
-        <AuthSection />
         <SkillSection />
       </div>
     </FloatingPanel>
