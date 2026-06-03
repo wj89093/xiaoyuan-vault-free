@@ -213,8 +213,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
 
     // Links
     const lg = mainG.append('g')
-    const linkSel = lg
-      (lg.selectAll('line') as any)
+    const linkSel = (lg.selectAll('line') as any)
       .data(filteredLinks)
       .enter()
       .append('line')
