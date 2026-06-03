@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type JSX } from 'react'
 import { BarChart3, RefreshCw, Clock, CheckCircle2, ChevronRight } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

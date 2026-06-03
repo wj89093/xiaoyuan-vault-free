@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, type JSX } from 'react'
 import type { ImportFileResult } from '../shared/chat'
 import { Upload, Link, X, CheckCircle } from 'lucide-react'
 

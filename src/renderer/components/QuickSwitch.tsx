@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, type JSX } from 'react'
 import { Search, FileText, Clock, ArrowRight, X, Hash } from 'lucide-react'
 import type { FileInfo } from '../types'
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */

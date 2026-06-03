@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, type JSX } from 'react'
 import { StickyNote } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

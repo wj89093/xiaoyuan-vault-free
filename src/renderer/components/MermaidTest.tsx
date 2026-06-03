@@ -1,3 +1,4 @@
+import type { JSX } from 'react'
 /**
  * MermaidTest.tsx — 独立验证 Mermaid 渲染，不污染 Editor
  *

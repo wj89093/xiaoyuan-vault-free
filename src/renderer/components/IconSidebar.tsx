@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, type JSX } from 'react'
 import {
   Search,
   Network,

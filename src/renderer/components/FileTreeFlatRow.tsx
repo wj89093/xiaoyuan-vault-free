@@ -11,6 +11,7 @@
  * - 后续接 react-window FixedSizeList 时,只需替换外层 .map
  */
 import React, { memo } from 'react'
+import type { JSX } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import type { FlatTreeItem } from '../utils/flattenTree'
 

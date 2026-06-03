@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/refs, react-hooks/immutability */
 import React from 'react'
+import type { JSX } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import type { FileInfo } from '../types'
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, type JSX } from 'react'
 import { Search, FileText } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect -- output panel: initial load pattern, expected */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type JSX } from 'react'
 import { FileOutput, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

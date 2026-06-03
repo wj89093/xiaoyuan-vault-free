@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useRef } from 'react'
+import { memo, useState, useCallback, useEffect, useRef, type JSX } from 'react'
 import {
   Scissors,
   ClipboardPaste,

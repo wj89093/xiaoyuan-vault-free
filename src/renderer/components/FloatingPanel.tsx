@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type JSX } from 'react'
 import { X } from 'lucide-react'
 
 interface FloatingPanelProps {

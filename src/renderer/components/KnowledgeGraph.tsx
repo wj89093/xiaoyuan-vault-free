@@ -3,7 +3,7 @@
  *
  * Loads graph data, manages UI state, delegates D3 rendering to KnowledgeGraphViz.
  */
-import { memo, useState, useEffect, useCallback, useRef } from 'react'
+import { memo, useState, useEffect, useCallback, useRef, type JSX } from 'react'
 import { Settings, X } from 'lucide-react'
 import {
   KnowledgeGraphViz,

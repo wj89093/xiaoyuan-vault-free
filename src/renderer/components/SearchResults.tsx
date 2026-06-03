@@ -1,4 +1,5 @@
 import { FileText } from 'lucide-react'
+import type { JSX } from 'react'
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import type { FileInfo } from '../types'
 

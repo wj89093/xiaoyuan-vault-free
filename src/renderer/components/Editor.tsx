@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { memo, useRef, useState, useEffect } from 'react'
+import { memo, useRef, useState, useEffect, type JSX } from 'react'
 import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'

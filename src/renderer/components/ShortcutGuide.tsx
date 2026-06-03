@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import type { JSX } from 'react'
 
 interface ShortcutGuideProps {
   onClose: () => void

@@ -2,7 +2,7 @@ import { FolderOpen, Search, Settings, ChevronRight } from 'lucide-react'
 import { FileTree } from './FileTree'
 import { SearchResults } from './SearchResults'
 import type { FileInfo } from '../types'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type JSX } from 'react'
 
 interface VaultInfo {
   path: string

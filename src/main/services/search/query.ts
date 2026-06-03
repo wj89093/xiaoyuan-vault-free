@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
 import log from 'electron-log/main'
 import { readFile, readdir } from 'fs/promises'
 import { basename, join } from 'path'

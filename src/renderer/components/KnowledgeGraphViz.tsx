@@ -5,8 +5,9 @@
  * drives D3 directly via useEffect + useRef (no React state in render loop).
  */
 /* eslint-disable react-hooks/exhaustive-deps, react-refresh/only-export-components */
-import { memo, useEffect, useRef, useMemo } from 'react'
+import { memo, useEffect, useRef, useMemo, type JSX } from 'react'
 import { useD3 } from '../hooks/useD3'
+import type { SimulationNodeDatum, SimulationLinkDatum } from 'd3-force'
 
 export interface GLink extends SimulationLinkDatum<GNode> {
   source: string | GNode

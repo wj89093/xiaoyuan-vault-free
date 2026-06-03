@@ -262,6 +262,83 @@ export interface XyVaultAPI {
     cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void,
   ): () => void
 
+  // Vault namespace (P3-2026-06-03: 补 renderer 用的命名空间 API)
+  vault: {
+    open(): Promise<string | null>
+    create(): Promise<string | null>
+    openFile(filePath: string): Promise<{ ok: boolean; path?: string }>
+    getLast(): Promise<string | null>
+    clearLast(): Promise<boolean>
+    refresh(): Promise<{ ok: boolean }>
+    list(): Promise<Array<{ path: string; name: string; lastOpened: number }>>
+    openPath(path: string): Promise<string | null>
+    selectDirectory(): Promise<string | null>
+    createAt(path: string): Promise<string | null>
+    remove(path: string): Promise<boolean>
+    path(): Promise<string | null>
+  }
+  // File namespace
+  file: {
+    list(): Promise<unknown[]>
+    search(query: string): Promise<unknown[]>
+    read(path: string): Promise<string>
+    render(path: string): Promise<{ type: string }>
+    create(path: string, title: string, type?: string): Promise<boolean>
+    save(path: string, content: string): Promise<boolean>
+    exists(path: string): Promise<boolean>
+    walkDir(path: string): Promise<unknown>
+    rename(oldPath: string, newName: string): Promise<boolean>
+    delete(vaultPath: string, filePath: string): Promise<boolean>
+    move(filePath: string, newParentDir: string): Promise<boolean>
+    revealInFinder(filePath: string): Promise<void>
+    openExternal(filePath: string): Promise<{ ok: boolean; error?: string }>
+    trashList(vaultPath: string): Promise<unknown[]>
+    trashRestore(vaultPath: string, originalPath: string): Promise<boolean>
+    trashDelete(vaultPath: string, originalPath: string): Promise<boolean>
+    trashClean(vaultPath: string): Promise<number>
+    import(vaultPath: string, filePaths: string[]): Promise<ImportFileResult[]>
+    listRaw(vaultPath: string): Promise<unknown[]>
+    convertRaw(rawPath: string, vaultPath: string): Promise<unknown>
+    listSchemas(vaultPath: string): Promise<unknown[]>
+  }
+  // Settings namespace
+  settings: {
+    get(): Promise<{ theme: 'light' | 'dark' | 'system' }>
+    getTheme(): Promise<'light' | 'dark' | 'system'>
+    setTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
+    getAgentPlugin(): Promise<{
+      enabled: boolean
+      endpoint: string
+      apiKey: string
+      protocol: 'ws' | 'http'
+      name: string
+    }>
+    setAgentPlugin(config: {
+      enabled: boolean
+      endpoint: string
+      apiKey: string
+      protocol: 'ws' | 'http'
+      name: string
+    }): Promise<void>
+    setAgentPluginEnabled(enabled: boolean): Promise<boolean>
+  }
+  // Graph namespace
+  graph: {
+    load(): Promise<unknown>
+    rebuild(): Promise<GraphLoadResult>
+    rebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
+    onFileChange(
+      cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void,
+    ): () => void
+  }
+
+  // Pre-existing missing methods (TODO: integrate with Pro 仓 or remove renderer calls)
+  bubbleExpand?: (...args: unknown[]) => unknown
+  openInDefaultApp?: (filePath: string) => Promise<void>
+  getPathForFile?: (file: File) => string
+  listSchemas?: (vaultPath: string) => Promise<unknown[]>
+  fileExists?: (path: string) => Promise<boolean>
+
   // Maintenance
   runMaintenance(): Promise<unknown>
 
@@ -287,6 +364,7 @@ export interface XyVaultAPI {
 declare global {
   interface Window {
     api: XyVaultAPI
+    toast: (...args: unknown[]) => unknown
   }
 }
 

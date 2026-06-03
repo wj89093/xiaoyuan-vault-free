@@ -1,5 +1,5 @@
 import { ChevronRight, Check, Clock } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, type JSX } from 'react'
 
 interface EditorHeaderProps {
   selectedFile: string | null

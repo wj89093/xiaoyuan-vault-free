@@ -1,6 +1,6 @@
  
 
-import { memo, useState, useRef, useEffect, useMemo } from 'react'
+import { memo, useState, useRef, useEffect, useMemo, type JSX } from 'react'
 import { FixedSizeList } from 'react-window'
 import type { FileInfo } from '../types'
 import { FileTreeContextMenu } from './FileTreeContextMenu'
@@ -18,7 +18,9 @@ interface FileTreeProps {
   onSelect: (path: string) => void
   onRefresh?: () => void
   onNewFile?: (folderPath: string) => void
+  // P3-2026-06-02: Pro 仓 FileTree 用了 _onNewFolder 但 Free 仓没声明
   onNewFolder?: (parentPath: string) => void
+  _onNewFolder?: (parentPath: string) => void
   vaultPath: string
   isSourceTab?: boolean
   isLoading?: boolean

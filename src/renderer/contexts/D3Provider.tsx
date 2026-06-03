@@ -9,7 +9,7 @@
  * This defers D3 parse+execute to when the graph panel first opens,
  * reducing cold-start JS bundle parse cost (~200KB d3-force saved until needed).
  */
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState, type JSX } from 'react'
 import { D3Context, loadD3 } from './D3Context'
 
 type D3Value = { d3: unknown; loaded: boolean }

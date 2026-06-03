@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect -- log panel: initial load + polling pattern, expected */
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, type JSX } from 'react'
 import { FileText, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

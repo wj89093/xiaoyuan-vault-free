@@ -11,7 +11,7 @@
  * 关键设计:每个子组件独立 useState + useEffect,父 SettingsPanel 只管顶层 wrapper。
  * 减少 re-render 半径,避免 15 useState 单体组件。
  */
-import { useState, useEffect, memo } from 'react'
+import { useState, useEffect, memo, type JSX } from 'react'
 import { Sun, Moon, Monitor, User, LogIn, LogOut, Loader2, Plug, Copy, Check, Trash2, RefreshCw, Save } from 'lucide-react'
 
 // ─── ThemeSection ─────────────────────────────────────────────────────

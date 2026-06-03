@@ -1,4 +1,5 @@
 import React from 'react'
+import type { JSX } from 'react'
 import { Sidebar } from './Sidebar'
 import { IconSidebar } from './IconSidebar'
 import { EditorHeader } from './EditorHeader'

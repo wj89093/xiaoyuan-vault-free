@@ -23,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # P3-2026-06-03: tsc -b 严格模式, 检查 web+node 子项目 (推荐但会暴露 194 个 pre-existing errors)
+      # 当前用 tsc --noEmit (只查 root tsconfig 的 test-setup.ts, 等价于空跑)
+      # TODO: 修完 pre-existing tsc errors 后改用 tsc -b --noEmit
       - name: Type check
         run: npx tsc --noEmit
 
@@ -35,11 +38,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Package (macOS)
-        if: runner.os == 'macOS'
-        run: npm run package
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      # P3-2026-06-03: macOS package 步骤原本 dead code (runs-on: ubuntu + if: macOS 永假)
+      # release.yml 已有 matrix 包含 macos-latest, 这里删除冗余步骤
+      # (macOS 打包实际由 release.yml on tag v* 触发)

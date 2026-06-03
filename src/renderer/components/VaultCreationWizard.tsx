@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type JSX } from 'react'
 import React from 'react'
 import { X, FolderOpen, ArrowRight, Check } from 'lucide-react'
 

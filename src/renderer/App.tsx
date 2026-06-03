@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
-import { useEffect, useCallback, lazy, Suspense } from 'react'
+import { useEffect, useCallback, lazy, Suspense, type JSX } from 'react'
 import React from 'react'
 import { QuickSwitch } from './components/QuickSwitch'
 // P4-2026-06-02 (backport): lazy 加载 - 知识图谱只在用户点击图标时显示,首屏不加载 vendor-d3(691KB)

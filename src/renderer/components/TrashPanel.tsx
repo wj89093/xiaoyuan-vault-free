@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type JSX } from 'react'
 import { Trash2, RotateCcw, X, AlertTriangle } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 

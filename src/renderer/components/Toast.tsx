@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type JSX } from 'react'
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react'
 /* eslint-disable */
 

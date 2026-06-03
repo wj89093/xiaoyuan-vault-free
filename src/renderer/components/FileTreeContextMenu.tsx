@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type JSX } from 'react'
 import { Plus, FolderPlus, FileText, Pencil, Trash2 } from 'lucide-react'
 import type { FileInfo } from '../types'
 import log from 'electron-log/renderer'

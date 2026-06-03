@@ -9,7 +9,7 @@
  * - AuthSection: 晓园账户登录/登出
  * - SkillSection: 用户 Skill CRUD（v1.4 保留，AGENTS.md 取代协议部分）
  */
-import { memo } from 'react'
+import { memo, type JSX } from 'react'
 import { Settings } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 import { ThemeSection, AuthSection, SkillSection } from './SettingsSections'
