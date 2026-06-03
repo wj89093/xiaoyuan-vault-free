@@ -9,6 +9,7 @@ import { initDatabase, getVaultPath } from '../services/database/database'
 /* autoAI engine: removed */
 import { setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../graphUtils'
+import { startFileWatcher } from '../services/fileWatcher'
 
 const configPath = join(app.getPath('userData'), 'vault-config.json')
 
@@ -83,6 +84,7 @@ async function createVaultAtPath(vaultPath: string): Promise<string> {
   await initDatabase(vaultPath)
   await addVaultToList(vaultPath)
   setVaultPath(vaultPath)
+  startFileWatcher(vaultPath)
   triggerGraphRebuild()
   return vaultPath
 }
@@ -100,6 +102,7 @@ function registerVaultLifecycleHandlers(): void {
     if (vaultPath && existsSync(vaultPath)) {
       await initDatabase(vaultPath)
       setVaultPath(vaultPath)
+      startFileWatcher(vaultPath)
       triggerGraphRebuild()
       return vaultPath
     }
@@ -161,6 +164,7 @@ function registerVaultBrowseHandlers(): void {
       await initDatabase(vaultPath)
       await addVaultToList(vaultPath)
       setVaultPath(vaultPath)
+      startFileWatcher(vaultPath)
       triggerGraphRebuild()
       return vaultPath
     }
@@ -188,6 +192,7 @@ function registerVaultBrowseHandlers(): void {
     await initDatabase(vaultPath)
     await addVaultToList(vaultPath)
     setVaultPath(vaultPath)
+    startFileWatcher(vaultPath)
     triggerGraphRebuild()
     return vaultPath
   })

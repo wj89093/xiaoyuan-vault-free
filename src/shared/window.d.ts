@@ -257,6 +257,10 @@ export interface XyVaultAPI {
   graphRebuild(): Promise<GraphLoadResult>
   // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
   graphRebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
+  // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
+  graphOnFileChange(
+    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void,
+  ): () => void
 
   // Maintenance
   runMaintenance(): Promise<unknown>

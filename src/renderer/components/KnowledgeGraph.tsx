@@ -204,6 +204,44 @@ export const KnowledgeGraph = memo(function KnowledgeGraph({
     }
   }, [selectedFile])
 
+  // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
+  // 外部 app 改文件、git pull、外置编辑器保存等都能触发图谱增量重建
+  // 500ms debounce 合并连续变化
+  useEffect(() => {
+    const pendingPaths = new Set<string>()
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    let cancelled = false
+
+    const flush = async () => {
+      if (pendingPaths.size === 0) return
+      const paths = Array.from(pendingPaths)
+      pendingPaths.clear()
+      try {
+        await window.api.graph.rebuildIncremental?.(paths)
+        if (cancelled) return
+        const { nodes, links } = await loadGraph()
+        if (!cancelled) setGraph({ nodes, links })
+      } catch {
+        /* ignore — incremental rebuild is best-effort */
+      }
+    }
+
+    const unsub = window.api.graphOnFileChange?.((changes) => {
+      if (!Array.isArray(changes)) return
+      for (const c of changes) {
+        if (typeof c?.path === 'string') pendingPaths.add(c.path)
+      }
+      if (debounceTimer) clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(flush, 500)
+    })
+
+    return () => {
+      cancelled = true
+      if (debounceTimer) clearTimeout(debounceTimer)
+      if (typeof unsub === 'function') unsub()
+    }
+  }, [])
+
   const toggleLinkFilter = (type: string) => {
     setLinkFilters((prev) => {
       const next = new Set(prev)
