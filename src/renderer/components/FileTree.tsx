@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { useState, useRef, useEffect } from 'react'
+import { memo, useState, useRef, useEffect, useMemo } from 'react'
 import type { FileInfo } from '../types'
 import { FileTreeContextMenu } from './FileTreeContextMenu'
+import { Skeleton } from './Skeleton'
 import { FileTreeHoverPreview } from './FileTreeHoverPreview'
 import { FileTreeNode } from './FileTreeNode'
+import { FileTreeFlatRow } from './FileTreeFlatRow'
+import { flattenTree, type FlatTreeItem } from '../utils/flattenTree'
 
 interface FileTreeProps {
   files: FileInfo[]
@@ -32,30 +35,17 @@ function flattenToList(
   }
 }
 
-export function FileTree({
-  files,
-  selectedFile,
-  onSelect,
-  onRefresh,
-  onNewFile,
-  _onNewFolder,
-  vaultPath,
-  isSourceTab,
-  isLoading
+export const FileTree = memo(function FileTree({
+  files, selectedFile, onSelect, onRefresh,
+  onNewFile, _onNewFolder, vaultPath, isSourceTab, isLoading,
 }: FileTreeProps): JSX.Element {
+
   // ── State ─────────────────────────────────────────────────────────
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set([vaultPath, vaultPath + '/_wiki'])
   )
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(
-    null
-  )
-  const [hoverPreview, setHoverPreview] = useState<{
-    x: number
-    y: number
-    name: string
-    summary: string
-  } | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(null)
+  const [hoverPreview, setHoverPreview] = useState<{ x: number; y: number; name: string; summary: string } | null>(null)
   const [hoverError, setHoverError] = useState(false)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const [dragError, setDragError] = useState<string | null>(null)
@@ -69,7 +59,7 @@ export function FileTree({
   const scrollTopRef = useRef(0)
 
   // ── Derived ──────────────────────────────────────────────────────
-  const roots = files[0]?.children ? files : files.filter((f) => !f.path.includes('/'))
+  const roots = files[0]?.children ? files : files.filter(f => !f.path.includes('/'))
 
   // P3-1: capture scroll position before files refresh, restore after
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -93,13 +83,13 @@ export function FileTree({
     if (focusedIndex >= flatItems.current.length) {
       setFocusedIndex(flatItems.current.length - 1)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [files, expandedFolders, roots])
 
   // Auto-expand top-level directories when files become available
   useEffect(() => {
     if (files.length === 0) return
-    setExpandedFolders((prev) => {
+    setExpandedFolders(prev => {
       const next = new Set(prev)
       next.add(vaultPath)
       for (const f of files) {
@@ -139,12 +129,11 @@ export function FileTree({
 
   const toggleFolder = (path: string) => {
     const next = new Set(expandedFolders)
-    if (next.has(path)) next.delete(path)
-    else next.add(path)
+    if (next.has(path)) next.delete(path); else next.add(path)
     setExpandedFolders(next)
   }
 
-  const handleMouseEnter = (e: React.MouseEvent, file: FileInfo) => {
+  const handleMouseEnter = (e: React.MouseEvent, file: FlatTreeItem) => {
     if (file.isDirectory) return
     setHoverError(false)
     const rect = (e.target as HTMLElement).getBoundingClientRect()
@@ -160,19 +149,9 @@ export function FileTree({
         }
         if (!summary) {
           const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
-          summary = body
-            .split('\n')
-            .filter((l) => l.trim())
-            .slice(0, 2)
-            .join(' ')
-            .slice(0, 120)
+          summary = body.split('\n').filter(l => l.trim()).slice(0, 2).join(' ').slice(0, 120)
         }
-        setHoverPreview({
-          x: rect.right + 8,
-          y: rect.top,
-          name: file.name,
-          summary: summary || '(无内容)'
-        })
+        setHoverPreview({ x: rect.right + 8, y: rect.top, name: file.name, summary: summary || '(无内容)' })
         setHoverError(false)
       } catch (err) {
         console.error('[FileTree] hover preview failed:', err)
@@ -181,9 +160,7 @@ export function FileTree({
     }, 300)
   }
 
-  const handleMouseLeave = () => {
-    clearTimeout(hoverTimer.current)
-  }
+  const handleMouseLeave = () => { clearTimeout(hoverTimer.current) }
 
   const handleDragStart = (e: React.DragEvent, path: string) => {
     e.dataTransfer.setData('text/plain', path)
@@ -211,9 +188,7 @@ export function FileTree({
     setDropTarget(null)
     const srcPath = e.dataTransfer.getData('text/plain')
     if (srcPath && srcPath !== filePath) {
-      const parentDir = filePath.includes('/')
-        ? filePath.substring(0, filePath.lastIndexOf('/'))
-        : ''
+      const parentDir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : ''
       if (!parentDir) {
         setDragError('无法移动到根目录')
         setTimeout(() => setDragError(null), 5000)
@@ -258,7 +233,7 @@ export function FileTree({
 
   const handleDragLeave = () => setDropTarget(null)
 
-  const handleContextMenu = (e: React.MouseEvent, file: FileInfo) => {
+  const handleContextMenu = (e: React.MouseEvent, file: FlatTreeItem) => {
     setContextMenu({ x: e.clientX, y: e.clientY, file })
   }
 
@@ -294,48 +269,34 @@ export function FileTree({
   if (isLoading) {
     return (
       <div className="file-tree" role="tree">
-        <div className="file-tree-loading">加载中...</div>
+        <div style={{ padding: '12px 16px' }}>
+          <Skeleton lines={4} />
+        </div>
       </div>
     )
   }
 
   const emptyLabel = vaultPath ? '暂无文件' : '知识库还是空的'
 
+  // P3-2026-06-02: 派生拍平列表(给 FileTreeFlatRow 用)
+  // 暂未接入 react-window FixedSizeList,见 docs/PHASE3_PLAN_2026-06-02.md
+  const flatRows = useMemo(
+    () => flattenTree(roots, expandedFolders),
+    [roots, expandedFolders],
+  )
+
   if (files.length === 0) {
     return (
       <div className="file-tree" role="tree">
         <div className="file-tree-empty">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#a1a1a6"
-            strokeWidth="1.2"
-          >
-            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a1a1a6" strokeWidth="1.2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
           </svg>
           <p>{emptyLabel}</p>
-          <p className="file-tree-empty-hint">
-            {vaultPath
-              ? '拖拽文件到此处，或点击上方 + 新建'
-              : '拖拽文件到此处，或点击下方打开知识库'}
-          </p>
-          <button
-            className="btn btn-secondary"
-            onClick={() => onNewFile?.()}
-            style={{ marginTop: 8 }}
-            tabIndex={0}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M7 2v10M2 7h10" />
+          <p className="file-tree-empty-hint">{vaultPath ? '拖拽文件到此处，或点击上方 + 新建' : '拖拽文件到此处，或点击下方打开知识库'}</p>
+          <button className="btn btn-secondary" onClick={() => onNewFile?.()} style={{ marginTop: 8 }} tabIndex={0}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M7 2v10M2 7h10"/>
             </svg>
             {isSourceTab ? '导入文件' : '新建第一个文件'}
           </button>
@@ -351,10 +312,7 @@ export function FileTree({
       onKeyDown={handleTreeKeyDown}
       tabIndex={-1}
       ref={containerRef}
-      onDragOver={(e) => {
-        e.preventDefault()
-        e.dataTransfer.dropEffect = 'move'
-      }}
+      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
       onDrop={handleDropOnRoot}
     >
       {dragError && (
@@ -362,30 +320,55 @@ export function FileTree({
           {dragError}
         </div>
       )}
-      {roots.map((file, i) => (
-        <FileTreeNode
-          key={file.path}
-          file={file}
-          depth={0}
-          flatIdx={i}
-          expandedFolders={expandedFolders}
-          selectedFile={selectedFile}
-          focusedIndex={focusedIndex}
-          dropTarget={dropTarget}
-          onToggle={toggleFolder}
-          onSelect={onSelect}
-          onContextMenu={handleContextMenu}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onDragStart={handleDragStart}
-          onDropOnFolder={handleDropOnFolder}
-          onDropOnFile={handleDropOnFile}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          itemRefs={itemRefs}
-          flatItemsRef={flatItems}
-        />
-      ))}
+      {flatRows.length > 0 ? (
+        flatRows.map((item, i) => (
+          <FileTreeFlatRow
+            key={item.path}
+            item={item}
+            flatIdx={i}
+            expandedFolders={expandedFolders}
+            selectedFile={selectedFile}
+            focusedIndex={focusedIndex}
+            dropTarget={dropTarget}
+            onToggle={toggleFolder}
+            onSelect={onSelect}
+            onContextMenu={handleContextMenu}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnFile={handleDropOnFile}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            itemRefs={itemRefs}
+          />
+        ))
+      ) : (
+        // 拍平后为空(理论上不会发生,roots 一定非空)
+        roots.map((file, i) => (
+          <FileTreeNode
+            key={file.path}
+            file={file}
+            depth={0}
+            flatIdx={i}
+            expandedFolders={expandedFolders}
+            selectedFile={selectedFile}
+            focusedIndex={focusedIndex}
+            dropTarget={dropTarget}
+            onToggle={toggleFolder}
+            onSelect={onSelect}
+            onContextMenu={handleContextMenu}
+            onMouseLeave={handleMouseLeave}
+            onDragStart={handleDragStart}
+            onDropOnFolder={handleDropOnFolder}
+            onDropOnFile={handleDropOnFile}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            itemRefs={itemRefs}
+            flatItemsRef={flatItems}
+          />
+        ))
+      )}
 
       {/* Hover preview */}
       {hoverPreview && !hoverError && (
@@ -406,30 +389,22 @@ export function FileTree({
           onClose={() => setContextMenu(null)}
           onRename={async (oldPath, newName) => {
             try {
-              const parentDir = oldPath.includes('/')
-                ? oldPath.substring(0, oldPath.lastIndexOf('/'))
-                : vaultPath
+              const parentDir = oldPath.includes('/') ? oldPath.substring(0, oldPath.lastIndexOf('/')) : vaultPath
               await window.api.moveFile(oldPath, `${parentDir}/${newName}`)
               setContextMenu(null)
               onRefresh?.()
-            } catch (err) {
-              console.error('[FileTree] rename failed:', err)
-              setContextMenu(null)
-            }
+            } catch (err) { console.error('[FileTree] rename failed:', err); setContextMenu(null) }
           }}
           onDelete={async (filePath) => {
             try {
               await window.api.deleteFile(filePath)
               setContextMenu(null)
               onRefresh?.()
-            } catch (err) {
-              console.error('[FileTree] delete failed:', err)
-              setContextMenu(null)
-            }
+            } catch (err) { console.error('[FileTree] delete failed:', err); setContextMenu(null) }
           }}
           vaultPath={vaultPath}
         />
       )}
     </div>
   )
-}
+})

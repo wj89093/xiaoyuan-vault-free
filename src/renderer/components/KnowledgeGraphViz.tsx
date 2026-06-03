@@ -5,30 +5,23 @@
  * drives D3 directly via useEffect + useRef (no React state in render loop).
  */
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/immutability, react-hooks/refs, react-refresh/only-export-components */
-import { useEffect, useRef, useMemo } from 'react'
+import { memo, useEffect, useRef, useMemo } from 'react'
 import { useD3 } from '../hooks/useD3'
 
 export interface GLink extends SimulationLinkDatum<GNode> {
-  source: string | GNode
-  target: string | GNode
+  source: string | GNode; target: string | GNode
   type: 'typed_link' | 'shared_tag' | 'similar_content' | 'folder'
   weight: number
 }
 
 export interface GNode extends SimulationNodeDatum {
-  id: string
-  name: string
-  folder: string
-  color: string
-  edge_count?: number
+  id: string; name: string; folder: string; color: string; edge_count?: number
 }
 
 interface VizProps {
-  nodes: GNode[]
-  links: GLink[]
+  nodes: GNode[]; links: GLink[]
   selectedFile: string | null
-  showFolderEdges: boolean
-  showLabels: boolean
+  showFolderEdges: boolean; showLabels: boolean
   nodeSizeMode: 'degree' | 'uniform'
   linkFilters: Set<string>
   onSelect: (id: string) => void
@@ -44,26 +37,10 @@ interface VizProps {
 export function folderColor(name: string): string {
   // Keep actual hex colors for JS runtime (CSS vars only valid in CSS property context)
   const palette = [
-    '#1a56a8',
-    '#1e7a4d',
-    '#8b5cf6',
-    '#d97706',
-    '#dc2626',
-    '#0891b2',
-    '#65a30d',
-    '#c026d3',
-    '#ea580c',
-    '#2563eb',
-    '#1e7a4d',
-    '#8b5cf6',
-    '#d97706',
-    '#dc2626',
-    '#0891b2',
-    '#1a56a8',
-    '#1e7a4d',
-    '#8b5cf6',
-    '#d97706',
-    '#0891b2'
+    '#1a56a8', '#1e7a4d', '#8b5cf6', '#d97706', '#dc2626',
+    '#0891b2', '#65a30d', '#c026d3', '#ea580c', '#2563eb',
+    '#1e7a4d', '#8b5cf6', '#d97706', '#dc2626', '#0891b2',
+    '#1a56a8', '#1e7a4d', '#8b5cf6', '#d97706', '#0891b2',
   ]
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0
@@ -76,35 +53,17 @@ export function buildLegend(nodes: GNode[]): JSX.Element[] {
     const wikiMatch = n.id.match(/\/_wiki\/([^/]+)\//)
     if (wikiMatch && !colorMap.has(wikiMatch[1])) colorMap.set(wikiMatch[1], n.color)
   }
-  const hasNonWiki = nodes.some((n) => !n.id.includes('/_wiki/'))
+  const hasNonWiki = nodes.some(n => !n.id.includes('/_wiki/'))
   const items: JSX.Element[] = []
   for (const [name, color] of [...colorMap.entries()].sort()) {
-    items.push(
-      <span key={name} className="kg-legend-item">
-        <span className="kg-legend-dot" style={{ background: color }} />
-        {name}
-      </span>
-    )
+    items.push(<span key={name} className="kg-legend-item"><span className="kg-legend-dot" style={{ background: color }} />{name}</span>)
   }
   if (hasNonWiki) {
-    items.push(
-      <span key="_note" className="kg-legend-item">
-        <span className="kg-legend-dot" style={{ background: 'var(--color-graph-note)' }} />
-        笔记
-      </span>
-    )
+    items.push(<span key="_note" className="kg-legend-item"><span className="kg-legend-dot" style={{ background: 'var(--color-graph-note)' }} />笔记</span>)
   }
   // P2-5: always show explanatory placeholder when nodes exist but legend is empty
   if (items.length === 0 && nodes.length > 0) {
-    items.push(
-      <span
-        key="_empty"
-        className="kg-legend-item"
-        style={{ color: 'var(--color-text-tertiary, #a1a1a6)' }}
-      >
-        节点颜色代表所属子目录
-      </span>
-    )
+    items.push(<span key="_empty" className="kg-legend-item" style={{ color: 'var(--color-text-tertiary, #a1a1a6)' }}>节点颜色代表所属子目录</span>)
   }
   return items
 }
@@ -117,39 +76,29 @@ const COLORS = {
   linkContent: 'var(--color-text-secondary, #b8c5d6)',
   text: 'var(--color-text-secondary, #4a5568)',
   sel: 'var(--color-accent, #1e7a4d)',
-  selStroke: 'var(--color-accent-hover, #2d9a6c)'
+  selStroke: 'var(--color-accent-hover, #2d9a6c)',
 }
 
-const _isThemeFile = (name: string) =>
-  ['index.md', 'log.md', 'schema.md', 'README.md'].includes(name)
+const _isThemeFile = (name: string) => ['index.md', 'log.md', 'schema.md', 'README.md'].includes(name)
 
 // ─── Main renderer ─────────────────────────────────────────────────
 
-export function KnowledgeGraphViz({
-  nodes,
-  links,
-  selectedFile,
-  showFolderEdges,
-  showLabels,
-  nodeSizeMode,
-  linkFilters,
-  onSelect,
-  focusedNodeId,
-  onFocusChange,
-  onD3Error,
-  lastPositionsRef: _lastPositionsRef
+export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
+  nodes, links, selectedFile,
+  showFolderEdges, showLabels, nodeSizeMode, linkFilters,
+  onSelect, focusedNodeId, onFocusChange, onD3Error,
+  lastPositionsRef: _lastPositionsRef,
 }: VizProps): JSX.Element {
   const svgRef = useRef<SVGSVGElement>(null)
-
+   
   const simRef = useRef<any>(null)
-
+   
   const d3Ref = useRef<any>(null)
   const linkFiltersRef = useRef<Set<string>>(linkFilters)
-  const lastPositionsRef = useRef<
-    React.MutableRefObject<Map<string, { x: number; y: number }>> | undefined
-  >(_lastPositionsRef)
+  const lastPositionsRef = useRef<React.MutableRefObject<Map<string, { x: number; y: number }>> | undefined>(_lastPositionsRef)
   // Keep refs synced to latest props in render — safe pattern for stable-ref sync
-
+   
+   
   linkFiltersRef.current = linkFilters
 
   const { d3: d3Ctx } = useD3()
@@ -161,7 +110,8 @@ export function KnowledgeGraphViz({
   const graphKey = useMemo(() => nodes.length + links.length, [nodes, links])
 
   const linkFiltersStable = useRef<Set<string>>(linkFilters)
-
+   
+   
   linkFiltersStable.current = linkFilters
 
   useEffect(() => {
@@ -176,13 +126,12 @@ export function KnowledgeGraphViz({
     svg.attr('width', w).attr('height', h)
     const mainG = svg.append('g')
 
-    const zoom = d3
-      .zoom<SVGSVGElement, unknown>()
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 4])
       .on('zoom', (e) => {
         mainG.attr('transform', e.transform)
         // P2-3: show zoom level in header
-        const zoomPct = Math.round(e.transform.k * 100)
+        const zoomPct = Math.round((e.transform.k) * 100)
         const zoomEl = document.getElementById('kg-zoom-level')
         if (zoomEl) zoomEl.textContent = `${zoomPct}%`
       })
@@ -199,84 +148,57 @@ export function KnowledgeGraphViz({
     const maxDeg = Math.max(...deg.values(), 1)
 
     // Hide isolated nodes (no links)
-    const connectedNodes = nodes.filter((n) => (deg.get(n.id) ?? 0) > 0)
-    const scale =
-      nodeSizeMode === 'uniform' ? () => 10 : d3.scaleSqrt().domain([0, maxDeg]).range([5, 20])
+    const connectedNodes = nodes.filter(n => (deg.get(n.id) ?? 0) > 0)
+    const scale = nodeSizeMode === 'uniform'
+      ? () => 10
+      : d3.scaleSqrt().domain([0, maxDeg]).range([5, 20])
 
     // Filter links
-    const filteredLinks = (
-      showFolderEdges ? links : links.filter((l) => l.type !== 'folder')
-    ).filter((l) => linkFiltersStable.current.has(l.type))
+    const filteredLinks = (showFolderEdges ? links : links.filter(l => l.type !== 'folder'))
+      .filter(l => linkFiltersStable.current.has(l.type))
 
     // Links
     const lg = mainG.append('g')
-    const linkSel = lg
-      .selectAll<SVGLineElement, GLink>('line')
-      .data(filteredLinks)
-      .enter()
-      .append('line')
-      .attr('stroke', (d) =>
-        d.type === 'folder'
-          ? COLORS.linkFolder
-          : d.type === 'shared_tag' || d.type === 'similar_content'
-            ? COLORS.linkContent
-            : COLORS.linkWiki
-      )
-      .attr('stroke-width', (d) => (d.type === 'folder' ? 0.5 : Math.min(1.5, d.weight + 0.5)))
-      .attr('stroke-opacity', (d) => (d.type === 'folder' ? 0.25 : 0.6))
+    const linkSel = lg.selectAll<SVGLineElement, GLink>('line')
+      .data(filteredLinks).enter().append('line')
+      .attr('stroke', d =>
+        d.type === 'folder' ? COLORS.linkFolder :
+        d.type === 'shared_tag' || d.type === 'similar_content' ? COLORS.linkContent :
+        COLORS.linkWiki)
+      .attr('stroke-width', d => d.type === 'folder' ? 0.5 : Math.min(1.5, d.weight + 0.5))
+      .attr('stroke-opacity', d => d.type === 'folder' ? 0.25 : 0.6)
 
     // Nodes
     const ng = mainG.append('g')
-    const nodeSel = ng
-      .selectAll<SVGGElement, GNode>('g')
-      .data(connectedNodes)
-      .enter()
-      .append('g')
+    const nodeSel = ng.selectAll<SVGGElement, GNode>('g')
+      .data(connectedNodes).enter().append('g')
       .attr('cursor', 'pointer')
-      .attr('data-node-id', (d) => d.id)
-      .attr('data-node-name', (d) => d.name)
+      .attr('data-node-id', d => d.id)
+      .attr('data-node-name', d => d.name)
       .attr('tabindex', '-1')
       .on('click', (_e, d) => onSelect(d.id))
       .on('keydown', (e: KeyboardEvent) => {
-        if (['Enter', ' '].includes(e.key)) {
-          e.preventDefault()
-          onSelect((e.target as SVGGElement).getAttribute('data-node-id') ?? '')
-        }
+        if (['Enter', ' '].includes(e.key)) { e.preventDefault(); onSelect((e.target as SVGGElement).getAttribute('data-node-id') ?? '') }
       })
-      .call(
-        d3
-          .drag<SVGGElement, GNode>()
-          .on('start', (e, d) => {
-            if (!e.active && simRef.current) simRef.current.alphaTarget(0.3).restart()
-            d.fx = d.x
-            d.fy = d.y
-          })
-          .on('drag', (e, d) => {
-            d.fx = e.x
-            d.fy = e.y
-          })
-          .on('end', (e, d) => {
-            if (!e.active && simRef.current) simRef.current.alphaTarget(0)
-            d.fx = null
-            d.fy = null
-          })
-      )
+      .call(d3.drag<SVGGElement, GNode>()
+        .on('start', (e, d) => { if (!e.active && simRef.current) simRef.current.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y })
+        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y })
+        .on('end', (e, d) => { if (!e.active && simRef.current) simRef.current.alphaTarget(0); d.fx = null; d.fy = null }))
 
     // Circles
-    nodeSel
-      .append('circle')
-      .attr('r', (d) => scale(deg.get(d.id) ?? 1))
-      .attr('fill', (d) => {
+    nodeSel.append('circle')
+      .attr('r', d => scale(deg.get(d.id) ?? 1))
+      .attr('fill', d => {
         if (selectedFile === d.id) return COLORS.sel
         if ((deg.get(d.id) ?? 0) > maxDeg * 0.5) return COLORS.nodeHub
         return d.color ?? COLORS.nodeDefault
       })
-      .attr('stroke', (d) => (selectedFile === d.id ? COLORS.selStroke : 'transparent'))
-      .attr('stroke-width', (d) => (selectedFile === d.id ? 2.5 : 0))
-      .attr('opacity', (d) => (selectedFile === d.id ? 1 : 0.8))
+      .attr('stroke', d => selectedFile === d.id ? COLORS.selStroke : 'transparent')
+      .attr('stroke-width', d => selectedFile === d.id ? 2.5 : 0)
+      .attr('opacity', d => selectedFile === d.id ? 1 : 0.8)
 
     // Custom tooltip on hover (immediate, no browser delay)
-    nodeSel.on('mouseenter', function (e, d) {
+    nodeSel.on('mouseenter', function(e, d) {
       // Find or create tooltip element
       const svgEl = svgRef.current
       let tip = svgEl?.parentElement?.querySelector('.d3-tooltip') as HTMLElement | null
@@ -296,7 +218,7 @@ export function KnowledgeGraphViz({
           'max-width: 300px',
           'overflow: hidden',
           'text-overflow: ellipsis',
-          'box-shadow: 0 2px 8px rgba(0,0,0,0.15)'
+          'box-shadow: 0 2px 8px rgba(0,0,0,0.15)',
         ].join('; ')
         svgEl?.parentElement?.appendChild(tip)
       }
@@ -306,35 +228,31 @@ export function KnowledgeGraphViz({
       if (tip && rect && containerRect) {
         tip.textContent = d.name
         tip.style.display = 'block'
-        tip.style.left =
-          Math.min(e.clientX - containerRect.left + 14, (svgEl?.clientWidth ?? 300) - 120) + 'px'
+        tip.style.left = Math.min(e.clientX - containerRect.left + 14, (svgEl?.clientWidth ?? 300) - 120) + 'px'
         tip.style.top = Math.max(e.clientY - containerRect.top - 30, 4) + 'px'
       }
     })
-    nodeSel.on('mouseleave', function () {
+    nodeSel.on('mouseleave', function() {
       const tip = svgRef.current?.parentElement?.querySelector('.d3-tooltip') as HTMLElement | null
       if (tip) tip.style.display = 'none'
     })
 
     // Labels
     if (showLabels) {
-      nodeSel
-        .append('text')
-        .attr('dx', (d) => (typeof scale === 'function' ? scale(deg.get(d.id) ?? 1) : 10) + 5)
+      nodeSel.append('text')
+        .attr('dx', d => (typeof scale === 'function' ? scale(deg.get(d.id) ?? 1) : 10) + 5)
         .attr('dy', 4)
-        .attr('font-size', (d) => ((deg.get(d.id) ?? 0) > maxDeg * 0.5 ? '12px' : '10px'))
-        .attr('font-weight', (d) => ((deg.get(d.id) ?? 0) > maxDeg * 0.5 ? '600' : '400'))
+        .attr('font-size', d => (deg.get(d.id) ?? 0) > maxDeg * 0.5 ? '12px' : '10px')
+        .attr('font-weight', d => (deg.get(d.id) ?? 0) > maxDeg * 0.5 ? '600' : '400')
         .attr('font-family', '-apple-system, sans-serif')
         .attr('fill', COLORS.text)
-        .text((d) => d.name.slice(0, 20))
+        .text(d => d.name.slice(0, 20))
     }
 
     // Cluster force
     const fi = new Map<string, number>()
     let idx = 0
-    for (const n of nodes) {
-      if (n.folder && !fi.has(n.folder)) fi.set(n.folder, idx++)
-    }
+    for (const n of nodes) { if (n.folder && !fi.has(n.folder)) fi.set(n.folder, idx++) }
 
     // P2-1: Restore last positions for deterministic layout (avoid random re-layout)
     // D3 force simulation requires mutating node positions
@@ -343,18 +261,10 @@ export function KnowledgeGraphViz({
     if (stored && stored.size > 0) {
       for (const n of nodes) {
         const pos = stored.get(n.id)
-        if (pos) {
-          n.x = pos.x
-          n.y = pos.y
-          n.vx = 0
-          n.vy = 0
-        }
+        if (pos) { n.x = pos.x; n.y = pos.y; n.vx = 0; n.vy = 0 }
       }
     } else {
-      for (const n of nodes) {
-        n.vx = 0
-        n.vy = 0
-      }
+      for (const n of nodes) { n.vx = 0; n.vy = 0 }
     }
     /* eslint-enable react-hooks/immutability */
 
@@ -376,24 +286,12 @@ export function KnowledgeGraphViz({
     }
     // eslint-enable react-hooks/immutability
 
-    const sim = d3
-      .forceSimulation<GNode>(connectedNodes)
-      .force(
-        'link',
-        d3
-          .forceLink<GNode, GLink>(links)
-          .id((d) => d.id)
-          .distance((d) => (d.type === 'folder' ? 80 : 50))
-          .strength((d) => (d.type === 'folder' ? 0.15 : 0.3))
-      )
+    const sim = d3.forceSimulation<GNode>(connectedNodes)
+      .force('link', d3.forceLink<GNode, GLink>(links).id(d => d.id)
+        .distance(d => d.type === 'folder' ? 80 : 50).strength(d => d.type === 'folder' ? 0.15 : 0.3))
       .force('charge', d3.forceManyBody().strength(-100))
       .force('center', d3.forceCenter(w / 2, h / 2))
-      .force(
-        'collision',
-        d3.forceCollide<GNode>(
-          (d) => (typeof scale === 'function' ? scale(deg.get(d.id) ?? 1) : 10) + 10
-        )
-      )
+      .force('collision', d3.forceCollide<GNode>(d => (typeof scale === 'function' ? scale(deg.get(d.id) ?? 1) : 10) + 10))
       .force('cluster', clusterForce)
       .alphaDecay(0.02)
       .velocityDecay(0.3)
@@ -401,26 +299,20 @@ export function KnowledgeGraphViz({
 
     simRef.current = sim
 
-    sim
-      .on('tick', () => {
-        linkSel
-          .attr('x1', (d) => (d.source as GNode).x ?? 0)
-          .attr('y1', (d) => (d.source as GNode).y ?? 0)
-          .attr('x2', (d) => (d.target as GNode).x ?? 0)
-          .attr('y2', (d) => (d.target as GNode).y ?? 0)
-        nodeSel.attr('transform', (d) => `translate(${d.x ?? 0},${d.y ?? 0})`)
-      })
-      .on('end', () => {
-        // P2-1: Persist final positions for next render
-        if (lastPositionsRef.current) {
-          const posMap = lastPositionsRef.current.current
-          posMap.clear()
-          for (const n of nodes) {
-            if (n.x != null && n.y != null) posMap.set(n.id, { x: n.x, y: n.y })
-          }
-        }
-        if (onD3Error) onD3Error(null)
-      })
+    sim.on('tick', () => {
+      linkSel
+        .attr('x1', d => (d.source as GNode).x ?? 0).attr('y1', d => (d.source as GNode).y ?? 0)
+        .attr('x2', d => (d.target as GNode).x ?? 0).attr('y2', d => (d.target as GNode).y ?? 0)
+      nodeSel.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`)
+    }).on('end', () => {
+      // P2-1: Persist final positions for next render
+      if (lastPositionsRef.current) {
+        const posMap = lastPositionsRef.current.current
+        posMap.clear()
+        for (const n of nodes) { if (n.x != null && n.y != null) posMap.set(n.id, { x: n.x, y: n.y }) }
+      }
+      if (onD3Error) onD3Error(null)
+    })
 
     // Initial zoom fit
     setTimeout(() => {
@@ -429,10 +321,7 @@ export function KnowledgeGraphViz({
         const sc = Math.min(0.9, (w * 0.85) / bounds.width, (h * 0.85) / bounds.height)
         const tx = w / 2 - (bounds.x + bounds.width / 2) * sc
         const ty = h / 2 - (bounds.y + bounds.height / 2) * sc
-        svg
-          .transition()
-          .duration(500)
-          .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(sc))
+        svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(sc))
       }
     }, 100)
 
@@ -444,7 +333,7 @@ export function KnowledgeGraphViz({
     if (!nodes.length) return
     const svgEl = svgRef.current
     if (!svgEl) return
-    const ids = nodes.map((n) => n.id)
+    const ids = nodes.map(n => n.id)
     const handler = (e: KeyboardEvent) => {
       if (!['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Enter', ' '].includes(e.key)) return
       e.preventDefault()
@@ -462,29 +351,21 @@ export function KnowledgeGraphViz({
       onFocusChange?.(nextId)
       // Pan SVG to keep focused node visible
       requestAnimationFrame(() => {
-        const nodeEl = svgEl.querySelector(
-          `[data-node-id="${CSS.escape(nextId)}"]`
-        ) as SVGGElement | null
+        const nodeEl = svgEl.querySelector(`[data-node-id="${CSS.escape(nextId)}"]`) as SVGGElement | null
         if (!nodeEl || !d3Ref.current) return
         const nodeRect = nodeEl.getBoundingClientRect()
         const svgRect = svgEl.getBoundingClientRect()
-        const svgTransform =
-          d3Ref.current.select(svgEl).attr('transform') ?? 'translate(0,0) scale(1)'
+        const svgTransform = d3Ref.current.select(svgEl).attr('transform') ?? 'translate(0,0) scale(1)'
         const m = svgTransform.match(/translate\(([^,]+),([^)]+)\)/)
         const curTx = m ? parseFloat(m[1]) : 0
         const curTy = m ? parseFloat(m[2]) : 0
         const scMatch = svgTransform.match(/scale\((\d+\.?\d*)\)/)
         const sc = scMatch ? parseFloat(scMatch[1]) : 1
-        const dx = svgRect.left + svgRect.width / 2 - (nodeRect.left + nodeRect.width / 2)
-        const dy = svgRect.top + svgRect.height / 2 - (nodeRect.top + nodeRect.height / 2)
-        d3Ref.current
-          .select(svgEl)
-          .transition()
-          .duration(200)
-          .call(
-            (d3Ref.current as any).zoom.transform,
-            (d3Ref.current as any).zoomIdentity.translate(curTx + dx, curTy + dy).scale(sc)
-          )
+        const dx = (svgRect.left + svgRect.width / 2) - (nodeRect.left + nodeRect.width / 2)
+        const dy = (svgRect.top + svgRect.height / 2) - (nodeRect.top + nodeRect.height / 2)
+        d3Ref.current.select(svgEl).transition().duration(200)
+          .call((d3Ref.current as any).zoom.transform,
+            (d3Ref.current as any).zoomIdentity.translate(curTx + dx, curTy + dy).scale(sc))
       })
     }
     svgEl.addEventListener('keydown', handler)
@@ -496,11 +377,9 @@ export function KnowledgeGraphViz({
     const svgEl = svgRef.current
     if (!svgEl) return
     // Remove all existing rings first
-    svgEl.querySelectorAll('.focus-ring').forEach((r) => r.remove())
+    svgEl.querySelectorAll('.focus-ring').forEach(r => r.remove())
     if (!focusedNodeId) return
-    const nodeEl = svgEl.querySelector(
-      `[data-node-id="${CSS.escape(focusedNodeId)}"]`
-    ) as SVGGElement | null
+    const nodeEl = svgEl.querySelector(`[data-node-id="${CSS.escape(focusedNodeId)}"]`) as SVGGElement | null
     if (!nodeEl) return
     const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     ring.setAttribute('r', '16')
@@ -516,7 +395,7 @@ export function KnowledgeGraphViz({
   // Title attribute for native browser tooltip fallback
   useEffect(() => {
     if (!svgRef.current) return
-    svgRef.current.querySelectorAll('[data-node-id]').forEach((el) => {
+    svgRef.current.querySelectorAll('[data-node-id]').forEach(el => {
       const g = el as SVGGElement
       const circle = g.querySelector('circle')
       if (circle) circle.setAttribute('title', g.getAttribute('data-node-name') ?? '')
@@ -525,12 +404,7 @@ export function KnowledgeGraphViz({
 
   return (
     <>
-      <svg
-        ref={svgRef}
-        role="img"
-        aria-label="知识图谱"
-        style={{ display: 'block', width: '100%', height: '100%' }}
-      />
+      <svg ref={svgRef} role="img" aria-label="知识图谱" style={{ display: 'block', width: '100%', height: '100%' }} />
       {/* P2-2: Minimap — fixed-position overlay */}
       <div className="kg-minimap-container" aria-hidden="true">
         <div className="kg-minimap-label">缩略图</div>
@@ -538,4 +412,4 @@ export function KnowledgeGraphViz({
       </div>
     </>
   )
-}
+})

@@ -185,7 +185,10 @@ const provider = {
 
 const graph = {
   load: () => handler<any>('graph:load'),
-  rebuild: () => handler<{ nodes: number; edges: number }>('graph:rebuild')
+  rebuild: () => handler<{ nodes: number; edges: number }>('graph:rebuild'),
+  // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
+  rebuildIncremental: (changedFiles: string[]) =>
+    handler<{ nodes: number; edges: number }>('graph:rebuildIncremental', changedFiles),
 }
 
 const maintenance = {

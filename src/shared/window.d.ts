@@ -255,6 +255,8 @@ export interface XyVaultAPI {
   // Graph
   graphLoad(): Promise<unknown>
   graphRebuild(): Promise<GraphLoadResult>
+  // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
+  graphRebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
 
   // Maintenance
   runMaintenance(): Promise<unknown>

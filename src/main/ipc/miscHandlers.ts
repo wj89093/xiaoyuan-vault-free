@@ -10,7 +10,7 @@ import { writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { queryVault } from '../services/search/query'
 import { resolveContentType } from '../services/utils/resolver'
-import { rebuildGraph, loadGraph } from '../services/graph/graph'
+import { rebuildGraph, rebuildGraphIncremental, loadGraph } from '../services/graph/graph'
 import { getVaultPath } from '../services/database/database'
 import { IS_PRO } from '../buildFeatures'
 
@@ -34,6 +34,14 @@ export function registerMiscHandlers(): void {
   // ── Graph ─────────────────────────────────────────────────────────
   ipcMain.handle('graph:rebuild', async () => {
     return rebuildGraph()
+  })
+
+  // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
+  ipcMain.handle('graph:rebuildIncremental', async (_, changedFiles: string[]) => {
+    if (!Array.isArray(changedFiles)) {
+      return { nodes: 0, edges: 0, incremental: false }
+    }
+    return rebuildGraphIncremental(changedFiles)
   })
 
   ipcMain.handle('graph:load', async () => {
