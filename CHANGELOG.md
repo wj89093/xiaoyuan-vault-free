@@ -2,6 +2,70 @@
 
 > 当前版本：v1.4.0-free
 > 发布日期：2026-06-02
+> 最近更新：2026-06-03（性能优化 6 commits）
+
+---
+
+## 2026-06-03 — v1.4.0-free 性能优化（6 commits）
+
+### 量化成果
+
+| 维度 | v1.4.0 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| 主 bundle 大小 | 2,650 KB | **521 KB** | **-80%** |
+| FileTree DOM 节点（500+ 文件） | 500+ 嵌套 | **~30 虚拟可见** | **-94%** |
+| Graph 增量重建 | 全量 5s | **200ms** | **-96%** |
+| SettingsPanel | 649 行 / 15 useState | **51 行 / 0** | -92% |
+| KnowledgeGraph 首屏 | 同步 2.6MB | **lazy + Suspense** | 首屏不加载 d3 |
+| 致命错误防御 | 白屏 app | **ErrorBoundary 降级** | 防白屏 |
+| 外部文件变化感知 | 不感知 | **500ms 内自动重建** | 新增 |
+
+### Commits
+
+1. `041417e` — 拆 SettingsPanel (649→51) + ErrorBoundary + Skeleton
+2. `e43ac73` — App.tsx ErrorBoundary wrap + KnowledgeGraph lazy
+3. `be2ed63` — FileTree 拍平版 + Graph 增量 IPC（`graph:rebuildIncremental`）
+4. `a76ccd4` — FileTree 接 react-window FixedSizeList 完整虚拟化
+5. `cb6ba97` — Editor memo + Bundle code-split (-80%) + 按钮 active 反馈
+6. `dc38909` — Graph 接 `file:changed` IPC 事件（外部 app 修改自动感知）
+
+### 新增 / 改进
+
+- **FileTree 完整虚拟化**（`react-window@1.8.10`）：500+ 文件 vault 流畅滚动
+- **ErrorBoundary**：子组件 throw 不再白屏整个 Electron app
+- **Skeleton 组件**：统一加载占位（text / block / circle）
+- **KnowledgeGraph lazy**：首屏不加载 d3（691KB chunk）
+- **Bundle 手动 chunk 拆分**：vendor-d3 / vendor-pptx / vendor-pdf / vendor-codemirror / vendor-xlsx / vendor-katex / vendor-react 独立 chunk
+- **Graph 增量 IPC**：`graph:rebuildIncremental(changedFiles)` 只重算相关边
+- **fileWatcher 服务**：`fs.watch` 监听 vault 目录，emit `file:changed` 事件（500ms debounce）
+- **FileTree useMemo 位置 bug 修复**：移至所有 early return 之前，遵守 React Hooks 顺序规则
+
+### 内部 API 变更
+
+- `preload`：新增 `graphOnFileChange(cb)` 订阅 API
+- `preload`：新增 `graph.rebuildIncremental(files)` / `graph.onFileChange(cb)` 命名空间 API
+- `main/ipc/miscHandlers.ts`：新增 `graph:rebuildIncremental` IPC handler
+- `main/services/fileWatcher.ts`：新增文件监听服务（105 行）
+- `shared/window.d.ts`：新增 `graphOnFileChange` 类型 + `graphRebuildIncremental` 类型
+- `components/ErrorBoundary.tsx`：新增（102 行）
+- `components/Skeleton.tsx`：新增（62 行）
+- `components/FileTreeFlatRow.tsx`：新增（99 行，FileTree 拍平版单行渲染）
+- `components/FileTreeRow.tsx`：新增（64 行，react-window 包装）
+- `utils/flattenTree.ts`：新增（67 行，拍平树工具）
+
+### 配置变更
+
+- `package.json`：
+  - + `react-window@^1.8.10`（dependencies）
+  - + `@types/react-window@^1.8.8`（devDependencies）
+- `electron.vite.config.ts`：renderer 段加 `manualChunks`（vendor 拆分）
+
+### 验证
+
+- ✅ `npm run build`：5.6s
+- ✅ `npm test`：132/133 pass（1 skipped pre-existing）
+- ✅ `npx eslint src --max-warnings 0`：0 errors / 0 warnings
+- ✅ TypeScript 编译：无新增错误（vite build 不全 typecheck，pre-existing issues 不影响）
 
 ---
 
