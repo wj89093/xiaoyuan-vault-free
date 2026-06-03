@@ -45,7 +45,7 @@
 3. 分析内容：
    - 判断 topic（优先复用 index.md 中已有 topic，必要时自创）
    - 判断 type（document/note/meeting/email/research/reference/idea）
-   - 生成 summary（30-60 字）
+   - 生成 summary
    - 提取 tags（3-5 个）
 4. write(_wiki/{topic}/{title}.md, frontmatter + 正文)
 5. edit(index.md)                      → 更新索引（新增/更新 topic 条目 + 页面链接）
