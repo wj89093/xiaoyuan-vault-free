@@ -1263,6 +1263,40 @@ h6 {
   text-wrap: pretty;
 }
 
+/* ── Responsive: 自适应屏幕大小 ── */
+@media (max-width: 768px) {
+  .editor-wrapper .cm-editor .cm-scroller {
+    padding: 16px 0;
+  }
+  .editor-wrapper .cm-editor .cm-content {
+    padding-inline: 1rem;
+    font-size: 0.9375rem;
+  }
+  .editor-header {
+    padding: 0 8px;
+    min-height: 28px;
+  }
+  .icon-sidebar {
+    width: 40px;
+  }
+  .sidebar {
+    width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-wrapper .cm-editor .cm-scroller {
+    padding: 8px 0;
+  }
+  .editor-wrapper .cm-editor .cm-content {
+    padding-inline: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
 /* Old inline styles */
 
 /* ── Headings (atomic-editor sizes) ──────────────────────────────── */
