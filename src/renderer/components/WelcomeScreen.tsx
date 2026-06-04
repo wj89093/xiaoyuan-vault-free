@@ -52,28 +52,37 @@ export function WelcomeScreen({
   // P2-3: document count per vault
   const [docCounts, setDocCounts] = useState<Record<string, number>>({})
 
+  // v1.5: 拆 2 个 useEffect — mount 动画 vs 异步取数据 各司其职
+  // Effect 1: mount 动画 (mount 时设 mounted=true, 仅跑一次)
   useEffect(() => {
-    // Trigger mount animation
     const t = setTimeout(() => setMounted(true), 16)
-void (async () => {
+    return () => clearTimeout(t)
+  }, [])
+
+  // Effect 2: 拉每个 vault 的 doc 数 (vaults 变时跑)
+  useEffect(() => {
+    if (vaults.length === 0) return
+    let cancelled = false
+    void (async () => {
       const counts: Record<string, number> = {}
       for (const vault of vaults) {
         try {
           const files = await window.api.listFiles?.()
+          if (cancelled) return
           if (files) {
-            // count files under this vault path
             const count = files.filter((f: { path: string }) =>
               f.path.startsWith(vault.path + '/')
             ).length
             counts[vault.path] = count
           }
         } catch {
+          if (cancelled) return
           counts[vault.path] = 0
         }
       }
-      setDocCounts(counts)
+      if (!cancelled) setDocCounts(counts)
     })()
-    return () => clearTimeout(t)
+    return () => { cancelled = true }
   }, [vaults])
 
   if (showOnboarding) {
