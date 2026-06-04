@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type JSX } from 'react'
+import { memo, useState, useRef, useCallback, type JSX } from 'react'
 import {
   Search,
   Network,
@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   { id: 'review', icon: BarChart3, label: '简报' }
 ] as const
 
-export function IconSidebar({
+export const IconSidebar = memo(function IconSidebar({
   activeView,
   onViewChange,
   onSearchFocus,
@@ -207,4 +207,4 @@ export function IconSidebar({
       </button>
     </div>
   )
-}
+})

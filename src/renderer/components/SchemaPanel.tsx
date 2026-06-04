@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect -- schema panel: initial load pattern, expected */
-import { useState, useEffect, type JSX } from 'react'
+import { memo, useState, useEffect, type JSX } from 'react'
 import { FolderCog, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
@@ -15,7 +14,7 @@ interface FolderSchema {
   confirmed: boolean
 }
 
-export function SchemaPanel({ onClose }: SchemaPanelProps): JSX.Element {
+export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelProps): JSX.Element {
   const [allSchemas, setAllSchemas] = useState<FolderSchema[]>([])
   const [loaded, setLoaded] = useState(false)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -340,4 +339,4 @@ export function SchemaPanel({ onClose }: SchemaPanelProps): JSX.Element {
       </div>
     </FloatingPanel>
   )
-}
+})

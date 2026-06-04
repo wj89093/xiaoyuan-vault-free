@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type JSX } from 'react'
+import { memo, useState, useEffect, useRef, type JSX } from 'react'
 import { X } from 'lucide-react'
 
 interface FloatingPanelProps {
@@ -13,7 +13,7 @@ interface FloatingPanelProps {
   bottomOffset?: number
 }
 
-export function FloatingPanel({
+export const FloatingPanel = memo(function FloatingPanel({
   title,
   icon,
   onClose,
@@ -186,4 +186,4 @@ export function FloatingPanel({
       <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
     </div>
   )
-}
+})

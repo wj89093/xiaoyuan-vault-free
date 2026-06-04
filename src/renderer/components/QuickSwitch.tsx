@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo, type JSX } from 'react'
+import { memo, useState, useEffect, useRef, useMemo, useDeferredValue, type JSX } from 'react'
 import { Search, FileText, Clock, ArrowRight, X, Hash } from 'lucide-react'
 import type { FileInfo } from '../types'
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 
 interface QuickSwitchProps {
   files: FileInfo[]
@@ -30,13 +30,15 @@ function flattenFiles(items: FileInfo[], path = ''): FlatFile[] {
   return result
 }
 
-export function QuickSwitch({
+export const QuickSwitch = memo(function QuickSwitch({
   files,
   recentFiles,
   onSelect,
   onClose
 }: QuickSwitchProps): JSX.Element {
   const [query, setQuery] = useState('')
+  // v1.5: useDeferredValue 让 input 打字不卡, 大文件树 (500+ files) 过滤也不卡
+  const deferredQuery = useDeferredValue(query)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [snippetMap, setSnippetMap] = useState<Record<string, string>>({})
   const [loadingSnippets, setLoadingSnippets] = useState<Set<string>>(new Set())
@@ -60,7 +62,7 @@ export function QuickSwitch({
       return
     }
     const results = flatFiles
-      .filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
+      .filter((f) => f.name.toLowerCase().includes(deferredQuery.toLowerCase()))
       .slice(0, 5)
 
     const needed = results.filter((r) => !snippetMap[r.path] && !loadingSnippets.has(r.path))
@@ -106,7 +108,7 @@ export function QuickSwitch({
 
   const results: Array<FlatFile & { snippet?: string }> = query.trim()
     ? flatFiles
-        .filter((f) => f.name.toLowerCase().includes(query.toLowerCase()))
+        .filter((f) => f.name.toLowerCase().includes(deferredQuery.toLowerCase()))
         .slice(0, 10)
         .map((f) => ({ ...f, snippet: snippetMap[f.path] }))
     : validRecent.map((r) => ({ name: r.name, path: r.path, isDirectory: false }))
@@ -227,4 +229,4 @@ export function QuickSwitch({
       </div>
     </div>
   )
-}
+})

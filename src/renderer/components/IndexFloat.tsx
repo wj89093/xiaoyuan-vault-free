@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type JSX } from 'react'
+import { memo, useState, useEffect, useMemo, type JSX } from 'react'
 import { StickyNote } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
@@ -100,7 +100,7 @@ function renderIndexMd(md: string): string {
   return `<div class="index-rendered">${html}</div>`
 }
 
-export function IndexFloat({
+export const IndexFloat = memo(function IndexFloat({
   vaultPath,
   files,
   onSelectFile,
@@ -184,4 +184,4 @@ export function IndexFloat({
       </div>
     </FloatingPanel>
   )
-}
+})

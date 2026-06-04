@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, type JSX } from 'react'
+import { memo, useState, useEffect, useCallback, useRef, type JSX } from 'react'
 import { ArrowLeft, ExternalLink, X } from 'lucide-react'
 
 interface BacklinkFile {
@@ -12,7 +12,7 @@ interface BacklinksPanelProps {
   onClose: () => void
 }
 
-export function BacklinksPanel({
+export const BacklinksPanel = memo(function BacklinksPanel({
   selectedFile,
   onNavigate,
   onClose
@@ -137,4 +137,4 @@ export function BacklinksPanel({
       </div>
     </div>
   )
-}
+})

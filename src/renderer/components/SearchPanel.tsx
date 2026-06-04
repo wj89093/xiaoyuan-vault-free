@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type JSX } from 'react'
+import { memo, useState, useEffect, useRef, useCallback, type JSX } from 'react'
 import { Search, FileText } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
@@ -13,7 +13,7 @@ interface SearchResult {
   title?: string
 }
 
-export function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.Element {
+export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.Element {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -26,26 +26,39 @@ export function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.El
     setTimeout(() => inputRef.current?.focus(), 100)
   }, [])
 
-  const doSearch = async (q: string) => {
+  // v1.5: 防抖 — 每个按键不再立即 IPC, 等 200ms 静止才发
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const queryReqIdRef = useRef(0) // 取消过期的 promise
+  const doSearch = useCallback((q: string) => {
     setQuery(q)
     setSelectedIndex(-1)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
     if (!q.trim()) {
       setResultsVisible(false)
-      setTimeout(() => {
-        setResults([])
-      }, 200)
+      setTimeout(() => setResults([]), 200)
       return
     }
-    setLoading(true)
-    try {
-      const files = await window.api.searchFiles(q)
-      setResults((files as SearchResult[]) ?? [])
-      setResultsVisible(true)
-    } catch {
-      setResults([])
-    }
-    setLoading(false)
-  }
+    const reqId = ++queryReqIdRef.current
+    searchTimerRef.current = setTimeout(async () => {
+      if (reqId !== queryReqIdRef.current) return // 用户又按键了, 过期
+      setLoading(true)
+      try {
+        const files = await window.api.searchFiles(q)
+        if (reqId !== queryReqIdRef.current) return // 结果回来时又过期了
+        setResults((files as SearchResult[]) ?? [])
+        setResultsVisible(true)
+      } catch {
+        if (reqId !== queryReqIdRef.current) return
+        setResults([])
+      } finally {
+        if (reqId === queryReqIdRef.current) setLoading(false)
+      }
+    }, 200)
+  }, [])
+  // 卸载时清 timer
+  useEffect(() => () => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+  }, [])
 
   const openSelected = useCallback(
     (index: number) => {
@@ -209,7 +222,7 @@ export function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.El
             </div>
             {results.map((r, i) => (
               <div
-                key={i}
+                key={r.path}
                 id={`search-item-${i}`}
                 role="option"
                 aria-selected={selectedIndex === i}
@@ -278,4 +291,4 @@ export function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.El
       </div>
     </FloatingPanel>
   )
-}
+})
