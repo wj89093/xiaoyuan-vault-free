@@ -150,12 +150,54 @@ async function renderMermaidInWidget(
     const { default: mermaid } = await import('mermaid')
     if (!mermaid) throw new Error('Mermaid failed to load')
 
-    // Apply dark/light theme based on current UI theme
-    const dark = isDarkMode()
+    // v1.5: theme: 'base' + themeVariables 配 app 设计 token
+    // 读 CSS vars (getComputedStyle 解析 var() / color-mix() 到实际值)
+    // 这样主题切换 (dark/light) 自动跟着 app 变
+    const cssVar = (name: string): string => {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+      // color-mix 可能返回空 (mermaid 需要 hex/rgb), 退到 fallback
+      return v.startsWith('#') || v.startsWith('rgb') ? v : ''
+    }
+    const accent = cssVar('--color-accent') || '#7c3aed'
+    const accentHover = cssVar('--color-accent-hover') || '#a78bfa'
+    const link = cssVar('--color-primary') || '#60a5fa'
+    const fg = cssVar('--color-text-primary') || '#dcddde'
+    const fgMuted = cssVar('--color-text-secondary') || '#888'
+    const bg = cssVar('--color-bg') || '#1e1e1e'
+    const surface = cssVar('--color-surface') || '#252525'
+    const surfaceHover = cssVar('--color-surface-hover') || '#2d2d2d'
+    const border = cssVar('--color-border') || '#3d3d3d'
+    const fontFamily = cssVar('--font-sans') || 'system-ui, -apple-system, sans-serif'
+
     mermaid.initialize({
       startOnLoad: false,
-      theme: dark ? 'dark' : 'default',
-      securityLevel: 'loose'
+      theme: 'base',
+      securityLevel: 'loose',
+      themeVariables: {
+        // 节点主体: 用 app accent (紫色), 而不是 Mermaid 默认蓝
+        primaryColor: accent,
+        primaryTextColor: fg,
+        primaryBorderColor: accentHover,
+        // 边/连线: 用 muted text
+        lineColor: fgMuted,
+        // 背景: 用 app 表面色, SVG 融入编辑器
+        background: bg,
+        mainBkg: surface,
+        secondBkg: surfaceHover,
+        tertiaryBkg: bg,
+        // 注释框
+        noteBkgColor: surfaceHover,
+        noteTextColor: fg,
+        noteBorderColor: border,
+        // 次级节点 (分支判断等): 浅一些的表面色
+        secondaryColor: surfaceHover,
+        tertiaryColor: surface,
+        // 文本: 全部用 app fg
+        textColor: fg,
+        // 字体
+        fontFamily,
+        fontSize: '14px'
+      }
     })
 
     // Unique ID per render
