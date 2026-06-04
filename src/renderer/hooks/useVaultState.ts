@@ -76,6 +76,23 @@ export function useVaultState() {
       const fileList = await api.listFiles()
       setFiles(fileList)
       ;(window as any).__vaultFiles = fileList
+      // v1.5: 自动选中上次打开的文件 (inline, 避免引未声明的 handleSelectFile)
+      try {
+        const lastFile = await api.getLastFile?.(path)
+        if (lastFile && fileList.some((f: FileInfo) => f.path === lastFile && !f.isDirectory)) {
+          // 只针对 .md 文件做 setContent, 二进制走 native preview 路径 (不需要现在就处理)
+          setSelectedFile(lastFile)
+          try {
+            const c = await api.readFile(lastFile)
+            setContent(c)
+            setIsDirty(false)
+          } catch {
+            /* 文件被删了不处理 */
+          }
+        }
+      } catch {
+        /* 不阻断 vault 打开 */
+      }
       showToast('success', '知识库已打开')
     }
   }, [])
@@ -150,9 +167,13 @@ export function useVaultState() {
       setContent(fileContent)
       setIsDirty(false)
       search.setShowSearchResults(false)
+      // v1.5: 记住上次打开的文件
+      if (vaultPath) {
+        void api.setLastFile?.(vaultPath, filePath)
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- handleRefresh and search accessed via refs/context
-    [selectedFile, isDirty, content]
+    [selectedFile, isDirty, content, vaultPath]
   )
 
   const handleSave = useCallback(async () => {

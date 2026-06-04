@@ -48,6 +48,9 @@ const vault = {
 
   getLast: () => handler<string | null>('vault:getLast'),
   clearLast: () => handler<boolean>('vault:clear'),
+  // v1.5: 上次打开文件记忆
+  getLastFile: (vaultPath: string) => handler<string | null>('vault:getLastFile', vaultPath),
+  setLastFile: (vaultPath: string, filePath: string) => handler<boolean>('vault:setLastFile', vaultPath, filePath),
   refresh: () => handler<{ ok: boolean }>('vault:refresh'),
   list: () => handler<Array<{ path: string; name: string; lastOpened: number }>>('vault:list'),
   openPath: (path: string) => handler<string | null>('vault:openPath', path),

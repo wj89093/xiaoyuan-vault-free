@@ -109,6 +109,26 @@ function registerVaultLifecycleHandlers(): void {
     return null
   })
 
+  // v1.5: 上次打开文件记忆 — 重开 vault 自动选中上次文件
+  ipcMain.handle('vault:getLastFile', async (_event, vaultPath: string): Promise<string | null> => {
+    const config = await readConfig()
+    const lastFiles = (config.lastFiles as Record<string, string> | undefined) ?? {}
+    return lastFiles[vaultPath] ?? null
+  })
+
+  ipcMain.handle('vault:setLastFile', async (_event, vaultPath: string, filePath: string): Promise<boolean> => {
+    try {
+      const config = await readConfig()
+      const lastFiles = (config.lastFiles as Record<string, string> | undefined) ?? {}
+      lastFiles[vaultPath] = filePath
+      await writeConfig({ ...config, lastFiles })
+      return true
+    } catch (err) {
+      log.error('[Vault] setLastFile failed:', err)
+      return false
+    }
+  })
+
   ipcMain.handle('vault:create', async () => {
     const mainWindow = getMainWindow()
     const result = await dialog.showSaveDialog(mainWindow!, {

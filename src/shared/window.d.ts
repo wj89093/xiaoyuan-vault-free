@@ -269,6 +269,9 @@ export interface XyVaultAPI {
     openFile(filePath: string): Promise<{ ok: boolean; path?: string }>
     getLast(): Promise<string | null>
     clearLast(): Promise<boolean>
+    // v1.5: 上次打开文件记忆 (per-vault)
+    getLastFile(vaultPath: string): Promise<string | null>
+    setLastFile(vaultPath: string, filePath: string): Promise<boolean>
     refresh(): Promise<{ ok: boolean }>
     list(): Promise<Array<{ path: string; name: string; lastOpened: number }>>
     openPath(path: string): Promise<string | null>
