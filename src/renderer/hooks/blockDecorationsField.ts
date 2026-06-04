@@ -54,7 +54,10 @@ export const blockDecorationsField = StateField.define<DecorationSet>({
     return buildAllBlockDecorations(state)
   },
   update(decos, tr) {
-    if (tr.docChanged || (tr as any).viewportChanged) {
+    // v1.5: 只在 docChanged 时重建 widget
+    // selectionSet/focusChanged/viewportChanged 不影响 widget 内容, 走 decos.map
+    // 之前: viewportChanged 也重建 — 浪费, 滚动不该重渲染 widget
+    if (tr.docChanged) {
       return buildAllBlockDecorations(tr.state)
     }
     return decos.map(tr.changes)
