@@ -188,6 +188,7 @@ export function VaultRouter({
                 nativePreview={vaultState.nativePreview}
                 isNativePreview={vaultState.isNativePreview}
                 onReference={handleReference}
+                filePath={selectedFile}
               />
             </>
           ) : (

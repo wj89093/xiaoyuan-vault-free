@@ -336,6 +336,18 @@ export interface XyVaultAPI {
     ): () => void
   }
 
+  // v1.5 reader UX: 滚动位置记忆
+  scrollPosition: {
+    get(filePath: string): Promise<{
+      filePath: string
+      scrollY: number
+      lastHeading: string | null
+      updatedAt: number
+    } | null>
+    set(params: { filePath: string; scrollY: number; lastHeading?: string | null }): Promise<boolean>
+    remove(filePath: string): Promise<boolean>
+  }
+
   // Pre-existing missing methods (TODO: integrate with Pro 仓 or remove renderer calls)
   bubbleExpand?: (...args: unknown[]) => unknown
   openInDefaultApp?: (filePath: string) => Promise<void>

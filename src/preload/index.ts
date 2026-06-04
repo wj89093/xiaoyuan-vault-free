@@ -194,6 +194,20 @@ const graph = {
     onEvent('file:changed', cb as any),
 }
 
+// v1.5 reader UX: 滚动位置记忆
+const scrollPosition = {
+  get: (filePath: string) =>
+    handler<{
+      filePath: string
+      scrollY: number
+      lastHeading: string | null
+      updatedAt: number
+    } | null>('scroll:get', filePath),
+  set: (params: { filePath: string; scrollY: number; lastHeading?: string | null }) =>
+    handler<boolean>('scroll:set', params),
+  remove: (filePath: string) => handler<boolean>('scroll:remove', filePath),
+}
+
 const maintenance = {
   run: () => handler<any>('maintain:run'),
   getTasks: () => handler<any[]>('scheduler:getTasks'),
@@ -312,7 +326,12 @@ const api = {
   skillLoadDefault: () => skill.loadDefault(),
   skillRead: (name: string) => skill.read(name),
   skillSave: (name: string, content: string) => skill.save(name, content),
-  skillDelete: (name: string) => skill.delete(name)
+  skillDelete: (name: string) => skill.delete(name),
+  // v1.5 reader UX: 滚动位置记忆
+  scrollPositionGet: (filePath: string) => scrollPosition.get(filePath),
+  scrollPositionSet: (params: { filePath: string; scrollY: number; lastHeading?: string | null }) =>
+    scrollPosition.set(params),
+  scrollPositionRemove: (filePath: string) => scrollPosition.remove(filePath)
 }
 
 console.log('[preload] exposing api to window.api')

@@ -27,6 +27,7 @@ import { registerMaintainHandlers } from './ipc/maintainHandlers'
 import { registerFileHandlers } from './ipc/fileHandlers'
 import { registerVaultHandlers } from './ipc/vaultHandlers'
 import { registerSkillHandlers } from './ipc/skillHandlers'
+import { registerScrollPositionHandlers } from './ipc/scrollPositionHandlers'
 // 不要在 index.ts 重复注册，否则会报 "Attempted to register a second handler"
 
 // Config file for persisting app state
@@ -105,6 +106,8 @@ function setupIpcHandlers(): void {
   registerMaintainHandlers()
   // 开源版：Skill.md 插件是核心入口（不是 Pro 专属）
   registerSkillHandlers()
+  // v1.5 reader UX: 滚动位置记忆
+  registerScrollPositionHandlers()
   // AI Chat IPC handlers 由 clipboard.ts 的 ensureIPC() 统一注册
 }
 

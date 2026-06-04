@@ -3,6 +3,7 @@ import { memo, useRef, useState, useEffect, useCallback, type JSX } from 'react'
 import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
+import { useScrollMemory } from '../hooks/useScrollMemory'
 import { EditorContextMenu } from '../components/EditorContextMenu'
 import { createFormatCommands, type EditorFormatCommands } from '../utils/editorFormat'
 
@@ -16,6 +17,8 @@ interface EditorProps {
   isNativePreview?: boolean
   /** P3-2026-06-03: Pro 仓的 reference handler (cross-doc link) - Free 暂用 any */
   onReference?: (ref: any) => void
+  /** v1.5 reader UX: 滚动位置记忆用 - 当前文档路径 (相对 vault) */
+  filePath?: string | null
 }
 
 export const DocxViewer = memo(function DocxViewer({
@@ -487,11 +490,15 @@ export const Editor = memo(function Editor({
   onChange,
   onWikiLinkNavigate,
   nativePreview,
-  isNativePreview = false
+  isNativePreview = false,
+  filePath = null
 }: EditorProps): JSX.Element {
   const cmContainerRef = useRef<HTMLDivElement | null>(null)
 
   const { viewRef } = useCodeMirror(cmContainerRef, value, onChange, onWikiLinkNavigate)
+
+  // v1.5 reader UX: 滚动位置记忆 (用户是读者, 重开回到上次位置)
+  useScrollMemory({ filePath, viewRef, enabled: !isNativePreview })
 
   // Context menu
   const handleFormat = useCallback((command: string, params?: Record<string, any>) => {

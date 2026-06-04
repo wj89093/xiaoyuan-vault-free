@@ -81,6 +81,14 @@ export async function initDatabase(vault: string): Promise<void> {
       INSERT INTO files_fts(rowid, path, name, title, content, tags)
       VALUES (new.rowid, new.path, new.name, new.title, new.content, new.tags);
     END;
+
+    -- v1.5 reader UX: 滚动位置记忆 (per-file)
+    CREATE TABLE IF NOT EXISTS scroll_positions (
+      file_path TEXT PRIMARY KEY,
+      scroll_y INTEGER NOT NULL,
+      last_heading TEXT,
+      updated_at INTEGER NOT NULL
+    );
   `)
 
   // Index existing files
