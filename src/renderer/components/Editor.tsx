@@ -5,6 +5,7 @@ import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
 import { useScrollMemory } from '../hooks/useScrollMemory'
 import { EditorContextMenu } from '../components/EditorContextMenu'
+import { TableOfContents } from './TableOfContents'
 import { createFormatCommands, type EditorFormatCommands } from '../utils/editorFormat'
 
 interface EditorProps {
@@ -507,6 +508,9 @@ export const Editor = memo(function Editor({
     }
   }, [filePath, isNativePreview])
 
+  // v1.5 reader UX: TOC 显示状态 (默认关闭, 用户点击 toggle 按钮开启)
+  const [showToc, setShowToc] = useState(false)
+
   // Context menu
   const handleFormat = useCallback((command: string, params?: Record<string, any>) => {
     const view = (window as any).__cmView
@@ -684,10 +688,31 @@ export const Editor = memo(function Editor({
           onFormat={handleFormat}
         />
       )}
-      <div
-        ref={cmContainerRef}
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', cursor: 'text' }}
-      />
+      <div className="editor-main" style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <div
+          ref={cmContainerRef}
+          style={{ flex: 1, minWidth: 0, overflow: 'auto', display: 'flex', cursor: 'text' }}
+        />
+        {/* v1.5 reader UX: TOC 目录侧栏 (toggle) */}
+        {showToc && !isNativePreview && (
+          <TableOfContents
+            value={value}
+            viewRef={viewRef}
+            onClose={() => setShowToc(false)}
+          />
+        )}
+      </div>
+      {/* v1.5 reader UX: TOC toggle 浮动按钮 */}
+      {!isNativePreview && (
+        <button
+          className={`editor-toc-toggle ${showToc ? 'active' : ''}`}
+          onClick={() => setShowToc((v) => !v)}
+          title={showToc ? '关闭目录' : '显示目录'}
+          aria-label={showToc ? '关闭目录' : '显示目录'}
+        >
+          目录
+        </button>
+      )}
     </div>
   )
 })
