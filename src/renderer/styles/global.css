@@ -1257,6 +1257,80 @@ h6 {
   margin: 0 2px;
 }
 
+/* v1.5 reader UX: 阅读模式 — 隐藏 markdown 暗纹字符, 保留格式化效果 */
+.reading-mode .cm-content .cm-heading:not(.cm-content),
+.reading-mode .cm-content .cm-meta:not(.cm-content),
+.reading-mode .cm-content .cm-processingInstruction:not(.cm-content),
+.reading-mode .cm-content .cm-emphasis:not(.cm-content),
+.reading-mode .cm-content .cm-strong:not(.cm-content),
+.reading-mode .cm-content .cm-strikethrough:not(.cm-content),
+.reading-mode .cm-content .cm-link:not(.cm-content),
+.reading-mode .cm-content .cm-url:not(.cm-content),
+.reading-mode .cm-content .cm-list:not(.cm-content),
+.reading-mode .cm-content .cm-quote:not(.cm-content) {
+  font-size: 0;
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+/* 阅读模式下 heading 标记 (#) 保留换行 */
+.reading-mode .cm-content .cm-heading {
+  display: inline;
+}
+/* 阅读模式下 code fence marker (```) 保留 */
+.reading-mode .cm-content .cm-processingInstruction {
+  display: inline;
+  font-size: 0;
+}
+/* 阅读模式下列表标记 (-) 保留缩进 */
+.reading-mode .cm-content .cm-list {
+  font-size: 0;
+  width: 0;
+  display: inline-block;
+}
+/* 阅读模式下链接 URL 隐藏 */
+.reading-mode .cm-content .cm-url {
+  font-size: 0;
+  width: 0;
+  display: inline-block;
+}
+/* 阅读模式下 blockquote 标记 (>) 隐藏 */
+.reading-mode .cm-content .cm-quote:not(.cm-content) {
+  font-size: 0;
+  width: 0;
+  display: inline-block;
+}
+/* 阅读模式下 inline code 背景色变浅 */
+.reading-mode .cm-content .cm-monospace {
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: inherit;
+}
+/* 阅读模式 toggle 按钮 */
+.reading-mode-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.reading-mode-toggle:hover {
+  background: var(--color-surface-hover, #f3f4f6);
+  color: var(--color-text-primary, #111827);
+}
+.reading-mode-toggle.active {
+  background: var(--color-accent, #3b82f6);
+  color: white;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;

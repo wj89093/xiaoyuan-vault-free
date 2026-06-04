@@ -512,6 +512,9 @@ export const Editor = memo(function Editor({
   // v1.5 reader UX: TOC 显示状态 (默认关闭, 用户点击 toggle 按钮开启)
   const [showToc, setShowToc] = useState(false)
 
+  // v1.5 reader UX: 阅读模式 (隐藏 markdown 暗纹, 纯净阅读)
+  const [readingMode, setReadingMode] = useState(false)
+
   // v1.5 reader UX: 字体/行距调节
   const { settings: readerSettings, setFontSize, setLineHeight } = useReaderSettings()
 
@@ -678,7 +681,7 @@ export const Editor = memo(function Editor({
 
   return (
     <div
-      className="editor-wrapper"
+      className={`editor-wrapper${readingMode ? ' reading-mode' : ''}`}
       onContextMenu={(e) => {
         if (!isNativePreview) showContextMenu(e)
       }}
@@ -710,9 +713,17 @@ export const Editor = memo(function Editor({
           />
         )}
       </div>
-      {/* v1.5 reader UX: TOC toggle 浮动按钮 + 字体调节 */}
+      {/* v1.5 reader UX: 浮动工具栏 */}
       {!isNativePreview && (
         <div className="editor-toolbar">
+          <button
+            className={`reading-mode-toggle ${readingMode ? 'active' : ''}`}
+            onClick={() => setReadingMode((v) => !v)}
+            title={readingMode ? '退出阅读模式' : '阅读模式 (隐藏 markdown 语法)'}
+            aria-label={readingMode ? '退出阅读模式' : '阅读模式'}
+          >
+            {readingMode ? '📖 阅读中' : '📖 阅读'}
+          </button>
           <button
             className={`editor-toc-toggle ${showToc ? 'active' : ''}`}
             onClick={() => setShowToc((v) => !v)}
