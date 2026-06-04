@@ -356,15 +356,15 @@ export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: strin
 })
 
 export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string }): JSX.Element {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [pageNum, setPageNum] = useState(1)
+  // v1.5: 连续滚动模式 (替代逐页翻页) — 循环 renderPage 1..N 各自独立 canvas 堆叠
+  const pagesRef = useRef<Map<number, HTMLCanvasElement>>(new Map())
   const [numPages, setNumPages] = useState(0)
   const [scale, setScale] = useState(1.2)
   const pdfDocRef = useRef<any>(null)
+  const [renderedPages, setRenderedPages] = useState<Set<number>>(new Set())
 
-  const renderPage = async (pdf: any, num: number) => {
-    const canvas = canvasRef.current
-    if (!canvas || !pdf) return
+  const renderPage = async (pdf: any, num: number, canvas: HTMLCanvasElement) => {
+    if (!pdf || !canvas) return
     const page = await pdf.getPage(num)
     const viewport = page.getViewport({ scale })
     canvas.width = viewport.width
@@ -372,6 +372,20 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
     const ctx = canvas.getContext('2d')!
     await page.render({ canvasContext: ctx, viewport }).promise
   }
+
+  const renderAllPages = useCallback(async (pdf: any) => {
+    if (!pdf) return
+    setRenderedPages(new Set())
+    const next = new Set<number>()
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const canvas = pagesRef.current.get(n)
+      if (canvas) {
+        await renderPage(pdf, n, canvas)
+        next.add(n)
+        setRenderedPages(new Set(next))
+      }
+    }
+  }, [scale])
 
   useEffect(() => {
     let cancelled = false
@@ -384,16 +398,18 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
       if (cancelled) return
       pdfDocRef.current = pdf
       setNumPages(pdf.numPages)
-      renderPage(pdf, 1)
+      await renderAllPages(pdf)
     })()
     return () => {
       cancelled = true
     }
+     
   }, [dataUrl])
 
   useEffect(() => {
-    if (pdfDocRef.current) void renderPage(pdfDocRef.current, pageNum)
-  }, [pageNum, scale])
+    if (pdfDocRef.current) void renderAllPages(pdfDocRef.current)
+     
+  }, [scale])
 
   return (
     <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
@@ -403,86 +419,72 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
           gap: 8,
           marginBottom: 12,
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: 'var(--color-bg, #1e1e1e)',
+          padding: '4px 0'
         }}
       >
-        <button
-          type="button"
-          onClick={() => setPageNum((p) => Math.max(1, p - 1))}
-          disabled={pageNum <= 1}
-          aria-label={`上一页，第 ${pageNum} 页，共 ${numPages} 页`}
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            cursor: 'pointer'
-          }}
-        >
-          ‹
-        </button>
-        <span aria-live="polite" style={{ fontSize: 13 }}>
-          {pageNum} / {numPages}
+        <span aria-live="polite" style={{ fontSize: 12, color: 'var(--text-secondary, #888)' }}>
+          {numPages > 0 ? `${numPages} 页 · 连续滚动` : '加载中…'}
+          {renderedPages.size > 0 && renderedPages.size < numPages && ` · 已渲染 ${renderedPages.size}${numPages}`}
         </span>
-        <button
-          type="button"
-          onClick={() => setPageNum((p) => Math.min(numPages, p + 1))}
-          disabled={pageNum >= numPages}
-          aria-label={`下一页，第 ${pageNum} 页，共 ${numPages} 页`}
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            cursor: 'pointer'
-          }}
-        >
-          ›
-        </button>
-        <button
-          type="button"
-          onClick={() => setScale((s) => s + 0.2)}
-          aria-label="放大"
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            cursor: 'pointer',
-            marginLeft: 12
-          }}
-        >
-          🔍+
-        </button>
-        <button
-          type="button"
-          onClick={() => setScale((s) => Math.max(0.5, s - 0.2))}
-          aria-label="缩小"
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border)',
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            cursor: 'pointer'
-          }}
-        >
-          🔍-
-        </button>
+        <button type="button" onClick={() => setScale((s) => s + 0.2)} aria-label="放大" style={btnStyle}>🔍+</button>
+        <button type="button" onClick={() => setScale((s) => Math.max(0.5, s - 0.2))} aria-label="缩小" style={btnStyle}>🔍-</button>
       </div>
-      <div style={{ textAlign: 'center' }}>
-        <canvas
-          ref={canvasRef}
-          style={{ maxWidth: '100%', borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}
-        />
-      </div>
+      {numPages > 0 && Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
+        <div
+          key={n}
+          data-page-num={n}
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginBottom: 16,
+            position: 'relative'
+          }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 16,
+              fontSize: 11,
+              color: 'var(--text-tertiary, #888)',
+              background: 'var(--color-surface, #2d2d2d)',
+              padding: '2px 8px',
+              borderRadius: 4
+            }}
+          >
+            {n} / {numPages}
+          </span>
+          <canvas
+            ref={(el) => {
+              if (el) pagesRef.current.set(n, el)
+              else pagesRef.current.delete(n)
+            }}
+            style={{
+              maxWidth: '100%',
+              borderRadius: 8,
+              boxShadow: '0 2px 12px rgba(0,0,0,0.1)'
+            }}
+          />
+        </div>
+      ))}
     </div>
   )
 })
 
+// 按钮样式 (提取常量)
+const btnStyle: React.CSSProperties = {
+  padding: '4px 12px',
+  borderRadius: 6,
+  border: '1px solid var(--border)',
+  background: 'var(--surface)',
+  color: 'var(--text)',
+  cursor: 'pointer'
+}
 export const Editor = memo(function Editor({
   value,
   onChange,
