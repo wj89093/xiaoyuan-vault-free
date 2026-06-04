@@ -126,14 +126,25 @@ class MermaidWidget extends WidgetType {
   }
 }
 
-// ── Mermaid Renderer (client-side) ──────────────────────────────────────────
-
-function isDarkMode(): boolean {
-  const el = document.querySelector('[data-theme="dark"]')
-  if (el) return true
-  // Fallback: check CSS variable
-  const bg = getComputedStyle(document.body).getPropertyValue('--color-bg-primary').trim()
-  return bg === 'transparent' || bg === '' ? false : parseInt(bg) < 128
+// v1.5: 模块级容器集合 + MutationObserver 监听 data-theme
+const activeContainers = new Set<HTMLElement>()
+let themeObserver: MutationObserver | null = null
+function ensureThemeObserver(): void {
+  if (themeObserver) return
+  themeObserver = new MutationObserver(() => {
+    // 主题变了, 重渲染所有活跃 Mermaid 容器
+    for (const c of activeContainers) {
+      const code = c.getAttribute('data-code')
+      const lang = c.getAttribute('data-lang') ?? 'mermaid'
+      if (code != null) {
+        void renderMermaidInWidget(c, code, lang)
+      }
+    }
+  })
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme']
+  })
 }
 
 async function renderMermaidInWidget(
@@ -141,6 +152,8 @@ async function renderMermaidInWidget(
   code: string,
   lang: string
 ): Promise<void> {
+  ensureThemeObserver()
+  activeContainers.add(container)
   if (!code.trim()) {
     container.innerHTML = '<div class="mermaid-empty">Diagram code is empty</div>'
     return
@@ -160,7 +173,6 @@ async function renderMermaidInWidget(
     }
     const accent = cssVar('--color-accent') || '#7c3aed'
     const accentHover = cssVar('--color-accent-hover') || '#a78bfa'
-    const link = cssVar('--color-primary') || '#60a5fa'
     const fg = cssVar('--color-text-primary') || '#dcddde'
     const fgMuted = cssVar('--color-text-secondary') || '#888'
     const bg = cssVar('--color-bg') || '#1e1e1e'
@@ -173,6 +185,9 @@ async function renderMermaidInWidget(
       startOnLoad: false,
       theme: 'base',
       securityLevel: 'loose',
+      // A: ELK layout — 节点不重叠/间距合理 (Mermaid 11+ 内置)
+      flowchart: { useMaxWidth: true, htmlLabels: true },
+      config: { layout: 'elk' },
       themeVariables: {
         // 节点主体: 用 app accent (紫色), 而不是 Mermaid 默认蓝
         primaryColor: accent,
@@ -196,7 +211,13 @@ async function renderMermaidInWidget(
         textColor: fg,
         // 字体
         fontFamily,
-        fontSize: '14px'
+        fontSize: '14px',
+        // B: 补 5 个未映射 token (箭头颜色/次级/三级文本+边框)
+        arrowheadColor: fgMuted,
+        secondaryTextColor: fgMuted,
+        tertiaryTextColor: fgMuted,
+        secondaryBorderColor: border,
+        tertiaryBorderColor: border
       }
     })
 
@@ -217,6 +238,7 @@ async function renderMermaidInWidget(
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Parse error'
     container.innerHTML = `<div class="mermaid-error">⚠️ ${lang} error: ${msg}</div>`
+    activeContainers.delete(container)
   }
 }
 
