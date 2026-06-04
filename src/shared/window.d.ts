@@ -348,6 +348,14 @@ export interface XyVaultAPI {
     remove(filePath: string): Promise<boolean>
   }
 
+  // v1.5 reader UX: 未读/新内容标记 (agent-driven 场景)
+  lastSeen: {
+    mark(filePath: string): Promise<boolean>
+    getAll(): Promise<Record<string, number>>
+    getForFile(filePath: string): Promise<number | null>
+    clear(filePath: string): Promise<boolean>
+  }
+
   // Pre-existing missing methods (TODO: integrate with Pro 仓 or remove renderer calls)
   bubbleExpand?: (...args: unknown[]) => unknown
   openInDefaultApp?: (filePath: string) => Promise<void>

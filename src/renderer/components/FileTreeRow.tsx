@@ -20,6 +20,8 @@ export interface FileTreeRowData {
   selectedFile: string | null
   focusedIndex: number
   dropTarget: string | null
+  // v1.5 reader UX: 未读文件路径集合 (mtime > last_seen_at)
+  unreadPaths: Set<string>
   callbacks: {
     onToggle: (path: string) => void
     onSelect: (path: string) => void
@@ -47,6 +49,7 @@ export const Row = memo(function Row({ index, style, data }: ListChildComponentP
         selectedFile={data.selectedFile}
         focusedIndex={data.focusedIndex}
         dropTarget={data.dropTarget}
+        isUnread={data.unreadPaths.has(item.path)}
         onToggle={c.onToggle}
         onSelect={c.onSelect}
         onContextMenu={c.onContextMenu}

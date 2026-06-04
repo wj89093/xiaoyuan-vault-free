@@ -28,6 +28,7 @@ import { registerFileHandlers } from './ipc/fileHandlers'
 import { registerVaultHandlers } from './ipc/vaultHandlers'
 import { registerSkillHandlers } from './ipc/skillHandlers'
 import { registerScrollPositionHandlers } from './ipc/scrollPositionHandlers'
+import { registerLastSeenHandlers } from './ipc/lastSeenHandlers'
 // 不要在 index.ts 重复注册，否则会报 "Attempted to register a second handler"
 
 // Config file for persisting app state
@@ -108,6 +109,8 @@ function setupIpcHandlers(): void {
   registerSkillHandlers()
   // v1.5 reader UX: 滚动位置记忆
   registerScrollPositionHandlers()
+  // v1.5 reader UX: 未读/新内容标记
+  registerLastSeenHandlers()
   // AI Chat IPC handlers 由 clipboard.ts 的 ensureIPC() 统一注册
 }
 

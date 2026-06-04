@@ -55,6 +55,8 @@ export const FileTree = memo(function FileTree({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set([vaultPath, vaultPath + '/_wiki'])
   )
+  // v1.5 reader UX: 未读/新内容标记 — file_path → last_seen_at (ms)
+  const [lastSeenMap, setLastSeenMap] = useState<Record<string, number>>({})
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: FileInfo } | null>(
     null
   )
@@ -90,6 +92,47 @@ export const FileTree = memo(function FileTree({
     if (!containerRef.current) return
     scrollTopRef.current = containerRef.current.scrollTop
   }, [files])
+
+  // v1.5 reader UX: 拉取所有 last_seen_at, mount + vault 切换时
+  useEffect(() => {
+    let cancelled = false
+    void window.api.lastSeenGetAll().then((map) => {
+      if (!cancelled) setLastSeenMap(map)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [vaultPath])
+
+  // v1.5 reader UX: 派生未读路径集合 (mtime > last_seen_at 的文件)
+  // 过滤掉目录 (只标文件), 用 DFS 遍历整棵树
+  const unreadPaths = useMemo(() => {
+    const result = new Set<string>()
+    const walk = (nodes: FileInfo[]): void => {
+      for (const node of nodes) {
+        if (!node.isDirectory) {
+          const seen = lastSeenMap[node.path] ?? 0
+          if (node.modified > seen) {
+            result.add(node.path)
+          }
+        }
+        if (node.children) walk(node.children)
+      }
+    }
+    walk(roots)
+    return result
+  }, [roots, lastSeenMap])
+
+  // v1.5 reader UX: 用户选中文件 → 调 IPC mark seen + 本地更新
+  const handleSelectWithMarkSeen = useCallback(
+    (path: string): void => {
+      // 立刻本地更新 (避免 IPC 返回前还标“未读”)
+      setLastSeenMap((prev) => ({ ...prev, [path]: Date.now() }))
+      void window.api.lastSeenMark(path)
+      onSelect(path)
+    },
+    [onSelect]
+  )
 
   // P3-2026-06-03: ResizeObserver 测容器高度,FixedSizeList 需要
   useEffect(() => {
@@ -312,7 +355,7 @@ export const FileTree = memo(function FileTree({
       const item = items[focusedIndex]
       if (!item) return
       if (item.isDirectory) toggleFolder(item.path)
-      else onSelect(item.path)
+      else handleSelectWithMarkSeen(item.path)
     } else if (e.key === 'Escape') {
       setFocusedIndex(-1)
     }
@@ -412,9 +455,10 @@ export const FileTree = memo(function FileTree({
             selectedFile,
             focusedIndex,
             dropTarget,
+            unreadPaths,
             callbacks: {
               onToggle: toggleFolder,
-              onSelect,
+              onSelect: handleSelectWithMarkSeen,
               onContextMenu: handleContextMenu,
               onMouseEnter: handleMouseEnter,
               onMouseLeave: handleMouseLeave,

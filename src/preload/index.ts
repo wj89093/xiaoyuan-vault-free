@@ -208,6 +208,14 @@ const scrollPosition = {
   remove: (filePath: string) => handler<boolean>('scroll:remove', filePath),
 }
 
+// v1.5 reader UX: 未读/新内容标记
+const lastSeen = {
+  mark: (filePath: string) => handler<boolean>('lastSeen:mark', filePath),
+  getAll: () => handler<Record<string, number>>('lastSeen:getAll'),
+  getForFile: (filePath: string) => handler<number | null>('lastSeen:getForFile', filePath),
+  clear: (filePath: string) => handler<boolean>('lastSeen:clear', filePath),
+}
+
 const maintenance = {
   run: () => handler<any>('maintain:run'),
   getTasks: () => handler<any[]>('scheduler:getTasks'),
@@ -331,7 +339,12 @@ const api = {
   scrollPositionGet: (filePath: string) => scrollPosition.get(filePath),
   scrollPositionSet: (params: { filePath: string; scrollY: number; lastHeading?: string | null }) =>
     scrollPosition.set(params),
-  scrollPositionRemove: (filePath: string) => scrollPosition.remove(filePath)
+  scrollPositionRemove: (filePath: string) => scrollPosition.remove(filePath),
+  // v1.5 reader UX: 未读/新内容标记
+  lastSeenMark: (filePath: string) => lastSeen.mark(filePath),
+  lastSeenGetAll: () => lastSeen.getAll(),
+  lastSeenGetForFile: (filePath: string) => lastSeen.getForFile(filePath),
+  lastSeenClear: (filePath: string) => lastSeen.clear(filePath)
 }
 
 console.log('[preload] exposing api to window.api')

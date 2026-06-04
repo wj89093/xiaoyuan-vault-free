@@ -89,6 +89,13 @@ export async function initDatabase(vault: string): Promise<void> {
       last_heading TEXT,
       updated_at INTEGER NOT NULL
     );
+
+    -- v1.5 reader UX: 未读/新内容标记 (agent-driven 场景)
+    -- 用户是读者, 需要知道 agent 写了什么
+    CREATE TABLE IF NOT EXISTS last_seen_files (
+      file_path TEXT PRIMARY KEY,
+      last_seen_at INTEGER NOT NULL
+    );
   `)
 
   // Index existing files

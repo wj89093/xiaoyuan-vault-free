@@ -22,6 +22,8 @@ export interface FileTreeFlatRowProps {
   selectedFile: string | null
   focusedIndex: number
   dropTarget: string | null
+  // v1.5 reader UX: 未读/新内容标记 (agent 写的新文件)
+  isUnread: boolean
   onToggle: (path: string) => void
   onSelect: (path: string) => void
   onContextMenu: (e: React.MouseEvent, item: FlatTreeItem) => void
@@ -42,6 +44,7 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
   selectedFile,
   focusedIndex,
   dropTarget,
+  isUnread,
   onToggle,
   onSelect,
   onContextMenu,
@@ -95,6 +98,10 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
           : <span style={{ width: 12, display: 'inline-block' }} />}
       </span>
       <span className="file-tree-name">{item.name}</span>
+      {/* v1.5 reader UX: 未读/新内容小圆点 (agent 写但用户未看) */}
+      {isUnread && !item.isDirectory && (
+        <span className="file-tree-unread-dot" title="未读" aria-label="未读" />
+      )}
     </div>
   )
 })

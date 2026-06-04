@@ -500,6 +500,13 @@ export const Editor = memo(function Editor({
   // v1.5 reader UX: 滚动位置记忆 (用户是读者, 重开回到上次位置)
   useScrollMemory({ filePath, viewRef, enabled: !isNativePreview })
 
+  // v1.5 reader UX: 未读/新内容标记 — 用户实际打开文件即 mark seen
+  useEffect(() => {
+    if (filePath && !isNativePreview) {
+      void window.api.lastSeenMark(filePath)
+    }
+  }, [filePath, isNativePreview])
+
   // Context menu
   const handleFormat = useCallback((command: string, params?: Record<string, any>) => {
     const view = (window as any).__cmView
