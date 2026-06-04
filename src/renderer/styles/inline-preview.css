@@ -226,6 +226,17 @@
 
 .cm-atomic-wiki-link:hover {
   color: var(--atomic-editor-link-hover, #93c5fd);
+  background: color-mix(in srgb, var(--atomic-editor-link, #60a5fa) 12%, transparent);
+  border-radius: 3px;
+  padding: 0 3px;
+  margin: 0 -3px;
+  transform: translateY(-1px);
+  transition: all 120ms ease;
+}
+.cm-atomic-wiki-link-missing:hover,
+.cm-atomic-wiki-link-unresolved:hover {
+  background: color-mix(in srgb, var(--color-red, #ef4444) 12%, transparent);
+  color: var(--color-red, #ef4444);
 }
 
 .cm-atomic-wiki-link-missing,
@@ -372,10 +383,18 @@
 }
 
 .cm-atomic-table table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: max-content;
   min-width: 100%;
   font-family: var(--atomic-editor-font, system-ui, sans-serif);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--atomic-editor-border, #3d3d3d);
+}
+/* v1.5 polish: hover 行高亮 */
+.cm-atomic-table tbody tr:hover {
+  background: rgba(124, 58, 237, 0.06);
 }
 
 .cm-atomic-table th,
@@ -806,13 +825,13 @@
 .cm-math-block {
   display: block;
   text-align: center;
-  padding: 4px 0;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
   background: var(--color-surface-2, rgba(255, 255, 255, 0.03));
-  margin: 2px 0;
+  margin: 6px 0;
 }
 .cm-math-block .katex {
-  font-size: 1.1em;
+  font-size: 1.2em;
 }
 .katex-error {
   color: var(--color-red, #ef4444) !important;
@@ -880,10 +899,34 @@
 }
 /* First line = header */
 .cm-line.cm-atomic-callout-first {
-  padding-top: 0.45em;
+  padding-top: 0.5em;
   font-size: 1.05em;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
 }
+/* Type icon: ::before 渲染 emoji by callout type */
+.cm-line.cm-atomic-callout-first::before {
+  content: '';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.3em;
+  height: 1.3em;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.cm-line.cm-atomic-callout-note.cm-atomic-callout-first::before { content: 'N'; background: #3b82f6; }
+.cm-line.cm-atomic-callout-tip.cm-atomic-callout-first::before { content: 'T'; background: #3db872; }
+.cm-line.cm-atomic-callout-warning.cm-atomic-callout-first::before { content: '!'; background: #f59e0b; }
+.cm-line.cm-atomic-callout-danger.cm-atomic-callout-first::before { content: '!'; background: #ef4444; }
+.cm-line.cm-atomic-callout-info.cm-atomic-callout-first::before { content: 'i'; background: #6366f1; }
+.cm-line.cm-atomic-callout-example.cm-atomic-callout-first::before { content: 'E'; background: #8b5cf6; }
+.cm-line.cm-atomic-callout-success.cm-atomic-callout-first::before { content: '✓'; background: #22c55e; }
 /* Last line = extra bottom padding */
 .cm-line.cm-atomic-callout-last {
   padding-bottom: 0.4em;
