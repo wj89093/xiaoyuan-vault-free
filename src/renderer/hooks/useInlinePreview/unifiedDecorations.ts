@@ -107,10 +107,6 @@ const freezeMousePlugin = ViewPlugin.fromClass(
 
 // ── Widgets ────────────────────────────────────────────────────────────
 
-// v1.5 perf: Widget 单例复用 — 只有 checked true/false 两种
-const CHECKBOX_CHECKED = new TaskCheckboxWidget(true)
-const CHECKBOX_UNCHECKED = new TaskCheckboxWidget(false)
-
 class TaskCheckboxWidget extends WidgetType {
   constructor(readonly checked: boolean) {
     super()
@@ -159,6 +155,10 @@ class BulletWidget extends WidgetType {
     return false
   }
 }
+// v1.5 perf: Widget 单例复用 — 只有 checked true/false 两种
+const CHECKBOX_CHECKED = new TaskCheckboxWidget(true)
+const CHECKBOX_UNCHECKED = new TaskCheckboxWidget(false)
+
 const BULLET_WIDGET = new BulletWidget()
 
 class EmbedWidget extends WidgetType {
