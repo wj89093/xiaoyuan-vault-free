@@ -80,14 +80,31 @@ export function useVaultState() {
       try {
         const lastFile = await api.getLastFile?.(path)
         if (lastFile && fileList.some((f: FileInfo) => f.path === lastFile && !f.isDirectory)) {
-          // 只针对 .md 文件做 setContent, 二进制走 native preview 路径 (不需要现在就处理)
           setSelectedFile(lastFile)
-          try {
-            const c = await api.readFile(lastFile)
-            setContent(c)
-            setIsDirty(false)
-          } catch {
-            /* 文件被删了不处理 */
+          const ext = lastFile.split('.').pop()?.toLowerCase() ?? ''
+          const isMarkdown = ['md', 'markdown', 'mdown', 'mkd'].includes(ext)
+          if (isMarkdown) {
+            try {
+              const c = await api.readFile(lastFile)
+              setContent(c)
+              setIsDirty(false)
+            } catch {
+              /* 文件被删 */
+            }
+          } else {
+            // 二进制: 走 native preview
+            setContent('')
+            setIsNativePreview(true)
+            setNativePreview(null)
+            setIsLoading(true)
+            try {
+              const preview = await api.renderFile?.(lastFile)
+              setNativePreview((preview ?? { type: 'unsupported' }) as any)
+            } catch {
+              setNativePreview({ type: 'unsupported' } as any)
+            } finally {
+              setIsLoading(false)
+            }
           }
         }
       } catch {
@@ -306,6 +323,40 @@ export function useVaultState() {
           const fileList = await api.listFiles()
           setFiles(fileList)
           ;(window as any).__vaultFiles = fileList
+          // v1.5: 启动时也自动选中上次打开的文件
+          try {
+            const lastFile = await api.getLastFile?.(lastPath)
+            if (lastFile && fileList.some((f: FileInfo) => f.path === lastFile && !f.isDirectory)) {
+              setSelectedFile(lastFile)
+              const ext = lastFile.split('.').pop()?.toLowerCase() ?? ''
+              const isMarkdown = ['md', 'markdown', 'mdown', 'mkd'].includes(ext)
+              if (isMarkdown) {
+                try {
+                  const c = await api.readFile(lastFile)
+                  setContent(c)
+                  setIsDirty(false)
+                } catch {
+                  /* 文件被删 */
+                }
+              } else {
+                // 二进制: 走 native preview
+                setContent('')
+                setIsNativePreview(true)
+                setNativePreview(null)
+                setIsLoading(true)
+                try {
+                  const preview = await api.renderFile?.(lastFile)
+                  setNativePreview((preview ?? { type: 'unsupported' }) as any)
+                } catch {
+                  setNativePreview({ type: 'unsupported' } as any)
+                } finally {
+                  setIsLoading(false)
+                }
+              }
+            }
+          } catch {
+            /* 不阻断启动 */
+          }
         }
       } catch {
         /* first launch, show welcome */
