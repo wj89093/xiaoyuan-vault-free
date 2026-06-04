@@ -61,16 +61,27 @@ export function registerSkillHandlers(): void {
         const config = await readConfig()
         const vaultPath = config.lastVaultPath
         if (vaultPath && existsSync(vaultPath)) {
-          const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
-          if (existsSync(capsPath)) {
-            const caps = await readFile(capsPath, 'utf-8')
-            return (
-              baseSkill +
-              '\n\n---\n\n' +
-              '# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' +
-              caps
-            )
+          const injectedParts: string[] = []
+        // 1. 注入 MARKDOWN_CAPABILITIES.md (编辑器能力)
+        const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
+        if (existsSync(capsPath)) {
+          const caps = await readFile(capsPath, 'utf-8')
+          injectedParts.push('# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' + caps)
+        }
+        // 2. 注入 9 个 Skill 模板 (skills/ 目录)
+        const skillsDir = join(vaultPath, 'skills')
+        if (existsSync(skillsDir)) {
+          const { readdirSync } = await import('fs')
+          const skillFiles = readdirSync(skillsDir).filter(f => f.endsWith('.md')).sort()
+          for (const f of skillFiles) {
+            const skillContent = await readFile(join(skillsDir, f), 'utf-8')
+            const skillName = f.replace(/\.md$/, '')
+            injectedParts.push(`# 🔧 Skill 模板: ${skillName}\n\n` + skillContent)
           }
+        }
+        if (injectedParts.length > 0) {
+          return baseSkill + '\n\n---\n\n' + injectedParts.join('\n\n---\n\n')
+        }
         }
       } catch (e) {
         log.debug('[Skill] capabilities injection skipped:', e)

@@ -79,6 +79,22 @@ async function writeVaultTemplates(vaultPath: string): Promise<void> {
       await writeFile(join(vaultPath, destRel), await readFile(tplPath, 'utf-8'), 'utf-8')
     }
   }
+  // v1.6: 递归拷贝 skills/ 整个目录到 vault 根
+  await writeSkillTemplates(vaultPath)
+}
+
+// v1.6: 拷贝 skills/ 整个目录 (9 个 Skill 模板)
+async function writeSkillTemplates(vaultPath: string): Promise<void> {
+  const srcDir = join(__dirname, '..', 'templates', 'skills')
+  const destDir = join(vaultPath, 'skills')
+  if (!existsSync(srcDir)) return
+  if (!existsSync(destDir)) await mkdir(destDir, { recursive: true })
+  const { readdir } = await import('fs/promises')
+  const files = (await readdir(srcDir)).filter((f: string) => f.endsWith('.md'))
+  for (const f of files) {
+    const content = await readFile(join(srcDir, f), 'utf-8')
+    await writeFile(join(destDir, f), content, 'utf-8')
+  }
 }
 
 async function createVaultAtPath(vaultPath: string): Promise<string> {
