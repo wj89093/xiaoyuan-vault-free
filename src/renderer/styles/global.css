@@ -1193,6 +1193,70 @@ h6 {
   border-color: var(--color-accent, #3b82f6);
 }
 
+/* v1.5 reader UX: 浮动工具栏容器 (TOC toggle + 字体调节) */
+.editor-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* v1.5 reader UX: 字体/行距调节控件 */
+.reader-settings {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--atomic-editor-border, #e5e5ea);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+  user-select: none;
+}
+.reader-settings > span:first-child {
+  font-weight: 700;
+  margin-right: 2px;
+}
+.reader-settings button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 14px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  line-height: 1;
+}
+.reader-settings button:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f3f4f6);
+  color: var(--color-text-primary, #111827);
+}
+.reader-settings button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.reader-settings-value {
+  min-width: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.reader-settings-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--atomic-editor-border, #e5e5ea);
+  margin: 0 2px;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;

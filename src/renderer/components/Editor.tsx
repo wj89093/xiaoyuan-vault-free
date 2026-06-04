@@ -4,6 +4,7 @@ import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
 import { useScrollMemory } from '../hooks/useScrollMemory'
+import { useReaderSettings } from '../hooks/useReaderSettings'
 import { EditorContextMenu } from '../components/EditorContextMenu'
 import { TableOfContents } from './TableOfContents'
 import { createFormatCommands, type EditorFormatCommands } from '../utils/editorFormat'
@@ -511,6 +512,9 @@ export const Editor = memo(function Editor({
   // v1.5 reader UX: TOC 显示状态 (默认关闭, 用户点击 toggle 按钮开启)
   const [showToc, setShowToc] = useState(false)
 
+  // v1.5 reader UX: 字体/行距调节
+  const { settings: readerSettings, setFontSize, setLineHeight } = useReaderSettings()
+
   // Context menu
   const handleFormat = useCallback((command: string, params?: Record<string, any>) => {
     const view = (window as any).__cmView
@@ -678,6 +682,10 @@ export const Editor = memo(function Editor({
       onContextMenu={(e) => {
         if (!isNativePreview) showContextMenu(e)
       }}
+      style={{
+        '--reader-font-size': `${readerSettings.fontSize}px`,
+        '--reader-line-height': String(readerSettings.lineHeight),
+      } as React.CSSProperties}
     >
       {contextMenu.visible && (
         <EditorContextMenu
@@ -702,16 +710,57 @@ export const Editor = memo(function Editor({
           />
         )}
       </div>
-      {/* v1.5 reader UX: TOC toggle 浮动按钮 */}
+      {/* v1.5 reader UX: TOC toggle 浮动按钮 + 字体调节 */}
       {!isNativePreview && (
-        <button
-          className={`editor-toc-toggle ${showToc ? 'active' : ''}`}
-          onClick={() => setShowToc((v) => !v)}
-          title={showToc ? '关闭目录' : '显示目录'}
-          aria-label={showToc ? '关闭目录' : '显示目录'}
-        >
-          目录
-        </button>
+        <div className="editor-toolbar">
+          <button
+            className={`editor-toc-toggle ${showToc ? 'active' : ''}`}
+            onClick={() => setShowToc((v) => !v)}
+            title={showToc ? '关闭目录' : '显示目录'}
+            aria-label={showToc ? '关闭目录' : '显示目录'}
+          >
+            目录
+          </button>
+          <div className="reader-settings">
+            <span title="字体大小">A</span>
+            <button
+              onClick={() => setFontSize(readerSettings.fontSize - 1)}
+              title="缩小字体"
+              aria-label="缩小字体"
+              disabled={readerSettings.fontSize <= 14}
+            >
+              −
+            </button>
+            <span className="reader-settings-value">{readerSettings.fontSize}</span>
+            <button
+              onClick={() => setFontSize(readerSettings.fontSize + 1)}
+              title="放大字体"
+              aria-label="放大字体"
+              disabled={readerSettings.fontSize >= 24}
+            >
+              +
+            </button>
+            <span className="reader-settings-sep" />
+            <span title="行距">行距</span>
+            <button
+              onClick={() => setLineHeight(readerSettings.lineHeight - 0.1)}
+              title="减小行距"
+              aria-label="减小行距"
+              disabled={readerSettings.lineHeight <= 1.4}
+            >
+              −
+            </button>
+            <span className="reader-settings-value">{readerSettings.lineHeight.toFixed(1)}</span>
+            <button
+              onClick={() => setLineHeight(readerSettings.lineHeight + 0.1)}
+              title="增加行距"
+              aria-label="增加行距"
+              disabled={readerSettings.lineHeight >= 2.2}
+            >
+              +
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

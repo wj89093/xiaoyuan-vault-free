@@ -110,14 +110,14 @@ export const vaultLightTheme = EditorView.theme(
       backgroundColor: 'var(--color-surface)',
       color: 'var(--color-text-primary)',
       fontFamily: 'var(--font-sans)',
-      fontSize: '14px',
+      fontSize: 'var(--reader-font-size, 16px)',
       height: '100%'
     },
     '.cm-content': {
       caretColor: 'var(--color-primary)',
       padding: '0',
       fontFamily: 'var(--font-sans)',
-      lineHeight: '1.8'
+      lineHeight: 'var(--reader-line-height, 1.7)'
     },
     '.cm-cursor, .cm-dropCursor': {
       borderLeftColor: 'var(--color-primary)',
@@ -201,14 +201,14 @@ export const vaultDarkTheme = EditorView.theme(
       backgroundColor: 'var(--color-surface)',
       color: 'var(--color-text-primary)',
       fontFamily: 'var(--font-sans)',
-      fontSize: '14px',
+      fontSize: 'var(--reader-font-size, 16px)',
       height: '100%'
     },
     '.cm-content': {
       caretColor: 'var(--color-primary)',
       padding: '0',
       fontFamily: 'var(--font-sans)',
-      lineHeight: '1.8'
+      lineHeight: 'var(--reader-line-height, 1.7)'
     },
     '.cm-cursor, .cm-dropCursor': {
       borderLeftColor: 'var(--color-primary)',
