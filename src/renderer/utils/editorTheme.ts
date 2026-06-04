@@ -287,6 +287,8 @@ export const vaultDarkTheme = EditorView.theme(
 /**
  * Vault Editor Theme Extension
  *
+ * v1.5: 改为模块级 const, 避免每次 mount 新建数组实例
+ *
  * Usage:
  *   import { editorThemeExtension } from './editorTheme'
  *   // In useCodeMirror extensions:
@@ -295,10 +297,14 @@ export const vaultDarkTheme = EditorView.theme(
  * Combined: EditorView.theme (structure) + syntaxHighlighting (token colors)
  * Theme automatically switches based on document.documentElement.dataset.theme
  */
-export function editorThemeExtension() {
-  return [vaultLightTheme, syntaxHighlighting(vaultLightHighlight)]
-}
+import type { Extension } from '@codemirror/state'
 
-export function editorDarkThemeExtension() {
-  return [vaultDarkTheme, syntaxHighlighting(vaultDarkHighlight)]
-}
+export const editorThemeExtension: Extension = [
+  vaultLightTheme,
+  syntaxHighlighting(vaultLightHighlight),
+]
+
+export const editorDarkThemeExtension: Extension = [
+  vaultDarkTheme,
+  syntaxHighlighting(vaultDarkHighlight),
+]

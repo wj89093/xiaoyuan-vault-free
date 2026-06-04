@@ -2,7 +2,7 @@
  * useCodeMirror.ts — CM6 editor lifecycle
  *
  * Creates and manages the CodeMirror 6 EditorView.
- * Extensions are composed via editorExtensions() (useEditorExtensions.ts).
+ * Extensions are composed via EDITOR_EXTENSIONS (useEditorExtensions.ts).
  */
 import { useRef, useEffect } from 'react'
 import { EditorView, keymap } from '@codemirror/view'
@@ -14,7 +14,7 @@ import { editorThemeExtension, editorDarkThemeExtension } from '../utils/editorT
 import { Compartment } from '@codemirror/state'
 import { closeBrackets } from '@codemirror/autocomplete'
 import { startEdit } from './useBlockEditor'
-import { editorExtensions } from './useEditorExtensions'
+import { EDITOR_EXTENSIONS } from './useEditorExtensions'
 import { editorNavigationExtension } from './useWikiLinks/wikiLinksNavigation'
 import { setActiveView, setEditHandler, clearEditHandlers } from './editorRegistry'
 
@@ -43,7 +43,7 @@ export function useCodeMirror(
       extensions: [
         markdown({ base: markdownLanguage }),
         EditorView.lineWrapping,
-        editorThemeExtension(),
+        editorThemeExtension,
         bracketMatching(),
         closeBrackets(),
         indentOnInput(),
@@ -52,7 +52,7 @@ export function useCodeMirror(
         EditorView.updateListener.of((update) => {
           if (update.docChanged) _onChangeRef.current(update.state.doc.toString())
         }),
-        ...editorExtensions(),
+        ...EDITOR_EXTENSIONS,
         editorNavigationExtension((target: string) => _onWikiLinkNavigateRef.current?.(target))
       ]
     })
@@ -66,7 +66,7 @@ export function useCodeMirror(
       const isDark = document.documentElement.dataset.theme === 'dark'
       view.dispatch({
         effects: themeCompartment.reconfigure(
-          isDark ? editorDarkThemeExtension() : editorThemeExtension()
+          isDark ? editorDarkThemeExtension : editorThemeExtension
         )
       })
     }
