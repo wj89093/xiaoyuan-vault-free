@@ -2,6 +2,7 @@
 import { memo, useRef, useState, useEffect, useCallback, type JSX } from 'react'
 import DOMPurify from 'dompurify'
 import { useCodeMirror } from '../hooks/useCodeMirror'
+import { getActiveView } from '../hooks/editorRegistry'
 import { useEditorContextMenu } from '../hooks/useEditorContextMenu'
 import { EditorContextMenu } from '../components/EditorContextMenu'
 import { createFormatCommands, type EditorFormatCommands } from '../utils/editorFormat'
@@ -495,7 +496,7 @@ export const Editor = memo(function Editor({
 
   // Context menu
   const handleFormat = useCallback((command: string, params?: Record<string, any>) => {
-    const view = (window as any).__cmView
+    const view = getActiveView()
     if (!view) return
     const cmds: EditorFormatCommands = createFormatCommands(view)
     switch (command) {

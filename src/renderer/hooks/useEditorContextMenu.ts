@@ -11,8 +11,9 @@
  *   </div>
  */
 import { useState, useEffect, useCallback } from 'react'
-import { EditorView } from '@codemirror/view'
+import { type EditorView } from '@codemirror/view'
 import log from 'electron-log/renderer'
+import { getActiveView } from './editorRegistry'  
 
 export interface ContextMenuState {
   visible: boolean
@@ -43,11 +44,9 @@ export function useEditorContextMenu(
     viewRef: null
   })
 
-  // Always read from window (viewRef may not update on every render)
+  // 优先从 registry 取 (mount 顺序无关), 退回 viewRef
   const getView = useCallback((): EditorView | null => {
-    const w = window as any
-    if (w.__cmView instanceof EditorView) return w.__cmView
-    return viewRef.current
+    return getActiveView() ?? viewRef.current
   }, [viewRef])
 
   const showContextMenu = useCallback(

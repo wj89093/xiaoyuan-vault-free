@@ -20,6 +20,7 @@ import {
 } from '@codemirror/view'
 import type { EditorState, Range } from '@codemirror/state'
 import { registerMermaidBuilder, blockDecorationsField } from './blockDecorationsField'
+import { callEdit } from './editorRegistry'
 
 // ── Supported diagram languages ─────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ class MermaidWidget extends WidgetType {
     void renderMermaidWidget(wrapper, container, this._code, this._lang)
 
     wrapper.addEventListener('dblclick', (_e) => {
-      ;(window as any).__mermaidEdit?.(this, wrapper, view)
+      callEdit('mermaid', this as any, wrapper, view)
     })
     return wrapper
   }

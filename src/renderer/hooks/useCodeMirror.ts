@@ -16,6 +16,7 @@ import { closeBrackets } from '@codemirror/autocomplete'
 import { startEdit } from './useBlockEditor'
 import { editorExtensions } from './useEditorExtensions'
 import { editorNavigationExtension } from './useWikiLinks/wikiLinksNavigation'
+import { setActiveView, setEditHandler, clearEditHandlers } from './editorRegistry'
 
 export function useCodeMirror(
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -77,23 +78,24 @@ export function useCodeMirror(
     updateTheme()
     ;(view as any).__themeObserver = observer
 
-    // Expose editor view globally for context menu
-    ;(window as any).__cmView = view
-
-    // Expose block edit globally (widgets call this via window)
-    ;(window as any).__frontmatterEdit = (widget: any, dom: HTMLElement, v: EditorView) => {
+    // v1.5: 改为 registry (替代 window.__cmView / __XxxEdit)
+    setActiveView(view)
+    setEditHandler('frontmatter', (widget, dom, v) => {
       startEdit(widget, dom, v)
-    }
-    ;(window as any).__tableEdit = (widget: any, dom: HTMLElement, v: EditorView) => {
+    })
+    setEditHandler('table', (widget, dom, v) => {
       startEdit(widget, dom, v)
-    }
-    ;(window as any).__mermaidEdit = (widget: any, dom: HTMLElement, v: EditorView) => {
+    })
+    setEditHandler('mermaid', (widget, dom, v) => {
       startEdit(widget, dom, v)
-    }
+    })
 
     return () => {
       view.destroy()
       _viewRef.current = null
+      observer.disconnect() // v1.5: 断开 MutationObserver
+      setActiveView(null) // v1.5: 清空 registry, 避免指向已 destroy 的 view
+      clearEditHandlers() // v1.5: 清理 edit handlers
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
