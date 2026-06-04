@@ -27,7 +27,7 @@ export const EDITOR_EXTENSIONS: Extension[] = [
   tightListKeymap,
 
   // ── Core inline preview (ViewPlugin decorations) ────────────────────
-  inlinePreviewExtension,
+  inlinePreviewExtension(),
 
   // ── Block decorations (shared StateField: mermaid + frontmatter) ───
   blockDecorationsField,
