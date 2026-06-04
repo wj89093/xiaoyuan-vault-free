@@ -10,6 +10,8 @@ import { initDatabase, getVaultPath } from '../services/database/database'
 import { setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../graphUtils'
 import { startFileWatcher } from '../services/fileWatcher'
+// v1.5: 共享 readConfig/writeConfig (从 services/config 抽出来)
+import { readConfig, writeConfig } from "../services/config"
 
 const configPath = join(app.getPath('userData'), 'vault-config.json')
 
@@ -53,7 +55,9 @@ const VAULT_TEMPLATES: Array<[string, string]> = [
 const VAULT_OPTIONAL_TEMPLATES: Array<[string, string]> = [
   ['vault-usage-guide.md', '_wiki/使用说明.md'],
   ['LLM-wiki.md', 'LLM-wiki.md'],
-  ['Agents.md', 'Agents.md']
+  ['Agents.md', 'Agents.md'],
+  // v1.5: Agent 写入前必读 - 列出 CM6 支持的 markdown 扩展
+  ['markdown-capabilities.md', 'MARKDOWN_CAPABILITIES.md']
 ]
 
 async function initVaultDirs(vaultPath: string): Promise<void> {

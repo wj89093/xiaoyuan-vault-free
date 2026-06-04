@@ -4,6 +4,8 @@
 > 版本：v2.4 | 更新：2026-06-02
 >
 
+> **📝 写入前必读** [MARKDOWN_CAPABILITIES.md](./MARKDOWN_CAPABILITIES.md) — 晓园 Vault 支持的编辑器扩展（WikiLink / Mermaid / Callout / Math / Frontmatter / Task / 嵌入），写入时主动用这些语法。
+
 ---
 
 ## Skill 触发索引

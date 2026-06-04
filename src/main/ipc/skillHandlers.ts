@@ -22,6 +22,8 @@ import { join } from 'path'
 import { readFile, writeFile, readdir, unlink, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import log from 'electron-log/main'
+// v1.5: 共享 readConfig (从 services/config 抽出来)
+import { readConfig } from "../services/config"
 
 function skillsDir(): string {
   return join(app.getPath('userData'), 'skills')
@@ -52,7 +54,28 @@ export function registerSkillHandlers(): void {
   ipcMain.handle('skill:loadDefault', async (): Promise<string> => {
     const path = defaultSkillPath()
     try {
-      return await readFile(path, 'utf-8')
+      const baseSkill = await readFile(path, 'utf-8')
+      // v1.5: 注入层 — 拼上 capabilities 段, Agent 写入时自动看到支持的扩展
+      // 静默失败: 没 vault / 没 capabilities 文件 / 读错都不阻断
+      try {
+        const config = await readConfig()
+        const vaultPath = config.lastVaultPath
+        if (vaultPath && existsSync(vaultPath)) {
+          const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
+          if (existsSync(capsPath)) {
+            const caps = await readFile(capsPath, 'utf-8')
+            return (
+              baseSkill +
+              '\n\n---\n\n' +
+              '# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' +
+              caps
+            )
+          }
+        }
+      } catch (e) {
+        log.debug('[Skill] capabilities injection skipped:', e)
+      }
+      return baseSkill
     } catch (e) {
       log.error('[Skill] loadDefault failed:', e)
       return ''
