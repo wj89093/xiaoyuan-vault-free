@@ -15,7 +15,7 @@ interface TrashPanelProps {
   onClose: () => void
 }
 
-export function TrashPanel({ vaultPath, onNavigate, onClose }: TrashPanelProps): JSX.Element {
+export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onClose }: TrashPanelProps): JSX.Element {
   const [items, setItems] = useState<TrashItem[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -222,4 +222,4 @@ export function TrashPanel({ vaultPath, onNavigate, onClose }: TrashPanelProps):
       </div>
     </FloatingPanel>
   )
-}
+})

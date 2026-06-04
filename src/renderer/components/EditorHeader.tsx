@@ -15,7 +15,7 @@ interface EditorHeaderProps {
  * 显示完整路径：_wiki / _topics / 文件.md
  * 参考 mdeditor 的路径切片设计 + Apple HIG 面包屑规范
  */
-export function EditorHeader({
+export const EditorHeader = memo(function EditorHeader({
   selectedFile,
   isDirty,
   isSaving = false,
@@ -163,4 +163,4 @@ export function EditorHeader({
       )}
     </div>
   )
-}
+})

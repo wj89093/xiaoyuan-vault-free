@@ -34,7 +34,7 @@ interface SidebarProps {
   _onOpenVault?: () => void
 }
 
-export function Sidebar({
+export const Sidebar = memo(function Sidebar({
   vaultPath,
   wikiFiles,
   displayFiles,
@@ -367,4 +367,4 @@ export function Sidebar({
       </div>
     </div>
   )
-}
+})

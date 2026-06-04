@@ -1,4 +1,4 @@
-import { useState, type JSX } from 'react'
+import { memo, useState, type JSX } from 'react'
 import React from 'react'
 import { X, FolderOpen, ArrowRight, Check } from 'lucide-react'
 
@@ -40,7 +40,7 @@ function StepIndicator({ current }: { current: number }) {
   )
 }
 
-export function VaultCreationWizard({ onClose, onCreated }: VaultCreationWizardProps): JSX.Element {
+export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, onCreated }: VaultCreationWizardProps): JSX.Element {
   const [step, setStep] = useState(1)
   const [name, setName] = useState('我的知识库')
   const [basePath, setBasePath] = useState('')
@@ -386,4 +386,4 @@ export function VaultCreationWizard({ onClose, onCreated }: VaultCreationWizardP
       </div>
     </div>
   )
-}
+})

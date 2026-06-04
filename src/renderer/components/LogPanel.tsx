@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect -- log panel: initial load + polling pattern, expected */
 import { useState, useEffect, useRef, useMemo, type JSX } from 'react'
 import { FileText, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
@@ -120,7 +119,7 @@ function processLine(line: string, dir?: string): string {
   return html
 }
 
-export function LogPanel({ onClose, onSelectFile }: LogPanelProps): JSX.Element {
+export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPanelProps): JSX.Element {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -295,4 +294,4 @@ export function LogPanel({ onClose, onSelectFile }: LogPanelProps): JSX.Element 
       )}
     </FloatingPanel>
   )
-}
+})

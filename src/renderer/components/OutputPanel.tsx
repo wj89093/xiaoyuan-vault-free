@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect -- output panel: initial load pattern, expected */
 import { useState, useEffect, type JSX } from 'react'
 import { FileOutput, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
@@ -7,7 +6,7 @@ interface OutputPanelProps {
   onClose: () => void
 }
 
-export function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
+export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -135,4 +134,4 @@ export function OutputPanel({ onClose }: OutputPanelProps): JSX.Element {
       )}
     </FloatingPanel>
   )
-}
+})

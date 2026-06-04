@@ -27,7 +27,7 @@ interface MenuItemDef {
   condition?: boolean
 }
 
-export function FileTreeContextMenu({
+export const FileTreeContextMenu = memo(function FileTreeContextMenu({
   x,
   y,
   file,
@@ -260,4 +260,4 @@ export function FileTreeContextMenu({
       </div>
     </>
   )
-}
+})

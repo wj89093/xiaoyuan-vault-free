@@ -151,7 +151,7 @@ export function VaultRouter({
         onCloseSearch={handleCloseSearch}
         onSelectFile={handleSelectFile}
         onNewFile={handleNewFile}
-        onNewWikiFile={(folderPath) => void handleNewFile(folderPath || '_wiki', 'Untitled')}
+        onNewWikiFile={(folderPath) => void handleNewFile(folderPath ?? '_wiki', 'Untitled')}
         onNewFolder={handleNewFolder}
         onRefresh={handleRefresh}
       />

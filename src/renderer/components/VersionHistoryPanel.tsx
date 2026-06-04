@@ -6,7 +6,6 @@
  *   onClose — 关闭回调
  *   onRestore — 恢复后回调（通知父组件重新加载文件）
  */
-/* eslint-disable react-hooks/set-state-in-effect -- version history: initial load pattern, expected */
 import { useState, useEffect } from 'react'
 import { X, Clock, RotateCcw } from 'lucide-react'
 
@@ -23,7 +22,7 @@ interface VersionHistoryPanelProps {
   onRestore: () => void
 }
 
-export function VersionHistoryPanel({
+export const VersionHistoryPanel = memo(function VersionHistoryPanel({
   filePath,
   fileName,
   onClose,
@@ -270,4 +269,4 @@ export function VersionHistoryPanel({
       </div>
     </div>
   )
-}
+})

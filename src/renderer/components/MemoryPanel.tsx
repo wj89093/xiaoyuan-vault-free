@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type JSX } from 'react'
 import { BarChart3, RefreshCw, Clock, CheckCircle2, ChevronRight } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
@@ -17,7 +16,7 @@ interface MemoryPanelProps {
   onClose: () => void
 }
 
-export function MemoryPanel({ onClose }: MemoryPanelProps): JSX.Element {
+export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelProps): JSX.Element {
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -140,4 +139,4 @@ export function MemoryPanel({ onClose }: MemoryPanelProps): JSX.Element {
       </FloatingPanel>
     </div>
   )
-}
+})

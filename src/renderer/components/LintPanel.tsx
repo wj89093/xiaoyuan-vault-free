@@ -23,7 +23,7 @@ interface ParsedLintReport {
   stalePages: string[]
 }
 
-export function LintPanel({ onClose, vaultPath }: LintPanelProps): JSX.Element {
+export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPanelProps): JSX.Element {
   const [report, setReport] = useState<ParsedLintReport | null>(null)
   const [loading, setLoading] = useState(false)
   const [runningCheck, setRunningCheck] = useState(false)
@@ -361,4 +361,4 @@ export function LintPanel({ onClose, vaultPath }: LintPanelProps): JSX.Element {
       </div>
     </FloatingPanel>
   )
-}
+})

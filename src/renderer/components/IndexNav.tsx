@@ -34,7 +34,7 @@ function parseIndex(content: string): IndexEntry[] {
   return entries
 }
 
-export function IndexNav({
+export const IndexNav = memo(function IndexNav({
   vaultPath,
   onSelectFile,
   selectedFile
@@ -141,4 +141,4 @@ export function IndexNav({
       )}
     </div>
   )
-}
+})
