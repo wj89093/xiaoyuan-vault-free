@@ -107,6 +107,10 @@ const freezeMousePlugin = ViewPlugin.fromClass(
 
 // ── Widgets ────────────────────────────────────────────────────────────
 
+// v1.5 perf: Widget 单例复用 — 只有 checked true/false 两种
+const CHECKBOX_CHECKED = new TaskCheckboxWidget(true)
+const CHECKBOX_UNCHECKED = new TaskCheckboxWidget(false)
+
 class TaskCheckboxWidget extends WidgetType {
   constructor(readonly checked: boolean) {
     super()
@@ -278,7 +282,7 @@ function supplementMidTypingEmphasis(
 
 // ── Build ALL decorations in one tree walk ─────────────────────────────
 
-function buildAllDecorations(view: EditorView): DecorationSet {
+function buildAllDecorations(view: EditorView, docChanged = true): DecorationSet {
   const { state } = view
   const { doc } = state
   const ranges: Range<Decoration>[] = []
@@ -353,7 +357,7 @@ function buildAllDecorations(view: EditorView): DecorationSet {
       if (node.name === 'TaskMarker') {
         const markerText = doc.sliceString(from, to)
         const checked = /\[x\]/i.test(markerText)
-        ranges.push(Decoration.replace({ widget: new TaskCheckboxWidget(checked) }).range(from, to))
+        ranges.push(Decoration.replace({ widget: checked ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED }).range(from, to))
         return
       }
 
@@ -441,12 +445,16 @@ function buildAllDecorations(view: EditorView): DecorationSet {
 
   // ── 5. Supplement mid-typing emphasis (from atomic-editor) ────────────
   // Styles incomplete **bold** / *italic* / ~~strike~~ / `code` while typing
-  supplementMidTypingEmphasis(ranges, doc, activeLines, view.hasFocus)
+  // v1.5 perf: 只在 docChanged 时跑 (selection-only 变化不需要)
+  if (docChanged) supplementMidTypingEmphasis(ranges, doc, activeLines, view.hasFocus)
 
-  return Decoration.set(
-    ranges.sort((a: any, b: any) => a.from - b.from),
-    true
-  )
+  // v1.5 perf: 已排序时跳过 sort (tree.iterate 顺序遍历, 大多数情况已有序)
+  let sorted = true
+  for (let i = 1; i < ranges.length; i++) {
+    if (ranges[i].from < ranges[i - 1].from) { sorted = false; break }
+  }
+  if (!sorted) ranges.sort((a: any, b: any) => a.from - b.from)
+  return Decoration.set(ranges, true)
 }
 
 // ── ViewPlugin ─────────────────────────────────────────────────────────
@@ -454,8 +462,12 @@ function buildAllDecorations(view: EditorView): DecorationSet {
 const inlinePreviewPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet
+    // v1.5: decoration cache — viewport-only 变化时跳过重建
+    private _cacheKey: string
     constructor(view: EditorView) {
+      this._cacheKey = ''
       this.decorations = buildAllDecorations(view)
+      this._cacheKey = this._makeKey(view)
     }
     update(update: ViewUpdate) {
       if (
@@ -464,8 +476,17 @@ const inlinePreviewPlugin = ViewPlugin.fromClass(
         update.focusChanged ||
         update.viewportChanged
       ) {
-        this.decorations = buildAllDecorations(update.view)
+        const key = this._makeKey(update.view)
+        if (key === this._cacheKey) return // viewport-only 变化, 跳过
+        this.decorations = buildAllDecorations(update.view, update.docChanged)
+        this._cacheKey = key
       }
+    }
+    private _makeKey(view: EditorView): string {
+      const { state } = view
+      // doc version + selection anchor (合并成 cache key)
+      const sel = state.selection.main
+      return `${state.doc.length}:${sel.anchor}:${sel.head}:${view.hasFocus}`
     }
   },
   { decorations: (v) => v.decorations }
