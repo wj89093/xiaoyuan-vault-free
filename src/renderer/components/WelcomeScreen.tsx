@@ -334,7 +334,7 @@ export function WelcomeScreen({
                 <div
                   key={vault.path}
                   role="listitem"
-                  className="welcome-recent-item"
+                  className={`welcome-recent-item ${vault.path === lastVault?.path ? 'is-active' : ''}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -343,6 +343,7 @@ export function WelcomeScreen({
                     transition: `opacity 300ms ease ${index * 60}ms, transform 300ms ease ${index * 60}ms`
                   }}
                 >
+                  <span className="welcome-recent-index">{index + 1}</span>
                   <FolderOpen size={14} style={{ flexShrink: 0 }} />
                   <button
                     style={{
@@ -370,6 +371,7 @@ export function WelcomeScreen({
                     <span className="welcome-recent-count">{docCount} 篇</span>
                   )}
                   <button
+                    className="welcome-recent-delete"
                     onClick={() => onDeleteVault?.(vault.path)}
                     tabIndex={0}
                     role="button"
