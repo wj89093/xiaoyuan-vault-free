@@ -228,7 +228,6 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
       .attr('stroke-opacity', (d) => (d.type === 'folder' ? 0.25 : 0.6))
 
     // Nodes
-    const ng = mainG.append('g')
     const nodeSel = (mainG.selectAll('g') as any)
       .data(connectedNodes)
       .enter()
