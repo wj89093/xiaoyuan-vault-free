@@ -1,8 +1,39 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.4.0-free
-> 发布日期：2026-06-02
-> 最近更新：2026-06-03（性能优化 6 commits）
+> 当前版本：v1.5.0-free
+> 发布日期：2026-06-04
+> 最近更新：2026-06-04（reader UX 5 features）
+
+---
+
+## 2026-06-04 — v1.5.0-free Reader UX（5 features）
+
+### 设计理念
+
+> **文档编辑器主要给 agent 用，用户只看不编辑。** 所有 UI/UX 优化以「读者视角」为导向。
+
+### 新增功能
+
+| # | 功能 | 说明 |
+|---|------|------|
+| 1 | **滚动位置记忆** | 重开文档回到上次位置（SQLite per-file scroll_y） |
+| 2 | **未读/新内容标记** | FileTree 蓝色小圆点标记 agent 新写但用户未看的文件 |
+| 3 | **TOC 目录侧栏** | 长文档 heading 树 + scroll spy 高亮 + 点击跳转 |
+| 4 | **可调节字体/行距** | 字体 14-24px + 行距 1.4-2.2，localStorage 持久化 |
+| 5 | **阅读模式** | 隐藏 markdown 暗纹字符（# * `` [] > -），纯净阅读 |
+
+### 内部
+
+- DB schema: 新增 `scroll_positions` + `last_seen_files` 两张表
+- IPC: `scroll:get/set/remove` + `lastSeen:mark/getAll/getForFile/clear`
+- EditorTheme: fontSize/lineHeight 改用 CSS variables (`--reader-font-size` / `--reader-line-height`)
+- 新组件: `TableOfContents.tsx` + `useScrollMemory.ts` + `useReaderSettings.ts`
+- 浮动工具栏: 阅读模式 toggle + TOC toggle + 字体/行距控件
+
+### 测试
+- 132 passed (1 skipped)
+- Lint: 0 errors / 0 warnings
+- Typecheck: clean
 
 ---
 

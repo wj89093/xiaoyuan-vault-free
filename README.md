@@ -1,6 +1,6 @@
 # 晓园 Vault (开源版)
 
-> **v1.4.0-free** · 2026-06-03
+> **v1.5.0-free** · 2026-06-04
 > 免费的本地知识库 · 类 Obsidian · macOS / Windows / Linux 桌面应用
 
 [![macOS](https://img.shields.io/badge/macOS-13+-blue)] ![Windows](https://img.shields.io/badge/Windows-10+-blue)] ![Linux](https://img.shields.io/badge/Linux-glibc%202.31+-blue)] ![Electron](https://img.shields.io/badge/Electron-34-green)] ![React](https://img.shields.io/badge/React-19-blueviolet)] ![Version](https://img.shields.io/badge/version-1.4.0--free-orange)] ![License](https://img.shields.io/badge/license-MIT-brightgreen)

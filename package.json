@@ -1,6 +1,6 @@
 {
   "name": "xiaoyuan-vault-free",
-  "version": "1.4.0-free",
+  "version": "1.5.0-free",
   "description": "晓园 Vault 开源版 - 免费的本地知识库 (Markdown / 知识图谱 / FTS5 搜索 / 多 vault / Skill.md 插件)",
   "main": "./out/main/index.js",
   "author": "Xiaoyuan Team",
