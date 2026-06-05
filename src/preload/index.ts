@@ -144,7 +144,7 @@ const chat = {
 
 const query = {
   resolve: (content: string, title?: string) => handler<any>('resolver:classify', content, title),
-  vault: (question: string) => handler<any>('query:vault', question)
+  vault: (question: string, options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }) => handler<any>('query:vault', question, options)
 }
 
 const auth = {

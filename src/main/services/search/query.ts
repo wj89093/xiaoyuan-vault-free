@@ -18,7 +18,19 @@ export interface QueryResult {
 
 // ─── Query: search + AI synthesize ────────────────────────────────────
 
-export async function queryVault(question: string): Promise<QueryResult> {
+/**
+ * v1.7: options 参数 — Agent 端省 token 关键
+ *   - topic: 限定 _wiki/{topic}/ 目录, 不读整个 index.md
+ *   - maxResults: FTS5 LIMIT (默认 50 → 通常 5-20 足够)
+ *   - maxWikiFiles: Step 0 遍历 topic 目录文件数 (默认 6/topic)
+ */
+export interface QueryOptions {
+  topic?: string
+  maxResults?: number
+  maxWikiFiles?: number
+}
+
+export async function queryVault(question: string, options?: QueryOptions): Promise<QueryResult> {
   const vaultPath = getVaultPath()
   if (!vaultPath) {
     return { question, answer: '未打开知识库', sources: [] }
@@ -46,14 +58,20 @@ export async function queryVault(question: string): Promise<QueryResult> {
         const topicMatches = indexContent.match(/^##\s+(.+)/gm) ?? []
         const topics = topicMatches.map((m) => m.replace(/^##\s+/, '').trim())
 
+        // v1.7: topic 参数 — 只看指定 topic 目录 (Agent 传 topic=合同管理)
+        const topicsToScan = options?.topic
+          ? [options.topic]
+          : topics.slice(0, 5)
+        const maxWiki = options?.maxWikiFiles ?? 6
+
         // Search each topic directory for relevant pages
-        for (const topic of topics.slice(0, 5)) {
+        for (const topic of topicsToScan) {
           try {
             const topicDir = join(wikiDir, topic)
             const files = await readdir(topicDir)
             const mdFiles = files.filter((f) => f.endsWith('.md') && !f.startsWith('Lint报告'))
 
-            for (const file of mdFiles.slice(0, 6)) {
+            for (const file of mdFiles.slice(0, maxWiki)) {
               try {
                 const filePath = join(topicDir, file)
                 const raw = await readFile(filePath, 'utf-8')
@@ -117,7 +135,8 @@ export async function queryVault(question: string): Promise<QueryResult> {
     }
 
     // FTS5 results next
-    const topFiles = searchResults.slice(0, 5)
+    // v1.7: 截断到 maxResults (默认 5 — AI 上下文 5 个 source 足够)
+    const topFiles = searchResults.slice(0, options?.maxResults ?? 5)
     for (const file of topFiles) {
       if (!seenPaths.has(file.path)) {
         seenPaths.add(file.path)

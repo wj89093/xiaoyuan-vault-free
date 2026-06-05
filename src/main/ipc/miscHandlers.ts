@@ -22,8 +22,8 @@ export function registerMiscHandlers(): void {
     buildTarget: process.env.BUILD_TARGET ?? 'pro'
   }))
   // ── Query ─────────────────────────────────────────────────────────
-  ipcMain.handle('query:vault', async (_, question: string) => {
-    return queryVault(question)
+  ipcMain.handle('query:vault', async (_, question: string, options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }) => {
+    return queryVault(question, options)
   })
 
   // ── Resolver ──────────────────────────────────────────────────────
