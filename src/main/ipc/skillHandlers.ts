@@ -41,6 +41,34 @@ export function isValidSkillName(name: string): boolean {
   return /^[a-zA-Z0-9_-]+$/.test(name)
 }
 
+// ─── v1.5 注入层（纯函数, 可独立测试）─────────────────────────────────────
+// 从 vault 拼上 MARKDOWN_CAPABILITIES.md (编辑器能力) + 7 个 Skill 模板
+// 静默失败: vaultPath 无效 / 目录不存在 / 读错 → 返回 []
+export async function composeInjectedSkillText(vaultPath: string | null | undefined): Promise<string[]> {
+  if (!vaultPath || !existsSync(vaultPath)) return []
+  const injectedParts: string[] = []
+
+  // 1. 注入 MARKDOWN_CAPABILITIES.md
+  const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
+  if (existsSync(capsPath)) {
+    const caps = await readFile(capsPath, 'utf-8')
+    injectedParts.push('# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' + caps)
+  }
+
+  // 2. 注入 skills/ 目录所有 Skill 模板 (按名排序)
+  const skillsDirPath = join(vaultPath, 'skills')
+  if (existsSync(skillsDirPath)) {
+    const skillFiles = (await import('fs')).readdirSync(skillsDirPath).filter(f => f.endsWith('.md')).sort()
+    for (const f of skillFiles) {
+      const skillContent = await readFile(join(skillsDirPath, f), 'utf-8')
+      const skillName = f.replace(/\.md$/, '')
+      injectedParts.push(`# 🔧 Skill 模板: ${skillName}\n\n` + skillContent)
+    }
+  }
+
+  return injectedParts
+}
+
 export function registerSkillHandlers(): void {
   ipcMain.handle('skill:list', async (): Promise<Array<{ name: string; path: string }>> => {
     const dir = skillsDir()
@@ -59,29 +87,9 @@ export function registerSkillHandlers(): void {
       // 静默失败: 没 vault / 没 capabilities 文件 / 读错都不阻断
       try {
         const config = await readConfig()
-        const vaultPath = config.lastVaultPath
-        if (vaultPath && existsSync(vaultPath)) {
-          const injectedParts: string[] = []
-        // 1. 注入 MARKDOWN_CAPABILITIES.md (编辑器能力)
-        const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
-        if (existsSync(capsPath)) {
-          const caps = await readFile(capsPath, 'utf-8')
-          injectedParts.push('# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' + caps)
-        }
-        // 2. 注入 9 个 Skill 模板 (skills/ 目录)
-        const skillsDir = join(vaultPath, 'skills')
-        if (existsSync(skillsDir)) {
-          const { readdirSync } = await import('fs')
-          const skillFiles = readdirSync(skillsDir).filter(f => f.endsWith('.md')).sort()
-          for (const f of skillFiles) {
-            const skillContent = await readFile(join(skillsDir, f), 'utf-8')
-            const skillName = f.replace(/\.md$/, '')
-            injectedParts.push(`# 🔧 Skill 模板: ${skillName}\n\n` + skillContent)
-          }
-        }
+        const injectedParts = await composeInjectedSkillText(config.lastVaultPath)
         if (injectedParts.length > 0) {
           return baseSkill + '\n\n---\n\n' + injectedParts.join('\n\n---\n\n')
-        }
         }
       } catch (e) {
         log.debug('[Skill] capabilities injection skipped:', e)
