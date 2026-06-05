@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — git pre-commit hook
+#
+# v1.6.3 起自动跑 check-memo-import.sh 防 memo 漏 import
+# (v1.5 b453511 漏 10 个文件, dev 跑 ReferenceError)
+#
+# 安装: ./scripts/install-hooks.sh (或 npm run precommit:install)
+
+set -e
+
+# 只在有变更的 .tsx 文件上跑 (避免每次 commit 扫整个 src/)
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep '\.tsx$' || true)
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+# 跑 check-memo-import.sh (含整个 src 扫一遍, 防御漏网)
+./scripts/check-memo-import.sh
+
+# lint + format 检查 (只对变更文件, 减少噪音)
+if command -v npm >/dev/null 2>&1; then
+  npm run lint --silent
+fi
