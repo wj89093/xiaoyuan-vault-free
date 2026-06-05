@@ -6,7 +6,7 @@
  *   onClose — 关闭回调
  *   onRestore — 恢复后回调（通知父组件重新加载文件）
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { X, Clock, RotateCcw } from 'lucide-react'
 
 interface BackupEntry {

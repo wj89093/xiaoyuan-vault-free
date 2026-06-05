@@ -1,4 +1,4 @@
-import { useState, useEffect, type JSX } from 'react'
+import { useState, useEffect, memo, type JSX } from 'react'
 import { FileOutput, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
