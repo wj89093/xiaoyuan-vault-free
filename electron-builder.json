@@ -7,7 +7,8 @@
   },
   "files": [
     "out/**/*",
-    "**/*.map"
+    "**/*.map",
+    "!**/node_modules/{mermaid,@mermaid-js,tesseract.js,tesseract.js-core,pdfjs-dist,exceljs,xlsx,mammoth,docx-preview,pptx-preview,echarts,@antfu,@babel}/**"
   ],
   "asarUnpack": [
     "**/*.node",
