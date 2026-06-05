@@ -2,7 +2,7 @@
 
 > 当前版本：v1.7.0-free
 > 发布日期：2026-06-05
-> 最近更新：2026-06-05（Agent 接口加 topic/maxResults 过滤 + 新增 kg:queryTopics IPC）
+> 最近更新：2026-06-05（v1.7.0 末尾增量: kg:queryTopics 抽纯函数实测 + conversation-summary 按 topic 跨日累积）
 
 ---
 
@@ -60,6 +60,13 @@
 3. `00cc793` — kg:queryTopics 新增 IPC
 4. `d54893a` — briefing:getConversations 接受 topic + maxResults（**参数化，但漏实现**）
 5. `f34f1c7` — briefing.ts 加实际过滤代码（前 commit 漏实现）
+
+### v1.7.0 末尾增量（2 commits）
+
+| Commit | 主题 |
+|---|---|
+| `e461695` | refactor(v1.7): 抽 `queryTopicsFromGraph` 纯函数（kg:queryTopics 从理论到实证）|
+| `660342c` | feat(v1.7 P1-2): conversation-summary 按 topic 跨日累积（跨 session 知识连续）|
 
 ---
 
