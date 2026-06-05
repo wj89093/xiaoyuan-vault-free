@@ -294,7 +294,7 @@ const api = {
   fileExists: (filePath: string) => file.exists(filePath),
   getLastVault: () => vault.getLast(),
   generateBriefing: () => maintenance.generateBriefing(),
-  getConversations: (date: string) => maintenance.getConversations(date),
+  getConversations: (date: string, options?: { topic?: string; maxResults?: number }) => maintenance.getConversations(date, options),
   graphLoad: () => graph.load(),
   graphRebuild: () => graph.rebuild(),
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)

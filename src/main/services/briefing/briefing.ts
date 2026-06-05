@@ -224,7 +224,15 @@ export async function saveConversationSummary(params: {
 
 // ─── Read conversation summaries for a date ───────────────────────
 
-export async function getConversationSummaries(date: string): Promise<ConversationSummary[]> {
+/**
+ * v1.7: options 参数 — Agent 端省 token
+ *   - topic: 过滤指定 topic 的摘要 (跨日期查同 topic 时尤其省)
+ *   - maxResults: 限制返条数 (默认 50 — Agent 只需最近 N 条决策)
+ */
+export async function getConversationSummaries(
+  date: string,
+  options?: { topic?: string; maxResults?: number }
+): Promise<ConversationSummary[]> {
   const vaultPath = getVaultPath()
   if (!vaultPath) return []
 

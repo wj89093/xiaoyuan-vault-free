@@ -36,9 +36,16 @@ ipcMain.handle(
   }
 )
 
-ipcMain.handle('briefing:getConversations', async (_event, date: string) => {
-  return getConversationSummaries(date)
-})
+ipcMain.handle(
+  'briefing:getConversations',
+  async (
+    _event,
+    date: string,
+    options?: { topic?: string; maxResults?: number }
+  ) => {
+    return getConversationSummaries(date, options)
+  }
+)
 
 export function registerMaintainHandlers(): void {
   // Lint IPC (migrated from autoAIHandlers)
