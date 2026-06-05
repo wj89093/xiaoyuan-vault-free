@@ -117,7 +117,7 @@ export const DocxViewer = memo(function DocxViewer({
               onClick={onDownload}
               style={{
                 marginTop: 16,
-                padding: '6px 16px',
+                padding: 'var(--space-2) var(--space-4)',
                 borderRadius: 6,
                 border: '1px solid var(--border)',
                 background: 'var(--surface)',
@@ -263,7 +263,7 @@ export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: strin
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const content = document.createElement('div')
-    content.style.cssText = 'width:100%;height:100%;overflow:auto;padding:16px'
+    content.style.cssText = 'width:100%;height:100%;overflow:auto;padding:var(--space-4)'
     contentRef.current = content
     wrapper.appendChild(content)
     let cancelled = false
@@ -315,8 +315,7 @@ export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: strin
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            gap: 8,
-            height: '100%'
+            gap: 'var(--space-2',height: '100%'
           }}
         >
           <div
@@ -416,15 +415,14 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
       <div
         style={{
           display: 'flex',
-          gap: 8,
-          marginBottom: 12,
+          gap: 'var(--space-2',marginBottom: 12,
           alignItems: 'center',
           justifyContent: 'center',
           position: 'sticky',
           top: 0,
           zIndex: 10,
           background: 'var(--color-bg, #1e1e1e)',
-          padding: '4px 0'
+          padding: 'var(--space-1) 0'
         }}
       >
         <span aria-live="polite" style={{ fontSize: 12, color: 'var(--text-secondary, #888)' }}>
@@ -453,7 +451,7 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
               fontSize: 11,
               color: 'var(--text-tertiary, #888)',
               background: 'var(--color-surface, #2d2d2d)',
-              padding: '2px 8px',
+              padding: 'var(--space-2) var(--space-2)',
               borderRadius: 4
             }}
           >
@@ -478,7 +476,7 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
 
 // 按钮样式 (提取常量)
 const btnStyle: React.CSSProperties = {
-  padding: '4px 12px',
+  padding: 'var(--space-1) var(--space-3)',
   borderRadius: 6,
   border: '1px solid var(--border)',
   background: 'var(--surface)',
@@ -564,7 +562,7 @@ export const Editor = memo(function Editor({
               alignItems: 'center',
               justifyContent: 'center',
               flexDirection: 'column',
-              gap: 12
+              gap: 'var(--space-3)'
             }}
           >
             <div
@@ -638,7 +636,7 @@ export const Editor = memo(function Editor({
                   onClick={() => window.api.openInDefaultApp?.(nativePreview.filePath)}
                   style={{
                     marginTop: 16,
-                    padding: '6px 16px',
+                    padding: 'var(--space-2) var(--space-4)',
                     borderRadius: 6,
                     border: '1px solid var(--border)',
                     background: 'var(--surface)',

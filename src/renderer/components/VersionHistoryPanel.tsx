@@ -96,12 +96,12 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 16px',
+          padding: 'var(--space-3) var(--space-4)',
           borderBottom: '1px solid var(--border)',
           background: 'var(--surface-elevated)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
           <Clock size={16} style={{ color: 'var(--text-secondary)' }} />
           <span style={{ fontSize: 14, fontWeight: 600 }}>历史版本</span>
         </div>
@@ -126,7 +126,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
       {/* File name */}
       <div
         style={{
-          padding: '8px 16px',
+          padding: 'var(--space-2) var(--space-4)',
           borderBottom: '1px solid var(--border)',
           fontSize: 12,
           color: 'var(--text-tertiary)',
@@ -171,7 +171,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
                 key={entry.timestamp}
                 onClick={() => handleSelect(entry)}
                 style={{
-                  padding: '8px 12px',
+                  padding: 'var(--space-2) var(--space-3)',
                   cursor: 'pointer',
                   fontSize: 12,
                   borderBottom: '1px solid var(--border)',
@@ -209,7 +209,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
           {selected && (
             <>
               {/* Preview */}
-              <div style={{ flex: 1, overflow: 'auto', padding: '12px 16px' }}>
+              <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-3) var(--space-4)' }}>
                 {previewLoading ? (
                   <div style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>加载预览…</div>
                 ) : (
@@ -233,11 +233,10 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
               {/* Actions */}
               <div
                 style={{
-                  padding: '10px 16px',
+                  padding: 'var(--space-2) var(--space-4)',
                   borderTop: '1px solid var(--border)',
                   display: 'flex',
-                  gap: 8,
-                  background: 'var(--surface-elevated)'
+                  gap: 'var(--space-2',background: 'var(--surface-elevated)'
                 }}
               >
                 <button
@@ -248,8 +247,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 6,
-                    padding: '6px 12px',
+                    gap: 'var(--space-2',padding: 'var(--space-2) var(--space-3)',
                     borderRadius: 6,
                     border: 'none',
                     background: 'var(--primary)',

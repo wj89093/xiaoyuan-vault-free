@@ -1,166 +1,99 @@
+import { memo, type JSX } from 'react'
 import { ChevronRight, Check, Clock } from 'lucide-react'
-import { useEffect, memo, type JSX } from 'react'
 
 interface EditorHeaderProps {
-  selectedFile: string | null
-  isDirty: boolean
-  isSaving?: boolean
-  onSave: () => void
-  onShowHistory?: () => void // 打开历史版本面板
+  /** 面包屑路径段，如 ['_wiki', '合同管理', '2026-06-12-ABC科技合同.md'] */
+  breadcrumb: string[]
+  /** 当前文件是否已保存（true=已保存，false=有未保存修改） */
+  saved: boolean
+  /** 点击保存按钮回调 */
+  onSave?: () => void
+  /** 点击面包屑某段的回调 */
+  onBreadcrumbClick?: (index: number) => void
+  /** 点击历史版本回调 */
+  onHistoryClick?: () => void
 }
 
-/**
- * EditorHeader — 面包屑导航
- *
- * 显示完整路径：_wiki / _topics / 文件.md
- * 参考 mdeditor 的路径切片设计 + Apple HIG 面包屑规范
- */
 export const EditorHeader = memo(function EditorHeader({
-  selectedFile,
-  isDirty,
-  isSaving = false,
+  breadcrumb,
+  saved,
   onSave,
-  onShowHistory
+  onBreadcrumbClick,
+  onHistoryClick
 }: EditorHeaderProps): JSX.Element {
-  // ⌘S / Ctrl+S keyboard shortcut — promised in title tooltip
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        onSave()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onSave])
-
-  // 从完整路径提取各部分
-  const parts = selectedFile?.split('/').filter(Boolean) ?? []
-
-  // 文件名 = 最后一部分
-  const fileName = parts.pop() ?? '无文件'
-
-  const saveTitle = isSaving ? '保存中…' : isDirty ? '保存 (⌘S)' : '已保存'
-  const showSaveButton = isDirty || isSaving
-
-  // 只有文件名时，不显示面包屑
-  if (parts.length === 0) {
-    return (
-      <div className="editor-header">
-        <span className="editor-header-name">{fileName || '无文件'}</span>
-        {onShowHistory && (
-          <button
-            className="editor-header-history"
-            onClick={onShowHistory}
-            title="查看历史版本"
-            aria-label="查看历史版本"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 6px',
-              borderRadius: 4,
-              display: 'flex',
-              alignItems: 'center',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            <Clock size={14} />
-          </button>
-        )}
-        {showSaveButton && (
-          <button
-            className={`editor-header-save${isSaving ? ' saving' : ''}`}
-            onClick={isSaving || !isDirty ? undefined : onSave}
-            title={saveTitle}
-            aria-label={saveTitle}
-            disabled={isSaving || !isDirty}
-          >
-            {isSaving ? (
-              <span className="editor-header-save-spinner" aria-hidden="true" />
-            ) : isDirty ? (
-              <span className="editor-header-dirty-dot" role="img" aria-label="有未保存更改" />
-            ) : (
-              <Check size={12} aria-hidden="true" />
-            )}
-          </button>
-        )}
-        {!showSaveButton && isDirty === false && selectedFile && (
-          <button className="editor-header-save saved" title="已保存" aria-label="已保存" disabled>
-            <Check size={12} aria-hidden="true" />
-          </button>
-        )}
-      </div>
-    )
-  }
-
   return (
     <div className="editor-header">
-      {/* 面包屑路径 */}
-      <nav className="editor-header-breadcrumb" aria-label="文件路径">
-        {parts.map((part, index) => (
-          <span key={index} className="editor-header-crumb-group">
+      <div className="editor-header-breadcrumb">
+        {breadcrumb.map((segment, i) => (
+          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            {i > 0 && (
+              <ChevronRight
+                size={12}
+                style={{ color: 'var(--text-tertiary)', opacity: 0.5, flexShrink: 0 }}
+              />
+            )}
             <button
               className="editor-header-crumb"
-              aria-label={`导航到 ${part}`}
-              aria-current={index === parts.length - 1 ? 'page' : undefined}
-              onClick={undefined}
+              onClick={() => onBreadcrumbClick?.(i)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 'var(--space-1) var(--space-1)',
+                borderRadius: 4,
+                fontSize: 'var(--text-sm)',
+                color:
+                  i === breadcrumb.length - 1
+                    ? 'var(--text-primary)'
+                    : 'var(--text-tertiary)',
+                fontWeight: i === breadcrumb.length - 1 ? 500 : 400
+              }}
             >
-              {part}
+              {segment}
             </button>
-            <ChevronRight size={12} className="editor-header-separator" aria-hidden="true" />
           </span>
         ))}
-      </nav>
+      </div>
 
-      {/* 文件名 */}
-      <span className="editor-header-name">{fileName}</span>
-
-      {/* 历史版本按钮 */}
-      {onShowHistory && (
+      <div className="editor-header-actions">
         <button
-          className="editor-header-history"
-          onClick={onShowHistory}
           title="查看历史版本"
           aria-label="查看历史版本"
           style={{
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            padding: '4px 6px',
+            padding: 'var(--space-1) var(--space-1)',
             borderRadius: 4,
             display: 'flex',
             alignItems: 'center',
             color: 'var(--text-secondary)'
           }}
+          onClick={onHistoryClick}
         >
           <Clock size={14} />
         </button>
-      )}
 
-      {/* 保存指示器 */}
-      {showSaveButton && (
         <button
-          className={`editor-header-save${isSaving ? ' saving' : ''}`}
-          onClick={isSaving || !isDirty ? undefined : onSave}
-          title={saveTitle}
-          aria-label={saveTitle}
-          disabled={isSaving || !isDirty}
+          title={saved ? '已保存' : '保存'}
+          aria-label={saved ? '已保存' : '保存'}
+          style={{
+            background: saved ? 'none' : 'var(--accent)',
+            border: 'none',
+            cursor: saved ? 'default' : 'pointer',
+            padding: 'var(--space-1) var(--space-1)',
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center',
+            color: saved ? 'var(--text-tertiary)' : '#fff',
+            fontSize: 'var(--text-sm)'
+          }}
+          onClick={onSave}
+          disabled={saved}
         >
-          {isSaving ? (
-            <span className="editor-header-save-spinner" aria-hidden="true" />
-          ) : isDirty ? (
-            <span className="editor-header-dirty-dot" role="img" aria-label="有未保存更改" />
-          ) : (
-            <Check size={12} aria-hidden="true" />
-          )}
+          <Check size={14} />
         </button>
-      )}
-      {!showSaveButton && selectedFile && (
-        <button className="editor-header-save saved" title="已保存" aria-label="已保存" disabled>
-          <Check size={12} aria-hidden="true" />
-        </button>
-      )}
+      </div>
     </div>
   )
 })

@@ -26,14 +26,14 @@ export function ShortcutGuide({ onClose }: ShortcutGuideProps): JSX.Element {
             <X size={16} />
           </button>
         </div>
-        <div style={{ padding: '8px 0', maxHeight: 400, overflowY: 'auto' }}>
+        <div style={{ padding: 'var(--space-2) 0', maxHeight: 400, overflowY: 'auto' }}>
           {SHORTCUTS.map((s, i) => (
             <div
               key={i}
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                padding: '8px 20px',
+                padding: 'var(--space-2) var(--space-5)',
                 fontSize: 13,
                 borderBottom: i < SHORTCUTS.length - 1 ? '1px solid #f0f0f2' : 'none'
               }}
@@ -42,7 +42,7 @@ export function ShortcutGuide({ onClose }: ShortcutGuideProps): JSX.Element {
               <kbd
                 style={{
                   background: 'var(--color-bg-hover)',
-                  padding: '2px 8px',
+                  padding: 'var(--space-2) var(--space-2)',
                   borderRadius: 4,
                   fontSize: 12,
                   color: 'var(--color-text-secondary)',

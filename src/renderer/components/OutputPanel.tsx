@@ -46,9 +46,8 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '6px 12px',
-          gap: 8,
-          borderBottom: '1px solid var(--color-border)'
+          padding: 'var(--space-2) var(--space-3)',
+          gap: 'var(--space-2',borderBottom: '1px solid var(--color-border)'
         }}
       >
         <button
@@ -56,9 +55,8 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            fontSize: 11,
-            padding: '4px 10px',
+            gap: 'var(--space-1',fontSize: 11,
+            padding: 'var(--space-1) var(--space-3)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
             background: 'var(--color-surface)',
@@ -109,7 +107,7 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
               style={{
                 fontFamily: 'monospace',
                 background: 'var(--color-surface-hover)',
-                padding: '1px 5px',
+                padding: 'var(--space-1) var(--space-1)',
                 borderRadius: 3
               }}
             >
@@ -122,7 +120,7 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '12px 16px',
+            padding: 'var(--space-3) var(--space-4)',
             fontSize: 13,
             lineHeight: 1.8,
             whiteSpace: 'pre-wrap',

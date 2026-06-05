@@ -334,7 +334,7 @@ export const KnowledgeGraph = memo(function KnowledgeGraph({
             style={{
               fontSize: 11,
               color: 'var(--color-text-tertiary, #8e8e93)',
-              padding: '2px 0',
+              padding: 'var(--space-1) 0',
               fontWeight: 500
             }}
           >

@@ -226,7 +226,7 @@ export const Sidebar = memo(function Sidebar({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 8
+              gap: 'var(--space-2)'
             }}
           >
             <span className="loading-spinner" />

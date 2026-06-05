@@ -82,9 +82,8 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '6px 12px',
-          gap: 8,
-          borderBottom: '1px solid #e5e5ea'
+          padding: 'var(--space-2) var(--space-3)',
+          gap: 'var(--space-2',borderBottom: '1px solid #e5e5ea'
         }}
       >
         <button
@@ -92,9 +91,8 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            fontSize: 11,
-            padding: '4px 10px',
+            gap: 'var(--space-1',fontSize: 11,
+            padding: 'var(--space-1) var(--space-2)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
             background: 'var(--color-surface)',
@@ -147,7 +145,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                 style={{
                   border: '1px solid var(--color-border)',
                   borderRadius: 8,
-                  margin: '4px 8px',
+                  margin: 'var(--space-1) var(--space-2)',
                   overflow: 'hidden'
                 }}
               >
@@ -158,12 +156,12 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                   aria-expanded={expanded.has(schema.folder)}
                   aria-label={`展开 ${schema.folder} Schema`}
                   style={{
-                    padding: '10px 12px',
+                    padding: 'var(--space-2) var(--space-3)',
                     background: 'var(--color-surface, #f9f9fb)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8
+                    gap: 'var(--space-2)'
                   }}
                   onClick={() => toggleExpand(schema.folder)}
                   onKeyDown={(e) => handleHeaderKeyDown(e, schema.folder)}
@@ -203,7 +201,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2',flexShrink: 0 }}>
                     {/* Pro 专属: AI Schema 重新设计/创建 — 开源版不显示 */}
                   </div>
                 </div>
@@ -212,7 +210,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                 {expanded.has(schema.folder) && (
                   <div
                     style={{
-                      padding: '10px 14px',
+                      padding: 'var(--space-2) var(--space-3)',
                       borderTop: '1px solid #e5e5ea',
                       background: 'var(--color-surface)'
                     }}
@@ -239,8 +237,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                         <div
                           style={{
                             display: 'flex',
-                            gap: 6,
-                            marginTop: 8,
+                            gap: 'var(--space-2',marginTop: 8,
                             justifyContent: 'flex-end'
                           }}
                         >
@@ -249,7 +246,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                             disabled={saving}
                             style={{
                               fontSize: 11,
-                              padding: '4px 12px',
+                              padding: 'var(--space-1) var(--space-3)',
                               borderRadius: 6,
                               border: '1px solid var(--color-border)',
                               background: 'var(--color-surface)',
@@ -280,7 +277,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                             disabled={saving}
                             style={{
                               fontSize: 11,
-                              padding: '4px 12px',
+                              padding: 'var(--space-1) var(--space-3)',
                               borderRadius: 6,
                               border: 'none',
                               background: saving

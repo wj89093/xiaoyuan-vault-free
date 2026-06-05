@@ -134,15 +134,15 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: 
       height={500}
       bottomOffset={80}
     >
-      <div style={{ padding: '10px 12px', borderBottom: '1px solid #e5e5ea' }}>
+      <div style={{ padding: 'var(--space-2) var(--space-3)', borderBottom: '1px solid #e5e5ea' }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             background: 'var(--color-surface-hover, #f0f0f5)',
             borderRadius: 8,
-            padding: '6px 10px',
-            gap: 6
+            padding: 'var(--space-2) var(--space-2)',
+            gap: 'var(--space-2)'
           }}
         >
           <Search
@@ -237,7 +237,7 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: 
             {/* Result count */}
             <div
               style={{
-                padding: '4px 12px 2px',
+                padding: 'var(--space-1) var(--space-3) var(--space-2)',
                 fontSize: 11,
                 color: 'var(--color-text-tertiary, #a1a1a6)'
               }}
@@ -270,11 +270,10 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: 
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
-                  padding: '8px 12px',
+                  gap: 'var(--space-2',padding: 'var(--space-2) var(--space-3)',
                   cursor: 'pointer',
                   borderRadius: 6,
-                  margin: '2px 4px',
+                  margin: 'var(--space-2) var(--space-1)',
                   transition: 'background 0.1s',
                   background:
                     selectedIndex === i ? 'var(--color-surface-hover, #f0f0f5)' : 'transparent',

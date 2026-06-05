@@ -137,8 +137,7 @@ export const FloatingPanel = memo(function FloatingPanel({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          padding: '10px 14px',
+          gap: 'var(--space-2',padding: 'var(--space-2) var(--space-3)',
           borderBottom: '1px solid var(--color-border, #e5e5ea)',
           background: 'var(--color-surface-hover, #f9f9fb)',
           cursor: dragging ? 'grabbing' : 'grab',
@@ -153,7 +152,7 @@ export const FloatingPanel = memo(function FloatingPanel({
           style={{
             fontSize: 10,
             fontFamily: 'monospace',
-            padding: '1px 5px',
+            padding: 'var(--space-1) var(--space-1)',
             borderRadius: 3,
             border: '1px solid var(--color-border, #d1d1d6)',
             color: 'var(--color-text-tertiary, #8e8e93)',

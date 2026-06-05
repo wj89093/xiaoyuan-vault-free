@@ -55,7 +55,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         fontFamily: 'system-ui, -apple-system, sans-serif',
       }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-        <h1 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px 0' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 var(--space-2) 0' }}>
           遇到了一个错误
         </h1>
         <p style={{ fontSize: 13, color: 'var(--color-text-secondary, #6e6e73)', margin: '0 0 16px 0', textAlign: 'center', maxWidth: 480 }}>
@@ -74,11 +74,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {this.state.error?.stack ?? this.state.error?.message ?? '未知错误'}
           </pre>
         </details>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <button
             onClick={this.reset}
             style={{
-              padding: '8px 20px', borderRadius: 6, border: 'none',
+              padding: 'var(--space-2) var(--space-5)', borderRadius: 6, border: 'none',
               background: 'var(--color-blue, #007aff)', color: '#fff',
               fontSize: 13, fontWeight: 500, cursor: 'pointer',
             }}
@@ -88,7 +88,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <button
             onClick={() => window.location.reload()}
             style={{
-              padding: '8px 20px', borderRadius: 6, border: '1px solid var(--color-border, #d1d1d6)',
+              padding: 'var(--space-2) var(--space-5)', borderRadius: 6, border: '1px solid var(--color-border, #d1d1d6)',
               background: 'var(--color-surface, #fff)', color: 'var(--color-text-primary, #1d1d1f)',
               fontSize: 13, cursor: 'pointer',
             }}

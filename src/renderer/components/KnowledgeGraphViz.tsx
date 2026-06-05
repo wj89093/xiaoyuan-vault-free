@@ -304,7 +304,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
           'background: var(--color-surface,rgba(0,0,0,0.85))',
           'color: var(--color-text-primary,#fff)',
           'font-size: 12px',
-          'padding: 6px 10px',
+          'padding: var(--space-2) var(--space-2)',
           'border-radius: 6px',
           'pointer-events: none',
           'z-index: 100',
@@ -312,7 +312,7 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
           'max-width: 300px',
           'overflow: hidden',
           'text-overflow: ellipsis',
-          'box-shadow: 0 2px 8px rgba(0,0,0,0.15)'
+          'box-shadow: var(--shadow-sm)'
         ].join('; ')
         svgEl?.parentElement?.appendChild(tip)
       }

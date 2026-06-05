@@ -328,7 +328,7 @@ export const FileTree = memo(function FileTree({
   if (isLoading) {
     return (
       <div className="file-tree" role="tree">
-        <div style={{ padding: '12px 16px' }}>
+        <div style={{ padding: 'var(--space-3) var(--space-4)' }}>
           <Skeleton lines={4} />
         </div>
       </div>

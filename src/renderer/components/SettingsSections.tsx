@@ -64,13 +64,13 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             {theme === 'light' ? '浅色模式' : theme === 'dark' ? '深色模式' : '跟随系统'}
           </span>
         </div>
-        <div className="theme-toggle-group" style={{ display: 'flex', gap: 4 }}>
+        <div className="theme-toggle-group" style={{ display: 'flex', gap: 'var(--space-1)' }}>
           <button
             className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => applyTheme('light')}
             disabled={themeLoading}
             title="浅色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '4px 8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Sun size={13} /> 浅色
           </button>
@@ -79,7 +79,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             onClick={() => applyTheme('dark')}
             disabled={themeLoading}
             title="深色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '4px 8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Moon size={13} /> 深色
           </button>
@@ -88,7 +88,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             onClick={() => applyTheme('system')}
             disabled={themeLoading}
             title="跟随系统"
-            style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '4px 8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Monitor size={13} /> 自动
           </button>
@@ -141,7 +141,7 @@ export const SkillSection = memo(function SkillSection({ vaultPath, onOpenFile }
       <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 8 }}>
         Agent 工作流规范，复制给你的 AI 助手使用。
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
         <button className="btn btn-primary" onClick={() => void handleCopy()} style={{ flex: 1, fontSize: 12 }}>
           {copied ? <><Check size={14} /> 已复制</> : <><Copy size={14} /> 复制</>}
         </button>

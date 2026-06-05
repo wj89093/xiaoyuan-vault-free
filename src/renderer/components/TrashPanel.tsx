@@ -78,14 +78,14 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
     >
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {items.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 16px 4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 'var(--space-2) var(--space-4) var(--space-1)' }}>
             <button
               onClick={() => {
                 void handleEmpty()
               }}
               style={{
                 fontSize: 11,
-                padding: '3px 10px',
+                padding: 'var(--space-1) var(--space-2)',
                 border: '1px solid var(--color-border)',
                 borderRadius: 6,
                 background: 'var(--color-surface)',
@@ -98,7 +98,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
             </button>
           </div>
         )}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--space-2) var(--space-4)' }}>
           {loading ? (
             <div
               style={{
@@ -122,19 +122,19 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
               回收站为空
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
               {items.map((item) => (
                 <div
                   key={item.originalPath}
                   style={{
-                    padding: '10px 12px',
+                    padding: 'var(--space-2) var(--space-3)',
                     borderRadius: 8,
                     border: '1px solid var(--color-border)',
                     background: 'var(--color-surface)'
                   }}
                 >
                   <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2',cursor: 'pointer' }}
                     tabIndex={0}
                     role="button"
                     onClick={() => {
@@ -168,7 +168,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                       {formatDate(item.deletedAt)}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+                  <div style={{ display: 'flex', gap: 'var(--space-1',marginTop: 8 }}>
                     <button
                       onClick={() => {
                         void handleRestore(item)
@@ -177,7 +177,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                       style={{
                         flex: 1,
                         fontSize: 11,
-                        padding: '5px 0',
+                        padding: 'var(--space-1) 0',
                         borderRadius: 6,
                         border: 'none',
                         background: 'var(--color-blue)',
@@ -186,7 +186,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 4
+                        gap: 'var(--space-1)'
                       }}
                     >
                       <RotateCcw size={11} /> 恢复
@@ -199,7 +199,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                       style={{
                         flex: 1,
                         fontSize: 11,
-                        padding: '5px 0',
+                        padding: 'var(--space-1) 0',
                         borderRadius: 6,
                         border: '1px solid var(--color-border)',
                         background: 'var(--color-surface)',
@@ -208,7 +208,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 4
+                        gap: 'var(--space-1)'
                       }}
                     >
                       <X size={11} /> 删除

@@ -3356,3 +3356,18 @@ button,
   border: 1px solid var(--border);
   padding: 2px 8px;
 }
+
+/* ─── focus-visible 全局 fallback (UI.md 设计契约 #8) ──────────── */
+/* 已有 .btn:focus-visible / .btn-icon:focus-visible / .editor-header-crumb:focus-visible */
+/* 本规则覆盖所有其他可聚焦元素，不覆盖已禁用 outline 的 input（正确行为） */
+*:focus-visible {
+  outline: 2px solid var(--color-primary, #007aff);
+  outline-offset: 2px;
+}
+
+/* input/textarea 搜索框等不需要 focus-visible 轮廓（用户已在输入） */
+input:focus-visible,
+textarea:focus-visible,
+[contenteditable]:focus-visible {
+  outline: none;
+}

@@ -115,9 +115,8 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '6px 12px',
-          gap: 8,
-          borderBottom: '1px solid var(--color-border)'
+          padding: 'var(--space-2) var(--space-3)',
+          gap: 'var(--space-2',borderBottom: '1px solid var(--color-border)'
         }}
       >
         <button
@@ -128,9 +127,8 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            fontSize: 11,
-            padding: '4px 10px',
+            gap: 'var(--space-1',fontSize: 11,
+            padding: 'var(--space-1) var(--space-2)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
             background: runningCheck ? 'var(--color-surface-hover)' : 'var(--color-surface)',
@@ -149,9 +147,8 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            fontSize: 11,
-            padding: '4px 10px',
+            gap: 'var(--space-1',fontSize: 11,
+            padding: 'var(--space-1) var(--space-2)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
             background: refreshing ? 'var(--color-surface-hover)' : 'var(--color-surface)',
@@ -240,7 +237,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                     fontSize: 12,
                     fontWeight: 600,
                     color: 'var(--color-orange)',
-                    padding: '8px 12px 6px',
+                    padding: 'var(--space-2) var(--space-3) var(--space-2)',
                     cursor: 'pointer',
                     userSelect: 'none'
                   }}
@@ -260,7 +257,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                   <div
                     key={i}
                     style={{
-                      padding: '8px 12px',
+                      padding: 'var(--space-2) var(--space-3)',
                       borderBottom: '1px solid var(--color-border)',
                       fontSize: 12
                     }}
@@ -287,7 +284,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                     fontSize: 12,
                     fontWeight: 600,
                     color: 'var(--color-text-tertiary)',
-                    padding: '8px 12px 6px',
+                    padding: 'var(--space-2) var(--space-3) var(--space-2)',
                     cursor: 'pointer',
                     userSelect: 'none'
                   }}
@@ -307,7 +304,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                   <div
                     key={i}
                     style={{
-                      padding: '8px 12px',
+                      padding: 'var(--space-2) var(--space-3)',
                       borderBottom: '1px solid var(--color-border)',
                       fontSize: 12
                     }}
@@ -326,7 +323,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                     fontSize: 12,
                     fontWeight: 600,
                     color: 'var(--color-gray)',
-                    padding: '8px 12px 6px',
+                    padding: 'var(--space-2) var(--space-3) var(--space-2)',
                     cursor: 'pointer',
                     userSelect: 'none'
                   }}
@@ -346,7 +343,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
                   <div
                     key={i}
                     style={{
-                      padding: '8px 12px',
+                      padding: 'var(--space-2) var(--space-3)',
                       borderBottom: '1px solid var(--color-border)',
                       fontSize: 12
                     }}

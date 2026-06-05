@@ -130,7 +130,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
           boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 20
+          gap: 'var(--space-5)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -174,7 +174,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                   onChange={(e) => setName(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '10px 12px',
+                    padding: 'var(--space-2) var(--space-3)',
                     borderRadius: 8,
                     border: nameError
                       ? '1px solid var(--color-red)'
@@ -209,13 +209,13 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                 >
                   位置
                 </label>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                   <input
                     value={basePath}
                     readOnly
                     style={{
                       flex: 1,
-                      padding: '10px 12px',
+                      padding: 'var(--space-2) var(--space-3)',
                       borderRadius: 8,
                       border: '1px solid var(--color-border)',
                       fontSize: 14,
@@ -230,8 +230,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 4,
-                      padding: '10px 14px',
+                      gap: 'var(--space-1',padding: 'var(--space-2) var(--space-3)',
                       borderRadius: 8,
                       border: '1px solid var(--color-border)',
                       background: 'var(--color-surface)',
@@ -265,7 +264,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                 onChange={(e) => setDescription(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 12px',
+                  padding: 'var(--space-2) var(--space-3)',
                   borderRadius: 8,
                   border: '1px solid var(--color-border)',
                   fontSize: 14,
@@ -286,7 +285,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
               <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
                 确认知识库信息
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                 <div>
                   <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>名称：</span>
                   <strong>{name}</strong>
@@ -310,12 +309,12 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
         {/* /P3-5 step content */}
 
         {/* Navigation buttons */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2',justifyContent: 'flex-end' }}>
           {step > 1 && (
             <button
               onClick={handleBack}
               style={{
-                padding: '10px 20px',
+                padding: 'var(--space-2) var(--space-5)',
                 borderRadius: 8,
                 border: '1px solid var(--color-border)',
                 background: 'var(--color-surface)',
@@ -334,7 +333,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
               disabled={step === 1 ? !isStep1Valid || !!nameError : !isStep2Valid}
               aria-disabled={step === 1 ? !isStep1Valid || !!nameError : !isStep2Valid}
               style={{
-                padding: '10px 20px',
+                padding: 'var(--space-2) var(--space-5)',
                 borderRadius: 8,
                 border: 'none',
                 background: (step === 1 ? !isStep1Valid || !!nameError : !isStep2Valid)
@@ -359,8 +358,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
-                padding: '10px 20px',
+                gap: 'var(--space-2',padding: 'var(--space-2) var(--space-5)',
                 borderRadius: 8,
                 border: 'none',
                 background:

@@ -88,9 +88,8 @@ export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelPro
           style={{
             display: 'flex',
             alignItems: 'center',
-            padding: '6px 12px',
-            gap: 8,
-            borderBottom: '1px solid var(--color-border)'
+            padding: 'var(--space-2) var(--space-3)',
+            gap: 'var(--space-2',borderBottom: '1px solid var(--color-border)'
           }}
         >
           <button
@@ -100,9 +99,8 @@ export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelPro
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
-              fontSize: 11,
-              padding: '4px 10px',
+              gap: 'var(--space-1',fontSize: 11,
+              padding: 'var(--space-1) var(--space-2)',
               borderRadius: 6,
               border: '1px solid var(--color-border)',
               background: loading ? 'var(--color-surface-hover)' : 'var(--color-surface)',

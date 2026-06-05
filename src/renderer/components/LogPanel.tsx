@@ -64,7 +64,7 @@ function renderLogMd(raw: string): string {
     const li = line.match(/^(\s*)[-*] (.+)/)
     if (li) {
       if (!inList) {
-        out.push('<ul style="margin:2px 0;padding-left:16px">')
+        out.push('<ul style="margin:var(--space-1) 0;padding-left:var(--space-4)">')
         inList = true
       }
       const dir = extractDir(line)
@@ -216,9 +216,8 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: '6px 12px',
-          gap: 8,
-          borderBottom: '1px solid var(--color-border)'
+          padding: 'var(--space-2) var(--space-3)',
+          gap: 'var(--space-2',borderBottom: '1px solid var(--color-border)'
         }}
       >
         <button
@@ -226,9 +225,8 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            fontSize: 11,
-            padding: '4px 10px',
+            gap: 'var(--space-1',fontSize: 11,
+            padding: 'var(--space-1) var(--space-3)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
             background: 'var(--color-surface)',
@@ -283,7 +281,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '12px 16px',
+            padding: 'var(--space-3) var(--space-4)',
             fontFamily: 'var(--font-sans), -apple-system, sans-serif',
             fontSize: 12,
             lineHeight: 1.7,

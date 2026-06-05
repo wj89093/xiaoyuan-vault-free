@@ -130,7 +130,7 @@ export function WelcomeScreen({
           </div>
 
           {/* Interactive guide steps */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, margin: '8px 0 20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', margin: 'var(--space-2) 0 var(--space-5)' }}>
             {[
               {
                 icon: <Layers size={18} strokeWidth={1.5} color="var(--color-primary)" />,
@@ -158,9 +158,8 @@ export function WelcomeScreen({
                 key={i}
                 style={{
                   display: 'flex',
-                  gap: 12,
-                  alignItems: 'flex-start',
-                  padding: '10px 14px',
+                  gap: 'var(--space-3',alignItems: 'flex-start',
+                  padding: 'var(--space-2) var(--space-3)',
                   borderRadius: 10,
                   background: 'var(--color-surface-hover)',
                   border: '1px solid var(--color-border)'
@@ -180,12 +179,12 @@ export function WelcomeScreen({
                   {step.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2',marginBottom: 2 }}>
                     <span style={{ fontWeight: 600, fontSize: 13 }}>{step.title}</span>
                     <span
                       style={{
                         fontSize: 10,
-                        padding: '1px 6px',
+                        padding: 'var(--space-1) var(--space-2)',
                         borderRadius: 4,
                         background: step.color + '18',
                         color: step.color,
@@ -206,7 +205,7 @@ export function WelcomeScreen({
           </div>
 
           {/* Skill.md 复制 / 下载 */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 'var(--space-2',marginBottom: 8 }}>
             <button
               className="btn btn-primary btn-lg"
               onClick={handleCopySkill}
@@ -234,7 +233,7 @@ export function WelcomeScreen({
             onClick={onCompleteOnboarding}
             style={{
               width: '100%',
-              padding: '6px',
+              padding: 'var(--space-2)',
               background: 'none',
               border: 'none',
               color: 'var(--color-text-tertiary)',
@@ -352,7 +351,7 @@ export function WelcomeScreen({
                       border: 'none',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      padding: '4px 8px',
+                      padding: 'var(--space-1) var(--space-2)',
                       borderRadius: 6,
                       overflow: 'hidden'
                     }}
