@@ -13,6 +13,92 @@ import { resolveContentType } from '../services/utils/resolver'
 import { rebuildGraph, rebuildGraphIncremental, loadGraph } from '../services/graph/graph'
 import { getVaultPath } from '../services/database/database'
 import { IS_PRO } from '../buildFeatures'
+import type { GraphData } from '../services/graph/types'
+
+/**
+ * 纯函数: KG 节点查询 (v1.7 抽, 可独立测试)
+ * - name 不传: 返所有节点 + 边 (LIMIT maxResults 防暴)
+ * - name 传: 按 title / tags 模糊匹 (case-insensitive)
+ * - maxResults: 限制匹中节点数 (默认 50)
+ * - maxNeighbors: 每匹中节点最多 N 条边 (默认 10)
+ */
+export function queryTopicsFromGraph(
+  graph: GraphData,
+  name?: string,
+  options?: { maxNeighbors?: number; maxResults?: number }
+): { query: string; nodes: GraphData['nodes']; edges: GraphData['edges'] } {
+  const maxResults = options?.maxResults ?? 50
+  const maxNeighbors = options?.maxNeighbors ?? 10
+
+  const matchedNodes = !name
+    ? graph.nodes
+    : graph.nodes.filter(
+        (n) =>
+          n.title.toLowerCase().includes(name.toLowerCase()) ||
+          n.tags?.some((t) => t.toLowerCase().includes(name.toLowerCase()))
+      )
+  const limitadas = matchedNodes.slice(0, maxResults)
+
+  // 按节点截断 (每节点最多 maxNeighbors 条边)
+  const ids = new Set(limitadas.map((n) => n.id))
+  const perNodeEdgeCount = new Map<string, number>()
+  const finalEdges: GraphData['edges'] = []
+  for (const e of graph.edges) {
+    if (!ids.has(e.source) && !ids.has(e.target)) continue
+    const sCount = perNodeEdgeCount.get(e.source) ?? 0
+    const tCount = perNodeEdgeCount.get(e.target) ?? 0
+    if (ids.has(e.source) && sCount >= maxNeighbors) continue
+    if (ids.has(e.target) && tCount >= maxNeighbors) continue
+    finalEdges.push(e)
+    if (ids.has(e.source)) perNodeEdgeCount.set(e.source, sCount + 1)
+    if (ids.has(e.target)) perNodeEdgeCount.set(e.target, tCount + 1)
+  }
+
+  return { query: name ?? '', nodes: limitadas, edges: finalEdges }
+}
+import type { GraphData } from '../services/graph/types'
+
+/**
+ * 纯函数: KG 节点查询 (v1.7 抽, 可独立测试)
+ * - name 不传: 返所有节点 + 边 (LIMIT maxResults 防暴)
+ * - name 传: 按 title / tags 模糊匹 (case-insensitive)
+ * - maxResults: 限制匹中节点数 (默认 50)
+ * - maxNeighbors: 每匹中节点最多 N 条边 (默认 10)
+ */
+export function queryTopicsFromGraph(
+  graph: GraphData,
+  name?: string,
+  options?: { maxNeighbors?: number; maxResults?: number }
+): { query: string; nodes: GraphData['nodes']; edges: GraphData['edges'] } {
+  const maxResults = options?.maxResults ?? 50
+  const maxNeighbors = options?.maxNeighbors ?? 10
+
+  const matchedNodes = !name
+    ? graph.nodes
+    : graph.nodes.filter(
+        (n) =>
+          n.title.toLowerCase().includes(name.toLowerCase()) ||
+          n.tags?.some((t) => t.toLowerCase().includes(name.toLowerCase()))
+      )
+  const limitadas = matchedNodes.slice(0, maxResults)
+
+  // 按节点截断 (每节点最多 maxNeighbors 条边)
+  const ids = new Set(limitadas.map((n) => n.id))
+  const perNodeEdgeCount = new Map<string, number>()
+  const finalEdges: GraphData['edges'] = []
+  for (const e of graph.edges) {
+    if (!ids.has(e.source) && !ids.has(e.target)) continue
+    const sCount = perNodeEdgeCount.get(e.source) ?? 0
+    const tCount = perNodeEdgeCount.get(e.target) ?? 0
+    if (ids.has(e.source) && sCount >= maxNeighbors) continue
+    if (ids.has(e.target) && tCount >= maxNeighbors) continue
+    finalEdges.push(e)
+    if (ids.has(e.source)) perNodeEdgeCount.set(e.source, sCount + 1)
+    if (ids.has(e.target)) perNodeEdgeCount.set(e.target, tCount + 1)
+  }
+
+  return { query: name ?? '', nodes: limitadas, edges: finalEdges }
+}
 
 export function registerMiscHandlers(): void {
   // ── Build info (Pro/OpenSource detection for renderer) ─────────
