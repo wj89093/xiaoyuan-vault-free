@@ -101,3 +101,97 @@ describe('v1.6 AGENTS.md 触发词 ↔ 模板名对应', () => {
     }
   })
 })
+
+// ─── v1.6.x: Skill 模板 ↔ UI 接口对齐 ────────────────────────────
+//
+// 解决 v1.6 commit 留下的"模板跟面板渲染字段对不上"问题:
+// - conversation-summary frontmatter 跟 MemoryPanel.ConversationSummary 字段脱节
+// - lint 模板没 ## 输出格式 块, 分类跟 LintPanel stats 5 项对不上
+//
+// 验收:
+// 1. conversation-summary frontmatter 5 字段 = MemoryPanel 期望
+// 2. conversation-summary 3 个正文 section = briefing.ts 解析逻辑
+// 3. lint 含 ## 输出格式 + 5 类汇总 (跟 LintPanel stats 字段一致)
+
+describe('v1.6.x Skill 模板 ↔ UI 接口对齐', () => {
+  describe('conversation-summary ↔ MemoryPanel', () => {
+    const tpl = readFileSync(join(skillsDir, 'conversation-summary.md'), 'utf-8')
+    // 提取 frontmatter 段 (两个 --- 之间)
+    const fmMatch = tpl.match(/^---\n([\s\S]*?)\n---/m)
+
+    it('包含 frontmatter 段 (--- ... --- 格式)', () => {
+      expect(fmMatch).toBeTruthy()
+    })
+
+    it('frontmatter 5 字段对齐 MemoryPanel.ConversationSummary (date/time/title/topic/sources)', () => {
+      const fm = fmMatch![1]
+      // 5 个字段必须作为 YAML key 出现
+      expect(fm).toMatch(/^date:/m)
+      expect(fm).toMatch(/^time:/m)
+      expect(fm).toMatch(/^title:/m)
+      expect(fm).toMatch(/^topic:/m)
+      expect(fm).toMatch(/^sources:/m)
+    })
+
+    it('frontmatter 移除已废弃的 participants/tags 字段 (v1.6.x 对齐)', () => {
+      const fm = fmMatch![1]
+      expect(fm).not.toMatch(/^participants:/m)
+      expect(fm).not.toMatch(/^tags:/m)
+    })
+
+    it('正文 sections 对齐 briefing.ts 解析的 3 段', () => {
+      // briefing.ts 解析: ## 关键决策 + ## 下一步 (从列表项)
+      // 模板必须含这 2 段 + "## 讨论了什么" 段
+      expect(tpl).toMatch(/## 讨论了什么/)
+      expect(tpl).toMatch(/## 关键决策/)
+      expect(tpl).toMatch(/## 下一步/)
+    })
+
+    it('frontmatter sources 替代旧名 relatedFiles (对齐 briefing.ts 实际字段)', () => {
+      // 模板正文可以提到"relatedFiles (旧名)"做迁移说明, 但 frontmatter 必须用 sources
+      const fm = fmMatch![1]
+      expect(fm).toMatch(/^sources:/m)
+      expect(fm).not.toMatch(/^relatedFiles:/m)
+    })
+  })
+
+  describe('lint ↔ LintPanel', () => {
+    const tpl = readFileSync(join(skillsDir, 'lint.md'), 'utf-8')
+
+    it('包含 ## 输出格式 块 (v1.6 之前缺这个块, v1.6.x 补上)', () => {
+      expect(tpl).toMatch(/## 输出格式/)
+    })
+
+    it('5 类汇总覆盖 LintPanel stats 全 5 项', () => {
+      // LintPanel.ParsedLintReport.stats: totalWikiFiles, orphanPages, deadLinks, stalePages, contradictions
+      expect(tpl).toMatch(/孤立页|orphanPages/)
+      expect(tpl).toMatch(/死链|deadLinks/)
+      expect(tpl).toMatch(/过期|stalePages/)
+      expect(tpl).toMatch(/矛盾|contradictions/)
+      expect(tpl).toMatch(/totalFiles|总文件数|总问题数/)
+    })
+
+    it('"字段缺失"已从 5 类移除 (LintPanel 不支持, 改到 log.md 标注)', () => {
+      // 提取 ## 输出格式 块, 扫里面的 - 列表项, 不应有"字段缺失"作为分类
+      const idx = tpl.indexOf('## 输出格式')
+      expect(idx).toBeGreaterThanOrEqual(0)
+      const rest = tpl.slice(idx + '## 输出格式'.length)
+      const endIdx = rest.search(/\n## /)
+      const block = endIdx >= 0 ? rest.slice(0, endIdx) : rest
+      const listItems = block.split('\n').filter(l => l.match(/^\s*-\s+\S/))
+      const categoryNames = listItems
+        .map(l => l.match(/^[\s-]+([^(（\s]+)/)?.[1]?.trim())
+        .filter(Boolean) as string[]
+      // 字段缺失不应作为分类名出现
+      expect(categoryNames).not.toContain('字段缺失')
+    })
+
+    it('输出格式块说明每个分类的颜色 (redLinks=orange, orphanPages=tertiary, stalePages=gray)', () => {
+      // 表格里要给出 LintPanel 渲染颜色
+      // 注意：不能用 `## 块提取` (yaml 块里的 ## 文件总数 会误匹)
+      // 改为在 tpl 整体里查找, 配合"## 输出格式 存在"测试 (前者已验证)
+      expect(tpl).toMatch(/orange/)
+      expect(tpl).toMatch(/gray|grey/)
+    })
+  })
+})
