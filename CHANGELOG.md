@@ -1,8 +1,65 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.6.3-free
+> 当前版本：v1.7.0-free
 > 发布日期：2026-06-05
-> 最近更新：2026-06-05（dmg 启动闪退修复 + UI 设计契约一致性 + pre-commit hook）
+> 最近更新：2026-06-05（Agent 接口加 topic/maxResults 过滤 + 新增 kg:queryTopics IPC）
+
+---
+
+## 2026-06-05 — v1.7.0-free Agent 端省 token + 提效接口（5 commits）
+
+### 量化成果
+
+| 维度 | v1.6.3 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| `skill:loadDefault` system prompt tokens | ~4K (全拼 7 个 skill) | **可选** `skills=['ingest','query']` | **~3-4K / 启动** |
+| `query:vault` 返 source 数 | 50 LIMIT 固定 | `maxResults` (默认 50) + `topic` folder 过滤 | **~50% 搜索 token** |
+| `briefing:getConversations` 返摘要数 | 全部当日 | `topic` + `maxResults` | **~60% 记忆读取 token** |
+| `kg:queryTopics` 存在性 | **不存在**（Agent 只能视觉截图） | 新增 `(name?, options?)` IPC | **KG 可文本查询** |
+| Agent 启动可见 Skill 数 | 7 | 1-2（按触发词） | 上下文 **不被打扰** |
+
+### 主题一：Skill 动态注入（最大 token 节省）
+
+- **`5add481` `composeInjectedSkillText(vaultPath, skills?)` 按需注入**：
+  - `undefined`/空数组 → 拼全部 7 个 Skill（v1.5 行为，向后兼容）
+  - `string[]` → 只拼列出的 Skill 详情（按文件名匹配，字母序）
+  - **caps（编辑器能力）始终拼**：轻量，Agent 都需要
+- **`skill:loadDefault(_, skills?)` IPC 接参数**：Agent 启动时传 `['ingest','query']` 只拿 1-2 个 Skill 详情，省 5-6 个无关 Skill 的内容
+- 测试覆盖（5 个）：拼全部 / 拼 1 个 / 拼 2 个 / 拼不存在的 Skill / caps 始终拼
+
+### 主题二：query:vault 过滤
+
+- **`79b4596` `query:vault` 接受 `options` 参数**：
+  - `searchFiles(query, { limit?, topic? })` — SQL LIMIT 改参数 + `topic` 加 `WHERE folder = ?` 过滤
+  - `queryVault(question, { topic?, maxResults?, maxWikiFiles? })` — Step 0（wiki 遍历）只看指定 topic 目录（跳过 `index.md` 全部 topic）；Step 1（FTS5）LIMIT + topic folder 过滤；Step 2（合并截断）到 `maxResults ?? 5`
+- Agent 收益：传 `topic='合同管理'` → 跳其他 topic 目录 + Step 1 只扫 `_wiki/合同管理/` 文件
+
+### 主题三：KG 文本查询
+
+- **`00cc793` `kg:queryTopics(name?, options?)` 新增 IPC**（替代 Agent "看 KG 截图猜节点"）：
+  - name 不传 → 返所有节点 + 边（LIMIT 500 防暴）
+  - name 传 → 按 title / tags 模糊匹，返匹中节点 + 邻接边
+  - `maxNeighbors`（默认 10）：限制每个匹中节点最多 N 条边
+  - 实现：纯 in-memory 过滤 `loadGraph()` 结果，**不改 graph service**
+- preload `graph.queryTopics` 暴露
+
+### 主题四：briefing 过滤
+
+- **`d54893a` + `f34f1c7`**：`briefing:getConversations` 接受 `topic` + `maxResults` 过滤
+- `getConversationSummaries(date, options?)` — 循环读完后在末尾过滤 topic + 截断 maxResults（不改循环内 push，保持 v1.6 兼容）
+- 跨日期查同 topic 时尤其省（"合同管理 的所有历史决策" → 只返该 topic 摘要）
+
+### 主题五：教训
+
+- **`f34f1c7` briefing.ts 漏实现 options 过滤代码**：前 commit `d54893a` 改了 IPC + preload + briefing.ts 函数签名（接 `options`），但**没**实际实现过滤代码。`@typescript-eslint/no-unused-vars` 报告 `'options' is defined but never used`。教训：**改了函数签名接新参数必须同步实现**，Lint 报 unused args 不算"功能完整"。
+
+### Commits
+
+1. `5add481` — Skill 动态注入
+2. `79b4596` — query:vault 接受 topic + maxResults
+3. `00cc793` — kg:queryTopics 新增 IPC
+4. `d54893a` — briefing:getConversations 接受 topic + maxResults（**参数化，但漏实现**）
+5. `f34f1c7` — briefing.ts 加实际过滤代码（前 commit 漏实现）
 
 ---
 
