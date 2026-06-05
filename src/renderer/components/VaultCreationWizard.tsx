@@ -230,7 +230,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: ',var(--space-1)',padding: 'var(--space-2) var(--space-3)',
+                      gap: 'var(--space-1)',padding: 'var(--space-2) var(--space-3)',
                       borderRadius: 8,
                       border: '1px solid var(--color-border)',
                       background: 'var(--color-surface)',
@@ -309,7 +309,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
         {/* /P3-5 step content */}
 
         {/* Navigation buttons */}
-        <div style={{ display: 'flex', gap: ',var(--space-2)',justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)',justifyContent: 'flex-end' }}>
           {step > 1 && (
             <button
               onClick={handleBack}
@@ -358,7 +358,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: ',var(--space-2)',padding: 'var(--space-2) var(--space-5)',
+                gap: 'var(--space-2)',padding: 'var(--space-2) var(--space-5)',
                 borderRadius: 8,
                 border: 'none',
                 background:

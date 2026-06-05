@@ -158,7 +158,7 @@ export function WelcomeScreen({
                 key={i}
                 style={{
                   display: 'flex',
-                  gap: ',var(--space-3)',alignItems: 'flex-start',
+                  gap: 'var(--space-3)',alignItems: 'flex-start',
                   padding: 'var(--space-2) var(--space-3)',
                   borderRadius: 10,
                   background: 'var(--color-surface-hover)',
@@ -179,7 +179,7 @@ export function WelcomeScreen({
                   {step.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-2)',marginBottom: 2 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)',marginBottom: 2 }}>
                     <span style={{ fontWeight: 600, fontSize: 13 }}>{step.title}</span>
                     <span
                       style={{
@@ -205,7 +205,7 @@ export function WelcomeScreen({
           </div>
 
           {/* Skill.md 复制 / 下载 */}
-          <div style={{ display: 'flex', gap: ',var(--space-2)',marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 'var(--space-2)',marginBottom: 8 }}>
             <button
               className="btn btn-primary btn-lg"
               onClick={handleCopySkill}

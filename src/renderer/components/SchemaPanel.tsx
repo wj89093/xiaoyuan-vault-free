@@ -83,7 +83,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
           display: 'flex',
           alignItems: 'center',
           padding: 'var(--space-2) var(--space-3)',
-          gap: ',var(--space-2)',borderBottom: '1px solid #e5e5ea'
+          gap: 'var(--space-2)',borderBottom: '1px solid #e5e5ea'
         }}
       >
         <button
@@ -91,7 +91,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: ',var(--space-1)',fontSize: 11,
+            gap: 'var(--space-1)',fontSize: 11,
             padding: 'var(--space-1) var(--space-2)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
@@ -201,7 +201,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-2)',flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)',flexShrink: 0 }}>
                     {/* Pro 专属: AI Schema 重新设计/创建 — 开源版不显示 */}
                   </div>
                 </div>
@@ -237,7 +237,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                         <div
                           style={{
                             display: 'flex',
-                            gap: ',var(--space-2)',marginTop: 8,
+                            gap: 'var(--space-2)',marginTop: 8,
                             justifyContent: 'flex-end'
                           }}
                         >

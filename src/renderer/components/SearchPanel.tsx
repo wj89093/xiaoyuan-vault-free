@@ -270,7 +270,7 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: 
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: ',var(--space-2)',padding: 'var(--space-2) var(--space-3)',
+                  gap: 'var(--space-2)',padding: 'var(--space-2) var(--space-3)',
                   cursor: 'pointer',
                   borderRadius: 6,
                   margin: 'var(--space-2) var(--space-1)',
