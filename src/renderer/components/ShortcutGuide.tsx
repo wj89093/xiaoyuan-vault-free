@@ -10,8 +10,8 @@ const MOD = isMac ? '⌘' : 'Ctrl'
 
 // Only shortcuts that are actually registered in useKeyboardShortcuts.ts
 const SHORTCUTS = [
-  { keys: `${MOD}+P`, desc: '快速切换文件' },
-  { keys: `${MOD}+F`, desc: '搜索文件' },
+  { keys: `${MOD}+P`, desc: '按名快速切换文件（QuickSwitch）' },
+  { keys: `${MOD}+F`, desc: '搜索文档内容（SearchPanel FTS5）' },
   { keys: `${MOD}+D`, desc: '深色/亮色模式' },
   { keys: '?', desc: '显示快捷键' }
 ]

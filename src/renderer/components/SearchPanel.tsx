@@ -2,6 +2,30 @@ import { memo, useState, useEffect, useRef, useCallback, type JSX } from 'react'
 import { Search, FileText } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
+// 拆分 FTS5 snippet (含 <mark>关键词</mark>) 为 React 组件
+// 安全: 不使用 dangerouslySetInnerHTML, React 自动 escape 文本段,
+// <mark> 段仅包撁 mark 标签(是受信任的 SQLite 输出), 不用 escape
+function renderSnippet(snippet: string): JSX.Element {
+  const parts = snippet.split(/(<mark>.*?<\/mark>)/)
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith('<mark>') && part.endsWith('</mark>')) {
+          return (
+            <mark
+              key={i}
+              style={{ background: 'var(--color-yellow-light, #fff3a0)', color: 'inherit', padding: 0 }}
+            >
+              {part.slice(6, -7)}
+            </mark>
+          )
+        }
+        return <span key={i}>{part}</span>
+      })}
+    </>
+  )
+}
+
 interface SearchPanelProps {
   onClose: () => void
   onSelectFile: (path: string) => void
@@ -11,6 +35,8 @@ interface SearchResult {
   path: string
   name: string
   title?: string
+  /** FTS5 snippet: 含 <mark>关键词</mark> 的正文片段 (前后 16 tokens) */
+  snippet?: string
 }
 
 export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: SearchPanelProps): JSX.Element {
@@ -272,17 +298,34 @@ export const SearchPanel = memo(function SearchPanel({ onClose, onSelectFile }: 
                   >
                     {r.title ?? r.name}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--color-text-tertiary, #a1a1a6)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {r.path}
-                  </div>
+                  {r.snippet ? (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--color-text-tertiary, #a1a1a6)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        marginTop: 2
+                      }}
+                      title={r.snippet.replace(/<\/?mark>/g, '')}
+                    >
+                      {renderSnippet(r.snippet)}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--color-text-tertiary, #a1a1a6)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        marginTop: 2
+                      }}
+                    >
+                      {r.path}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

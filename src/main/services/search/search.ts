@@ -20,8 +20,10 @@ export function searchFiles(query: string): Promise<FileRecord[]> {
   }
 
   // FTS search
+  // snippet(files_fts, 3, ...) column 3 = content, 16 tokens 前后文
   const stmt = db.prepare(`
-    SELECT f.path, f.name, f.title, f.tags, f.modified_at, f.folder
+    SELECT f.path, f.name, f.title, f.tags, f.modified_at, f.folder,
+           snippet(files_fts, 3, '<mark>', '</mark>', '…', 16) AS snippet
     FROM files f
     JOIN files_fts fts ON f.rowid = fts.rowid
     WHERE files_fts MATCH ?
@@ -38,7 +40,7 @@ export function searchFiles(query: string): Promise<FileRecord[]> {
       e instanceof Error ? e.message : String(e)
     )
     const likeStmt = db.prepare(`
-      SELECT path, name, title, tags, modified_at, folder
+      SELECT path, name, title, tags, modified_at, folder, '' AS snippet
       FROM files
       WHERE content LIKE ? OR title LIKE ? OR tags LIKE ?
       LIMIT 50
