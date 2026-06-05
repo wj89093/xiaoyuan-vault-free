@@ -1,8 +1,126 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.4.0-free
-> 发布日期：2026-06-02
-> 最近更新：2026-06-03（性能优化 6 commits）
+> 当前版本：v1.6.1-free
+> 发布日期：2026-06-05
+> 最近更新：2026-06-05（Skill 模板 ↔ UI 接口对齐 + 删 2 个低价值 Skill）
+
+---
+
+## 2026-06-05 — v1.6.1-free Skill 模板 ↔ UI 接口对齐（2 commits）
+
+### 量化成果
+
+| 维度 | v1.6.0 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| Skill 模板数 | 9 | **7** | -22%（删 2 个低价值） |
+| 模板 ↔ 面板字段脱节 | 2 处 | **0** | -100% |
+| skills-templates 测试 | 21 | **24** | +3 项对齐断言 |
+
+### 改动
+
+- **conversation-summary.md** — frontmatter 改 5 字段对齐 MemoryPanel.ConversationSummary（`date/time/title/topic/sources`），移除 `participants/tags`，`relatedFiles` → `sources`（briefing.ts 实际字段名），正文 sections 改 `讨论了什么/关键决策/下一步`，修 markdown 嵌套 bug
+- **lint.md** — 加 `## 输出格式` 块（之前缺），5 类汇总对齐 LintPanel stats（`totalFiles/orphanPages/deadLinks/stalePages/contradictions`），移除"字段缺失"（LintPanel 不支持），表格说明每个分类的渲染颜色
+- **删 2 个低价值 Skill 模板**：
+  - `write.md` — 跟 ingest 重叠度高（同样落 `_wiki/`、同样 write 操作），流程缺"问写啥"+"提纲确认"
+  - `list-sessions.md` — 指向 `chat-sessions.json`（Pro 仓库 chat 模块产物），Free 仓库没面板渲染，MemoryPanel 已用 `_briefing/conversations/` 路径承担
+- **Agents.md** — 索引表删 2 行，章节号 5/7/8/9 → 4/5/6/7，原 4/6 留废弃说明段
+- **测试** — 加 9 个 v1.6.x 对齐断言：frontmatter 5 字段、移除废弃字段、sources 替代 relatedFiles、3 个正文 sections、`## 输出格式` 块、5 类汇总、字段缺失移除、颜色说明；加 2 个废弃断言：write.md / list-sessions.md 不应再存在 + AGENTS.md 不引用废弃名
+
+### Commits
+
+1. `138444d` — Skill 模板 ↔ UI 接口对齐（修 v1.6 commit 留下的脱节）
+2. `8da00c5` — 删 2 个低价值 Skill (write + list-sessions), 9 → 7
+
+---
+
+## 2026-06-04 — v1.6.0-free 9 个独立 Skill 模板（1 commit）
+
+### 背景
+v1.4 整合时删了 v1.3.1 的 8 个 skill-* 模板（HTTP 协议）改成 AGENTS.md 索引表，但 AGENTS.md 许诺的 9 个 Skill 没真模板 → Agent 触发后自己想办法做。v1.6 补齐。
+
+### 新增
+
+- **9 个独立 Skill 模板**（`src/main/templates/skills/`）：ingest / query / lint / stats / log / ingest-batch / conversation-summary + （v1.6.1 已删 write + list-sessions）
+- **skillHandlers 注入层扩展**（`skill:loadDefault` 拼 `skills/` 整个目录）
+- **vaultHandlers `writeSkillTemplates`**（vault 创建时递归拷贝 `skills/` 到 vault 根）
+
+### 测试
+- 158 → 177（+19 个 skills-templates.test.ts）
+
+### Commits
+
+1. `1e5b406` — 9 个独立 Skill 模板（补齐 AGENTS.md 许诺）
+
+---
+
+## 2026-06-04 — v1.5.0-free UI 性能大爆发（19 commits）
+
+### 量化成果
+
+| 维度 | v1.4.0 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| Mermaid 渲染 | 全量重渲染 | **主题 token + ELK + 5 token 缓存** | 显著 |
+| CM6 渲染热路径 | 每次重建 extension | **registry + 提到模块顶层 + 6 项优化** | 显著 |
+| UI 组件 memo | 4 个 | **22 个** | 5.5x |
+| 上次打开文件 | 不记忆 | **重开 vault 自动选中** | 新增 |
+| PDF 预览 | 翻页模式 | **连续滚动** | 体验↑ |
+
+### 性能（perf, 10 commits）
+
+- `bcef869` CM6 editor registry — 替代 `window.__Xxx` 全局
+- `e4a4f0f` CM6 extensions 提到模块顶层
+- `995ce4e` CM6 渲染热路径 6 项优化
+- `8c0ae10` CM6 扩展 2 项升级（blockDecorationsField 增量更新 + Frontmatter 拆分）
+- `148ab9c` Mermaid theme: 'base' + themeVariables 配 app 设计 token
+- `d9ba1b7` Mermaid 3 项优化（ELK + 5 token + 主题重渲染）
+- `b8f71bf` UI 组件 4 项优化（SearchPanel 防抖 + QuickSwitch deferred + 7 个 memo）
+- `b453511` 11 个 UI 组件批量加 memo + 顺手修 VaultRouter 老 bug
+- `4a90c0e` 清理 /tmp 临时目录 + 拆分 WelcomeScreen useEffect
+
+### 功能（feat, 3 commits）
+
+- `2b0282a` 上次打开文件记忆 — 重开 vault 自动选中
+- `cfa0676` PDFViewer 改连续滚动模式（替代翻页）
+- `523e660` Agent 编辑器能力发现机制（A 内容源 + D 注入层 组合）
+
+### 视觉（polish, 2 commits）
+
+- `9f0bfc1` WelcomeScreen + KnowledgeGraphViz 视觉打磨（5 项）
+- `79ccbdc` 4 种 preview 视觉打磨（Callout + Table + Math + WikiLink）
+
+### 修复（fix, 5 commits）
+
+- `9f727bc` 删 KnowledgeGraphViz 未用变量 ng（老 lint 错误）
+- `f3b50f8` inlinePreviewExtension 漏加 () 括号 — 运行时 crash
+- `bbcaa1a` TaskCheckboxWidget 单例定义移到 class 后面（TDZ 错误）
+- `92f5bb6` Mermaid SVG 自适应编辑区宽度 + 高度按 vh 上限
+- `756b7fe` 修两个边界 — 启动时 auto-select + 二进制文件 native preview
+
+### 测试（test, 1 commit）
+
+- `2c69819` 覆盖上次打开文件记忆两个边界分支
+
+### Commits（按时间倒序）
+
+`cfa0676` · `79ccbdc` · `9f0bfc1` · `8c0ae10` · `523e660` · `b453511` · `4a90c0e` · `b8f71bf` · `d9ba1b7` · `148ab9c` · `92f5bb6` · `bbcaa1a` · `995ce4e` · `f3b50f8` · `e4a4f0f` · `9f727bc` · `bcef869` · `2c69819` · `756b7fe` · `2b0282a`
+
+---
+
+## 2026-06-04 — v1.4.1-free 文档与边界修复（8 commits）
+
+### 文档（docs, 4 commits）
+
+- `57d79f5` AGENTS.md 回答改为「回答完整」，去掉字数限制
+- `8942ee2` AGENTS.md 摘要不限制字数
+- `75ae108` AGENTS.md 删掉工具约定和 LLM-wiki 引用
+- `da0a27c` AGENTS.md ingest 流程增加第 5 步 — 完成后更新 index.md
+
+### 修复（fix, 4 commits）
+
+- `db4563a` 添加 `file:save` IPC handler（自动保存依赖它）
+- `85e18ff` Skill.md 打开 — vault 没有时从 templates 复制再打开
+- `2d21e8d` Skill.md 打开优先找 AGENTS.md，都没有提示
+- `3692a8f` Skill.md 打开按钮用 vaultPath prop 而非异步 API
 
 ---
 
