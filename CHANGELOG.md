@@ -1,8 +1,45 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.6.1-free
+> 当前版本：v1.6.2-free
 > 发布日期：2026-06-05
-> 最近更新：2026-06-05（dmg -29% 优化，212M → 151M）
+> 最近更新：2026-06-05（dmg -45%，212M → 117M）
+
+---
+
+## 2026-06-05 — v1.6.2-free dmg 优化 + 测试补全 + 仓库整理（4 commits）
+
+### 量化成果
+
+| 维度 | v1.6.1 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| x64 dmg | 151M | **117M** | **-23%**（累积 -45%）|
+| arm64 dmg | 146M | **112M** | **-23%**（累积 -46%）|
+| app.asar | 137M | **49M** | **-64%**（累积 -87%）|
+| 注入层测试 | 4 个 | **13 个** | +9 |
+| 根目录项 | ~24 | **~22** | 去 2 个子目录 |
+
+### dmg 优化（3 轮排除）
+
+- **第一轮**（commit `c24c33b`）—— 排除 9 个 main 0 import 的包（lucide-react 28M / @napi-rs 23M / pdf-parse 20M / react-dom 7M / cytoscape 5M 等），**dmg 151M → 123M**
+- **第二轮**（commit `e2293fb`）—— 排除 5 个 vendor 替代明确的包（katex 4M / d3 4M / react-router 3M / codepage 6M / zrender 4M），**123M → 118M**
+- **第三轮**（commit `8e8427d`）—— 依赖链排查后排除 4 个链尽头包（es-toolkit 9M / zlibjs 4M / underscore 3M / lodash-es 3M），**118M → 117M**
+- **根因**：webpack 把 mermaid/echarts/xlsx 等打进了 vendor chunks，但 electron-builder 仍把原始 node_modules 装进 asar——**重复装**。三波排除共 25+ 个包。
+
+### 测试
+
+- **注入层测试**（commit `255d501`）—— 抽出 `composeInjectedSkillText(vaultPath)` 纯函数，加 9 个测试覆盖 v1.5 commit 523e660 的 A 内容源 + D 注入层。4 个场景（vault 无 cap/skills/两者都有/排序/静默失败）
+
+### 仓库整理
+
+- commit `c42a167` —— `test-vault-e2e/` → `tests/e2e-vault/`，`release-notes/` → `docs/release-notes/`，根目录减少 2 个子目录
+
+### Commits
+
+1. `255d501` — 注入层测试覆盖（+9 测试）
+2. `c24c33b` — 排除 9 个 main 0 import 的包（dmg -19%）
+3. `e2293fb` — 排除 5 个 vendor 替代明确的包（dmg -4%）
+4. `8e8427d` — 排除 4 个依赖链尽头包（dmg -1%）
+5. `c42a167` — 仓库整理（move 2 个子目录）
 
 ---
 

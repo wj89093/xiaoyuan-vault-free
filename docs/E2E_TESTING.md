@@ -31,10 +31,10 @@ v1.6.1 修了 2 个 Skill 模板跟 UI 面板的字段脱节：
 
 ```bash
 # macOS / Linux
-cp -r ~/Desktop/xiaoyuan-vault-free/test-vault-e2e ~/MyTestVault
+cp -r ~/Desktop/xiaoyuan-vault-free/~/Desktop/xiaoyuan-vault-free/test-vault-e2e ~/MyTestVault
 
 # Windows
-xcopy /E /I C:\path\to\xiaoyuan-vault-free\test-vault-e2e %USERPROFILE%\MyTestVault
+xcopy /E /I C:\path\to\xiaoyuan-vault-free\~/Desktop/xiaoyuan-vault-free/test-vault-e2e %USERPROFILE%\MyTestVault
 ```
 
 **结构**（已预生成）：

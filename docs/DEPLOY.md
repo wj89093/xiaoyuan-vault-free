@@ -67,7 +67,7 @@ on:
 发布流程：
 
 ```bash
-# 1. 写 release notes (release-notes/vX.Y.Z-free.md)
+# 1. 写 release notes (docs/release-notes/vX.Y.Z-free.md)
 # 2. 写 changelog 段 (CHANGELOG.md)
 # 3. commit + push main
 git add -A && git commit -m "..."
