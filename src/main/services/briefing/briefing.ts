@@ -292,7 +292,13 @@ export async function getConversationSummaries(
     /* dir doesn't exist */
   }
 
-  return summaries
+  // v1.7: topic 过滤 + maxResults 截断
+  const topicFiltered = options?.topic
+    ? summaries.filter((s) => s.topic === options.topic)
+    : summaries
+  return options?.maxResults
+    ? topicFiltered.slice(0, options.maxResults)
+    : topicFiltered
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────
