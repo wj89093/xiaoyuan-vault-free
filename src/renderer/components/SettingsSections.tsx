@@ -70,7 +70,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             onClick={() => applyTheme('light')}
             disabled={themeLoading}
             title="浅色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Sun size={13} /> 浅色
           </button>
@@ -79,7 +79,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             onClick={() => applyTheme('dark')}
             disabled={themeLoading}
             title="深色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Moon size={13} /> 深色
           </button>
@@ -88,7 +88,7 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
             onClick={() => applyTheme('system')}
             disabled={themeLoading}
             title="跟随系统"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
+            style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
           >
             <Monitor size={13} /> 自动
           </button>

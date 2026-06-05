@@ -236,7 +236,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
                   padding: 'var(--space-2) var(--space-4)',
                   borderTop: '1px solid var(--border)',
                   display: 'flex',
-                  gap: 'var(--space-2',background: 'var(--surface-elevated)'
+                  gap: ',var(--space-2)',background: 'var(--surface-elevated)'
                 }}
               >
                 <button
@@ -247,7 +247,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 'var(--space-2',padding: 'var(--space-2) var(--space-3)',
+                    gap: ',var(--space-2)',padding: 'var(--space-2) var(--space-3)',
                     borderRadius: 6,
                     border: 'none',
                     background: 'var(--primary)',

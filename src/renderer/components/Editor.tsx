@@ -315,7 +315,7 @@ export const PptxViewer = memo(function PptxViewer({ dataUrl }: { dataUrl: strin
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            gap: 'var(--space-2',height: '100%'
+            gap: ',var(--space-2)',height: '100%'
           }}
         >
           <div
@@ -415,7 +415,7 @@ export const PDFViewer = memo(function PDFViewer({ dataUrl }: { dataUrl: string 
       <div
         style={{
           display: 'flex',
-          gap: 'var(--space-2',marginBottom: 12,
+          gap: ',var(--space-2)',marginBottom: 12,
           alignItems: 'center',
           justifyContent: 'center',
           position: 'sticky',

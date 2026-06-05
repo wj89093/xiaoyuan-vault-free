@@ -134,7 +134,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                   }}
                 >
                   <div
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2',cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: ',var(--space-2)',cursor: 'pointer' }}
                     tabIndex={0}
                     role="button"
                     onClick={() => {
@@ -168,7 +168,7 @@ export const TrashPanel = memo(function TrashPanel({ vaultPath, onNavigate, onCl
                       {formatDate(item.deletedAt)}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: 'var(--space-1',marginTop: 8 }}>
+                  <div style={{ display: 'flex', gap: ',var(--space-1)',marginTop: 8 }}>
                     <button
                       onClick={() => {
                         void handleRestore(item)

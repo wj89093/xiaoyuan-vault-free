@@ -217,7 +217,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
           display: 'flex',
           alignItems: 'center',
           padding: 'var(--space-2) var(--space-3)',
-          gap: 'var(--space-2',borderBottom: '1px solid var(--color-border)'
+          gap: ',var(--space-2)',borderBottom: '1px solid var(--color-border)'
         }}
       >
         <button
@@ -225,7 +225,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-1',fontSize: 11,
+            gap: ',var(--space-1)',fontSize: 11,
             padding: 'var(--space-1) var(--space-3)',
             borderRadius: 6,
             border: '1px solid var(--color-border)',
