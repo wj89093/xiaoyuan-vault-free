@@ -15,13 +15,20 @@ export BUILD_TARGET=free
 export AGENT_ENABLED=false
 echo "✓ BUILD_TARGET=free AGENT_ENABLED=false"
 
-# 2. 版本号 (从 package.json 读，加 -free 后缀)
+# 2. 版本号 (从 package.json 读, 已带 -free 后缀, 不重复加)
 VERSION=$(python3 -c "import json; d=json.load(open('package.json')); print(d.get('version', '1.3.0'))")
-FREE_VERSION="${VERSION}-free"
-echo "✓ Version: $FREE_VERSION"
+if [[ "$VERSION" == *-free ]]; then
+  FREE_VERSION="$VERSION"
+  echo "✓ Version: $FREE_VERSION (已带 -free 后缀, 不重复加)"
+else
+  FREE_VERSION="${VERSION}-free"
+  echo "✓ Version: $FREE_VERSION"
+fi
 
 # 3. 临时修改 package.json 加 free 标识 (build 完恢复)
 cp package.json package.json.bak
+# trap 确保异常退出时也恢复 package.json (set -e + 磁盘满/网络断)
+trap 'mv -f package.json.bak package.json 2>/dev/null || rm -f package.json.bak; echo "✓ package.json 已恢复 (trap)"' EXIT
 python3 -c "
 import json
 d = json.load(open('package.json'))
@@ -46,7 +53,7 @@ echo ""
 echo "▶ 2/3 打包安装包（这步比较慢）..."
 npm run package 2>&1 | tail -10
 
-# 6. 恢复 package.json
+# 6. 恢复 package.json (trap EXIT 也会调, 这里显式调以输出成功信息)
 mv package.json.bak package.json
 echo "✓ package.json 已恢复"
 
