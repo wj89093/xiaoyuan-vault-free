@@ -79,7 +79,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             onClick={this.reset}
             style={{
               padding: 'var(--space-2) var(--space-5)', borderRadius: 6, border: 'none',
-              background: 'var(--color-blue, #007aff)', color: '#fff',
+              background: 'var(--color-blue, #007aff)', color: 'var(--color-text-inverse, #fff)',
               fontSize: 13, fontWeight: 500, cursor: 'pointer',
             }}
           >

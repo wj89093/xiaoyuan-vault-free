@@ -251,7 +251,7 @@ export const VersionHistoryPanel = memo(function VersionHistoryPanel({
                     borderRadius: 6,
                     border: 'none',
                     background: 'var(--primary)',
-                    color: '#fff',
+                    color: 'var(--color-text-inverse, #fff)',
                     cursor: 'pointer',
                     fontSize: 13,
                     fontWeight: 500
