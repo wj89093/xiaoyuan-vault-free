@@ -20,25 +20,31 @@ const expectedSkills = [
   'ingest',
   'query',
   'lint',
-  'write',
   'stats',
-  'list-sessions',
   'log',
   'ingest-batch',
   'conversation-summary'
 ]
 
-describe('v1.6 9 个 Skill 模板存在', () => {
+describe('v1.6.x 7 个 Skill 模板存在 (v1.6.1 删 write + list-sessions)', () => {
   it('templates/skills/ 目录存在', () => {
     expect(existsSync(skillsDir)).toBe(true)
   })
 
-  it('总 9 个 skill 模板 (不多不少)', () => {
+  it('总 7 个 skill 模板 (不多不少)', () => {
     const files = readdirSync(skillsDir).filter(f => f.endsWith('.md'))
-    expect(files.length).toBe(9)
+    expect(files.length).toBe(7)
     for (const f of files) {
       expect(expectedSkills).toContain(f.replace(/\.md$/, ''))
     }
+  })
+
+  // v1.6.1 显式断言: 已废弃的 write + list-sessions 不应再作为 Skill 模板存在
+  it('write.md 不应再存在 (v1.6.1 废弃, 跟 ingest 重叠)', () => {
+    expect(existsSync(join(skillsDir, 'write.md'))).toBe(false)
+  })
+  it('list-sessions.md 不应再存在 (v1.6.1 废弃, 无面板渲染)', () => {
+    expect(existsSync(join(skillsDir, 'list-sessions.md'))).toBe(false)
   })
 
   expectedSkills.forEach((name) => {
@@ -91,14 +97,20 @@ describe('v1.6 writeSkillTemplates (vault 创建时递归拷贝)', () => {
   })
 })
 
-describe('v1.6 AGENTS.md 触发词 ↔ 模板名对应', () => {
-  it('AGENTS.md 9 个 Skill 名都引用 (排除 ingest-batch 子串误匹)', () => {
+describe('v1.6.x AGENTS.md 触发词 ↔ 模板名对应', () => {
+  it('AGENTS.md 7 个 Skill 名都引用 (排除 ingest-batch 子串误匹)', () => {
     for (const name of expectedSkills) {
       // 索引行格式: | `name` | 触发 | 自动? |
       // 加 | 排除 ingest 匹中 ingest-batch
       const re = new RegExp('`' + name + '`\\s*\\|')
       expect(agents).toMatch(re)
     }
+  })
+
+  it('AGENTS.md 不再引用已废弃的 write + list-sessions', () => {
+    // 索引行格式要求 `name` 后接 |, 避免误匹 (例如 'write' 出现在工具调用段)
+    expect(agents).not.toMatch(/`write`\s*\|/)
+    expect(agents).not.toMatch(/`list-sessions`\s*\|/)
   })
 })
 

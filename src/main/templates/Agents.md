@@ -17,9 +17,7 @@
 | `ingest`               | 帮我整理, 摄入, 导入, ingest       | ❌                    |
 | `query`                | 查一下, 搜索, 帮我找, 有没有, 文档 | ❌                    |
 | `lint`                 | 健康检查, 检查知识库, lint         | ❌                    |
-| `write`                | 帮我写, 生成一个, 创建文档         | ❌                    |
 | `stats`                | 统计, 看看知识库, 知识库情况       | ❌                    |
-| `list-sessions`        | 看看之前的对话, 列出聊天记录       | ❌                    |
 | `log`                  | —                                  | ✅ 任何操作后自动追加 |
 | `ingest-batch`         | 导入 \_raw/ 里的所有文件           | ❌                    |
 | `conversation-summary` | 记录一下, 存档这个对话, 保存讨论   | ❌                    |
@@ -150,22 +148,11 @@
 
 ## 4. Write（写作辅助）
 
-**触发条件：**
-
-- 用户说"帮我写"、"生成一个"
-- 用户提供提纲或主题
-
-**执行流程：**
-
-```
-1. write(_wiki/{topic}/{title}.md, frontmatter + 正文)
-2. 等待用户反馈，调整或补充
-3. 询问用户是否存档到知识库
-```
+**已废弃 (v1.6.x)**：跟 ingest 重叠度高（同样落 _wiki/、同样 write 操作）+ 流程没显式"问写啥"+"提纲确认"，删除模板。创作类需求统一用 ingest（用户提供 _raw 素材）或直接手动写文件。
 
 ---
 
-## 5. Stats（统计）
+## 4. Stats（统计）
 
 **触发条件：**
 
@@ -183,28 +170,11 @@
 
 ## 6. List Chat Sessions（列出对话记录）
 
-**触发条件：**
-
-- 用户说"看看之前的对话"、"列出聊天记录"
-
-**执行流程：**
-
-```
-read(chat-sessions.json 或 vault/sessions/chat-sessions.json)
-```
-
-**输出格式：**
-
-```
-📋 AI 对话记录
-[abc12345] 合同模板分析 (2026-05-15)
-[def67890] 帮我整理会议记录 (2026-05-14)
-...
-```
+**已废弃 (v1.6.x)**：模板指向 chat-sessions.json (Pro 仓库 chat 模块的产物)，但 Free 仓库没专门面板渲染（README 明确"开源版不包含 AI Chat 浮窗"）。对话列表功能已由 conversation-summary 模板 + MemoryPanel 承担（_briefing/conversations/ 路径）。
 
 ---
 
-## 7. Log（追加操作日志）
+## 5. Log（追加操作日志）
 
 **触发条件：**
 
@@ -227,7 +197,7 @@ read(chat-sessions.json 或 vault/sessions/chat-sessions.json)
 
 ---
 
-## 8. Ingest Batch（批量导入）
+## 6. Ingest Batch（批量导入）
 
 **触发条件：**
 
@@ -250,7 +220,7 @@ read(chat-sessions.json 或 vault/sessions/chat-sessions.json)
 
 ---
 
-## 9. ConversationSummary（对话摘要存档）
+## 7. ConversationSummary（对话摘要存档）
 
 **触发条件：**
 
