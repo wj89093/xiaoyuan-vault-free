@@ -312,7 +312,7 @@ const api = {
   onGotoImport: (cb: () => void) => shortcuts.onGotoImport(cb),
   getVaultPath: () => vault.path(),
   skillList: () => skill.list(),
-  skillLoadDefault: () => skill.loadDefault(),
+  skillLoadDefault: (skills?: string[]) => skill.loadDefault(skills),
   skillRead: (name: string) => skill.read(name),
   skillSave: (name: string, content: string) => skill.save(name, content),
   skillDelete: (name: string) => skill.delete(name)

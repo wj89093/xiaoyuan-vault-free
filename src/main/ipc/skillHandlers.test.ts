@@ -157,3 +157,71 @@ describe('v1.5 注入层 — composeInjectedSkillText (A 内容源 + D 注入层
     expect(result.length).toBeGreaterThanOrEqual(1)
   })
 })
+
+// ─── v1.7: composeInjectedSkillText 加 skills 参数 (按需注入) ──────────
+
+describe('v1.7 注入层 — composeInjectedSkillText(skills) 按需注入', () => {
+  beforeEach(async () => {
+    await mkdir(INJECT_TEST_DIR, { recursive: true })
+  })
+
+  afterEach(async () => {
+    if (existsSync(INJECT_TEST_DIR)) await rm(INJECT_TEST_DIR, { recursive: true, force: true })
+  })
+
+  it('不传 skills 参数 → 拼全部 (v1.5 行为, 向后兼容)', async () => {
+    const skillsDir = join(INJECT_TEST_DIR, 'skills')
+    await mkdir(skillsDir, { recursive: true })
+    await writeFile(join(skillsDir, 'ingest.md'), SKILL_INGEST, 'utf-8')
+    await writeFile(join(skillsDir, 'query.md'), SKILL_QUERY, 'utf-8')
+    const result = await composeInjectedSkillText(INJECT_TEST_DIR)
+    expect(result).toHaveLength(2) // ingest + query (没 caps)
+  })
+
+  it('传 skills=[ingest] → 只拼 ingest + caps, 跳过 query', async () => {
+    const skillsDir = join(INJECT_TEST_DIR, 'skills')
+    await mkdir(skillsDir, { recursive: true })
+    await writeFile(join(skillsDir, 'ingest.md'), SKILL_INGEST, 'utf-8')
+    await writeFile(join(skillsDir, 'query.md'), SKILL_QUERY, 'utf-8')
+    const result = await composeInjectedSkillText(INJECT_TEST_DIR, ['ingest'])
+    expect(result).toHaveLength(1) // 只有 ingest
+    expect(result[0]).toContain('# 🔧 Skill 模板: ingest')
+    expect(result[0]).toContain(SKILL_INGEST)
+  })
+
+  it('传 skills=[ingest, lint] → 拼 ingest + lint (按字母序, 跳 query)', async () => {
+    const skillsDir = join(INJECT_TEST_DIR, 'skills')
+    await mkdir(skillsDir, { recursive: true })
+    await writeFile(join(skillsDir, 'ingest.md'), SKILL_INGEST, 'utf-8')
+    await writeFile(join(skillsDir, 'query.md'), SKILL_QUERY, 'utf-8')
+    // 故意反向写入, 测试排序是按文件名 (不是按数组顺序)
+    await writeFile(join(skillsDir, 'lint.md'), '# lint\n\nlint', 'utf-8')
+    const result = await composeInjectedSkillText(INJECT_TEST_DIR, ['ingest', 'lint'])
+    expect(result).toHaveLength(2)
+    // ingest 在前 (字母序)
+    expect(result[0]).toContain('# 🔧 Skill 模板: ingest')
+    expect(result[1]).toContain('# 🔧 Skill 模板: lint')
+    // query 不在
+    expect(result.join('')).not.toContain('query')
+  })
+
+  it('传 skills=[nonexistent] → 返回 [] (请求的 skill 不存在)', async () => {
+    const skillsDir = join(INJECT_TEST_DIR, 'skills')
+    await mkdir(skillsDir, { recursive: true })
+    await writeFile(join(skillsDir, 'ingest.md'), SKILL_INGEST, 'utf-8')
+    const result = await composeInjectedSkillText(INJECT_TEST_DIR, ['nonexistent'])
+    expect(result).toEqual([]) // ingest 不在请求列表
+  })
+
+  it('caps 始终拼 (不管 skills 参数)', async () => {
+    await writeFile(join(INJECT_TEST_DIR, 'MARKDOWN_CAPABILITIES.md'), CAPS_CONTENT, 'utf-8')
+    const skillsDir = join(INJECT_TEST_DIR, 'skills')
+    await mkdir(skillsDir, { recursive: true })
+    await writeFile(join(skillsDir, 'ingest.md'), SKILL_INGEST, 'utf-8')
+    // 只请求 ingest, 但 caps 仍拼
+    const result = await composeInjectedSkillText(INJECT_TEST_DIR, ['ingest'])
+    expect(result).toHaveLength(2) // caps + ingest
+    expect(result[0]).toContain('编辑器能力清单')
+    expect(result[1]).toContain('# 🔧 Skill 模板: ingest')
+  })
+})

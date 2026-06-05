@@ -42,24 +42,35 @@ export function isValidSkillName(name: string): boolean {
 }
 
 // ─── v1.5 注入层（纯函数, 可独立测试）─────────────────────────────────────
-// 从 vault 拼上 MARKDOWN_CAPABILITIES.md (编辑器能力) + 7 个 Skill 模板
+// 从 vault 拼上 MARKDOWN_CAPABILITIES.md (编辑器能力) + N 个 Skill 模板
 // 静默失败: vaultPath 无效 / 目录不存在 / 读错 → 返回 []
-export async function composeInjectedSkillText(vaultPath: string | null | undefined): Promise<string[]> {
+//
+// v1.7 加 skills 参数 (按需注入):
+//   - 不传/空数组: 拼全部 (v1.5 行为, 保持向后兼容)
+//   - 传数组: 只拼列出的 skills + 始终拼 caps (caps 是编辑器能力, Agent 都需要)
+export async function composeInjectedSkillText(
+  vaultPath: string | null | undefined,
+  skills?: string[]
+): Promise<string[]> {
   if (!vaultPath || !existsSync(vaultPath)) return []
   const injectedParts: string[] = []
 
-  // 1. 注入 MARKDOWN_CAPABILITIES.md
+  // 1. 始终注入 MARKDOWN_CAPABILITIES.md (编辑器能力 Agent 都需要, 轻量)
   const capsPath = join(vaultPath, 'MARKDOWN_CAPABILITIES.md')
   if (existsSync(capsPath)) {
     const caps = await readFile(capsPath, 'utf-8')
     injectedParts.push('# 📝 自动注入: 编辑器能力清单 (来自 MARKDOWN_CAPABILITIES.md)\n\n' + caps)
   }
 
-  // 2. 注入 skills/ 目录所有 Skill 模板 (按名排序)
+  // 2. 注入 skills/ 目录 Skill 模板
   const skillsDirPath = join(vaultPath, 'skills')
   if (existsSync(skillsDirPath)) {
-    const skillFiles = (await import('fs')).readdirSync(skillsDirPath).filter(f => f.endsWith('.md')).sort()
-    for (const f of skillFiles) {
+    const allFiles = (await import('fs')).readdirSync(skillsDirPath).filter(f => f.endsWith('.md')).sort()
+    // 按 skills 参数过滤 (undefined = 全拼, 数组 = 只拼列出的)
+    const wanted = !skills || skills.length === 0
+      ? allFiles
+      : allFiles.filter(f => skills.includes(f.replace(/\.md$/, '')))
+    for (const f of wanted) {
       const skillContent = await readFile(join(skillsDirPath, f), 'utf-8')
       const skillName = f.replace(/\.md$/, '')
       injectedParts.push(`# 🔧 Skill 模板: ${skillName}\n\n` + skillContent)
@@ -79,15 +90,16 @@ export function registerSkillHandlers(): void {
       .map((f) => ({ name: f.replace(/\.md$/, ''), path: join(dir, f) }))
   })
 
-  ipcMain.handle('skill:loadDefault', async (): Promise<string> => {
+  ipcMain.handle('skill:loadDefault', async (_, skills?: string[]): Promise<string> => {
     const path = defaultSkillPath()
     try {
       const baseSkill = await readFile(path, 'utf-8')
       // v1.5: 注入层 — 拼上 capabilities 段, Agent 写入时自动看到支持的扩展
+      // v1.7: skills 参数 — 按需注入 (省 ~3-4K tokens, 默认全拼保持兼容)
       // 静默失败: 没 vault / 没 capabilities 文件 / 读错都不阻断
       try {
         const config = await readConfig()
-        const injectedParts = await composeInjectedSkillText(config.lastVaultPath)
+        const injectedParts = await composeInjectedSkillText(config.lastVaultPath, skills)
         if (injectedParts.length > 0) {
           return baseSkill + '\n\n---\n\n' + injectedParts.join('\n\n---\n\n')
         }
