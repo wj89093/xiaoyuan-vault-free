@@ -7,6 +7,8 @@ import { parseFrontmatter } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
 import { getLintReports } from '../lint/lintReports'
 
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
  
 
 export interface BriefingReport {
@@ -214,11 +216,257 @@ export async function saveConversationSummary(params: {
       ...params.nextSteps.map((s) => `- ${s}`)
     ].join('\n')
 
+    // v1.7 (P1-2): topic 累积路径 — 如果 _briefing/topics/{topic}.md 存在则 append + 重新生成索引
+    if (params.topic) {
+      const topicPath = join(vaultPath, '_briefing', 'topics', `${params.topic}.md`)
+      const existing = existsSync(topicPath) ? await readFile(topicPath, 'utf-8') : null
+      if (existing !== null || params.topic) {
+        // 累积 (即使 existing=null 也会新建首个文件)
+        const composed = composeTopicFile(existing, params, date, time) as { content: string }
+        await mkdir(join(vaultPath, '_briefing', 'topics'), { recursive: true })
+        await writeFile(topicPath, composed.content, 'utf-8')
+        return { path: topicPath, ok: true }
+      }
+    }
+
+    // 默认路径: 按 date 写入 (保留 v1.5 行为)
     const filePath = join(dir, `conv-${hhmm}.md`)
     await writeFile(filePath, body, 'utf-8')
     return { path: filePath, ok: true }
   } catch (err) {
     return { path: '', ok: false, error: String(err) }
+  }
+}
+//
+// 设计: saveConversationSummary 接 params.topic, 如果 _briefing/topics/{topic}.md
+// 存在则 append + 重新生成 frontmatter 索引, 不存在则新建.
+// Agent 调法和之前一样, 传 topic 字段即自动触发累积.
+//
+// 保留旧的按 date 写入作为 fallback (如果 topic 不提供).
+//
+// 累计文件格式:
+//   ---
+//   topic: 合同管理
+//   updated_at: 2026-06-05
+//   entries:                  # 跨日索引
+//     - { date, time, title }
+//   decisions: 累计 (按时间顺序)
+//   nextSteps: 累计
+//   ---
+//
+//   ## 2026-06-01 14:30 — ABC 合同评审
+//
+//   ### 关键决策
+//   - ...
+//
+//   ## 2026-06-03 09:15 — XYZ 协议补充条款
+//
+//   ### 关键决策
+//   - ...
+//
+// 收益: 跨 session 知识连续 — Agent 读 1 个文件拿到该 topic 全部历史
+
+/**
+ * 纯函数: 拼装 topic 累积文件内容
+ * - existingContent: 现有 topic 文件内容 (null = 新建)
+ * - params: saveConversationSummary 的新条目
+ * - newDate/newTime: 新条目时间戳
+ * - 返回: { content, entries, decisions, nextSteps } — 拼装后的全文 + 解析用结构
+ */
+export function composeTopicFile(
+  existingContent: string | null,
+  params: {
+    title: string
+    topic: string
+    decisions: string[]
+    relatedFiles?: string[]
+    nextSteps: string[]
+    discussion?: string
+  },
+  newDate: string,
+  newTime: string
+): {
+  content: string
+  entries: { date: string; time: string; title: string }[]
+  decisions: string[]
+  nextSteps: string[]
+} {
+  // 解析现有 frontmatter 和 entries
+  const existing = existingContent
+    ? parseTopicFile(existingContent)
+    : { entries: [], decisions: [], nextSteps: [] }
+
+  // 追加新条目 (最新在前, 与 body 倒序一致)
+  const newEntry = { date: newDate, time: newTime, title: params.title }
+  const entries = [newEntry, ...existing.entries]
+  // decisions/nextSteps 累计去重 + 追加
+  const decisions = mergeUnique(existing.decisions, params.decisions)
+  const nextSteps = mergeUnique(existing.nextSteps, params.nextSteps)
+
+  // 重新生成 frontmatter
+  const fm = [
+    '---',
+    `topic: ${params.topic}`,
+    `updated_at: ${newDate}`,
+    'entries:',
+    ...entries.map((e) => `  - date: ${e.date}\n    time: ${e.time}\n    title: ${e.title}`),
+    'decisions:',
+    ...decisions.map((d) => `  - ${d}`),
+    'nextSteps:',
+    ...nextSteps.map((s) => `  - ${s}`),
+    '---'
+  ].join('\n')
+
+  // 拼 body — 每日 1 段, 倒序 (最新在前)
+  const newSection = [
+    '',
+    `# ${newDate} ${newTime} — ${params.title}`,
+    '',
+    '### 讨论了什么',
+    params.discussion ?? '（无记录）',
+    '',
+    '### 关键决策',
+    ...params.decisions.map((d) => `- ${d}`),
+    '',
+    '### 相关文件',
+    ...(params.relatedFiles ?? []).map((f) => `- ${f}`),
+    '',
+    '### 下一步',
+    ...params.nextSteps.map((s) => `- ${s}`)
+  ].join('\n')
+
+  // 拼 全部 sections (现有 + 新, 新在前)
+  const existingSections = existingContent
+    ? extractTopicSections(existingContent)
+    : []
+  const allSections = [newSection, ...existingSections].join('\n\n---\n\n')
+
+  return {
+    content: fm + '\n' + allSections,
+    entries,
+    decisions,
+    nextSteps
+  }
+}
+
+/**
+ * 解析 topic 累积文件的 frontmatter + sections
+ * 返回: { entries, decisions, nextSteps, sections }
+ */
+export function parseTopicFile(content: string): {
+  entries: { date: string; time: string; title: string }[]
+  decisions: string[]
+  nextSteps: string[]
+  sections: string[]
+} {
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
+  if (!fmMatch) {
+    return { entries: [], decisions: [], nextSteps: [], sections: [] }
+  }
+  const [, fm, body] = fmMatch
+
+  // 解析 frontmatter
+  const entries: { date: string; time: string; title: string }[] = []
+  const decisions: string[] = []
+  const nextSteps: string[] = []
+  let inEntries = false
+  let inDecisions = false
+  let inNextSteps = false
+  let curEntry: Partial<{ date: string; time: string; title: string }> = {}
+  for (const line of fm.split('\n')) {
+    if (line === 'entries:') {
+      inEntries = true
+      inDecisions = false
+      inNextSteps = false
+      curEntry = {}
+      continue
+    }
+    if (line === 'decisions:') {
+      if (curEntry.date) entries.push(curEntry as { date: string; time: string; title: string })
+      curEntry = {}
+      inDecisions = true
+      inEntries = false
+      inNextSteps = false
+      continue
+    }
+    if (line === 'nextSteps:') {
+      inNextSteps = true
+      inDecisions = false
+      inEntries = false
+      continue
+    }
+    if (inEntries && line.startsWith('  - date:')) {
+      // 新 entry 起始: 先 push 旧 entry (如果有), 再重置
+      if (curEntry.date) {
+        entries.push(curEntry as { date: string; time: string; title: string })
+      }
+      curEntry = { date: line.replace('  - date: ', '').trim() }
+    } else if (inEntries && line.startsWith('    time:')) {
+      curEntry.time = line.replace('    time: ', '').trim()
+    } else if (inEntries && line.startsWith('    title:')) {
+      curEntry.title = line.replace('    title: ', '').trim()
+    } else if (inDecisions && line.startsWith('  - ')) {
+      decisions.push(line.replace('  - ', '').trim())
+    } else if (inNextSteps && line.startsWith('  - ')) {
+      nextSteps.push(line.replace('  - ', '').trim())
+    }
+  }
+  if (curEntry.date) entries.push(curEntry as { date: string; time: string; title: string })
+
+  // 解析 body sections
+  const sections = body.split(/\n---\n/).filter((s) => s.trim())
+
+  return { entries, decisions, nextSteps, sections }
+}
+
+/** 抽 body sections (保留换行) */
+function extractTopicSections(content: string): string[] {
+  const { sections } = parseTopicFile(content)
+  return sections
+}
+
+/** 数组去重 + 保持顺序 */
+function mergeUnique<T>(existing: T[], added: T[]): T[] {
+  const seen = new Set(existing)
+  const result = [...existing]
+  for (const item of added) {
+    if (!seen.has(item)) {
+      seen.add(item)
+      result.push(item)
+    }
+  }
+  return result
+}
+
+/**
+ * v1.7 (P1-2): 读 topic 累积文件 (跨日聚合)
+ * 返 { topic, updatedAt, entries, decisions, nextSteps }
+ * 不存在返 null
+ */
+export async function getTopicSummaries(topic: string): Promise<{
+  topic: string
+  updatedAt: string
+  entries: { date: string; time: string; title: string }[]
+  decisions: string[]
+  nextSteps: string[]
+} | null> {
+  const vaultPath = getVaultPath()
+  if (!vaultPath || !topic) return null
+
+  const topicPath = join(vaultPath, '_briefing', 'topics', `${topic}.md`)
+  if (!existsSync(topicPath)) return null
+
+  try {
+    const raw = await readFile(topicPath, 'utf-8')
+    const parsed = parseTopicFile(raw) as { entries: { date: string; time: string; title: string }[]; decisions: string[]; nextSteps: string[] }
+    const { entries, decisions, nextSteps } = parsed
+    const fmMatch = raw.match(/^---\n([\s\S]*?)\n---/)
+    const updatedAt = fmMatch
+      ? (fmMatch[1].match(/updated_at:\s*(\S+)/)?.[1] ?? '')
+      : ''
+    return { topic, updatedAt, entries, decisions, nextSteps }
+  } catch {
+    return null
   }
 }
 

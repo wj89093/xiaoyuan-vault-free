@@ -213,7 +213,8 @@ const maintenance = {
     nextSteps: string[]
     discussion?: string
   }) => handler<{ path: string; ok: boolean; error?: string }>('briefing:saveConversation', params),
-  getConversations: (date: string) => handler<any[]>('briefing:getConversations', date)
+  getConversations: (date: string) => handler<any[]>('briefing:getConversations', date),
+  getTopicSummaries: (topic: string) => handler<any>('briefing:getTopicSummaries', topic)
 }
 
 const clipboard = {
@@ -295,6 +296,7 @@ const api = {
   getLastVault: () => vault.getLast(),
   generateBriefing: () => maintenance.generateBriefing(),
   getConversations: (date: string, options?: { topic?: string; maxResults?: number }) => maintenance.getConversations(date, options),
+  getTopicSummaries: (topic: string) => maintenance.getTopicSummaries(topic),
   graphLoad: () => graph.load(),
   graphRebuild: () => graph.rebuild(),
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)

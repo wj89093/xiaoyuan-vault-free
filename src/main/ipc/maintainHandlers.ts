@@ -8,7 +8,8 @@ import { runMaintenance } from '../services/lint/maintain'
 import {
   generateBriefing,
   saveConversationSummary,
-  getConversationSummaries
+  getConversationSummaries,
+  getTopicSummaries
 } from '../services/briefing/briefing'
 import { getLintReports, fixLintIssue, runLintTask } from '../services/lint/lintReports'
 import { listFolderSchemas, getPendingFolderSchemas } from '../services/schema/schemaStorage'
@@ -46,6 +47,11 @@ ipcMain.handle(
     return getConversationSummaries(date, options)
   }
 )
+
+// v1.7 (P1-2): 读 topic 累积文件 (跨日聚合)
+ipcMain.handle('briefing:getTopicSummaries', async (_event, topic: string) => {
+  return getTopicSummaries(topic)
+})
 
 export function registerMaintainHandlers(): void {
   // Lint IPC (migrated from autoAIHandlers)
