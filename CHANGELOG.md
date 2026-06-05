@@ -2,11 +2,11 @@
 
 > 当前版本：v1.6.1-free
 > 发布日期：2026-06-05
-> 最近更新：2026-06-05（Skill 模板 ↔ UI 接口对齐 + 删 2 个低价值 Skill）
+> 最近更新：2026-06-05（dmg -29% 优化，212M → 151M）
 
 ---
 
-## 2026-06-05 — v1.6.1-free Skill 模板 ↔ UI 接口对齐（2 commits）
+## 2026-06-05 — v1.6.1-free Skill 模板体系完整 + 文档同步 + dmg -29%（16 commits）
 
 ### 量化成果
 
@@ -15,21 +15,71 @@
 | Skill 模板数 | 9 | **7** | -22%（删 2 个低价值） |
 | 模板 ↔ 面板字段脱节 | 2 处 | **0** | -100% |
 | skills-templates 测试 | 21 | **24** | +3 项对齐断言 |
+| 组件漏 `import memo` | 10 | **0** | -100%（2 波修复） |
+| Pro 仓库残留 | 3 文件 660K | **0** | -100% |
+| 安装包 x64 dmg | 212M | **151M** | **-29%**（-61M） |
+| 安装包 arm64 dmg | 207M | **146M** | **-29%**（-61M） |
 
-### 改动
+### 主题一：Skill 模板体系
 
 - **conversation-summary.md** — frontmatter 改 5 字段对齐 MemoryPanel.ConversationSummary（`date/time/title/topic/sources`），移除 `participants/tags`，`relatedFiles` → `sources`（briefing.ts 实际字段名），正文 sections 改 `讨论了什么/关键决策/下一步`，修 markdown 嵌套 bug
 - **lint.md** — 加 `## 输出格式` 块（之前缺），5 类汇总对齐 LintPanel stats（`totalFiles/orphanPages/deadLinks/stalePages/contradictions`），移除"字段缺失"（LintPanel 不支持），表格说明每个分类的渲染颜色
-- **删 2 个低价值 Skill 模板**：
-  - `write.md` — 跟 ingest 重叠度高（同样落 `_wiki/`、同样 write 操作），流程缺"问写啥"+"提纲确认"
-  - `list-sessions.md` — 指向 `chat-sessions.json`（Pro 仓库 chat 模块产物），Free 仓库没面板渲染，MemoryPanel 已用 `_briefing/conversations/` 路径承担
-- **Agents.md** — 索引表删 2 行，章节号 5/7/8/9 → 4/5/6/7，原 4/6 留废弃说明段
-- **测试** — 加 9 个 v1.6.x 对齐断言：frontmatter 5 字段、移除废弃字段、sources 替代 relatedFiles、3 个正文 sections、`## 输出格式` 块、5 类汇总、字段缺失移除、颜色说明；加 2 个废弃断言：write.md / list-sessions.md 不应再存在 + AGENTS.md 不引用废弃名
+- **删 2 个低价值 Skill 模板**（`write.md` / `list-sessions.md`）—— 跟 ingest 重叠 / 无面板渲染
+
+### 主题二：全文搜索升级
+
+- **SearchPanel 加 snippet + 高亮**（commit `e0f6f14`）—— search.ts SQL 用 SQLite FTS5 `snippet()` 函数，前后 16 tokens 上下文 + `<mark>关键词</mark>` 包裹；SearchPanel 用 React 组件化拆 mark 段（**不用** `dangerouslySetInnerHTML`，React 自动 escape 文本段，**安全**）
+- **ShortCutGuide 措辞改精确**（commit `e0f6f14`）—— `Cmd+F` 改"搜索文档内容 (SearchPanel FTS5)" / `Cmd+P` 改"按名快速切换文件 (QuickSwitch)"
+
+### 主题三：v1.5 memo bug 清零（10 个组件）
+
+- **fb70e08** — 5 个组件漏 import `memo`（EditorHeader / FileTreeContextMenu / IndexNav / LintPanel / LogPanel）—— v1.5 批量加 memo 时漏 import
+- **32e4bf5** — 第二波 5 个（MemoryPanel / OutputPanel / **Sidebar** / TrashPanel / VersionHistoryPanel）—— 第一次 `head -5` 截断漏的
+- **防御脚本** `scripts/check-memo-import.sh`（32e4bf5 一起加）—— 扫所有 .tsx 找用 `memo(` 但漏 import 的文件，兼容 4 种 import 形式（含 `import React, { memo }` 复合）
+
+### 主题四：开发工具
+
+- **scripts/build-free.sh** 修 2 个 bug（`79fbc8d`）—— ① 双重 `-free` 后缀（v1.6.1 package.json 已带 `-free`，脚本不应再拼）；② `set -e` 异常时 `trap` 恢复 package.json
+- **scripts/dev-restart.sh** 新建（`9d3fa7d`）—— 一键 kill 老 dev + 启新，解决 vite HMR 对 import 头变更不生效
+- **scripts/check-memo-import.sh** 新建（`32e4bf5`）—— 同上
+
+### 主题五：仓库清理（Pro 残留）
+
+- `4ed7ae8` — 删 Pro 残留（`resources/whisper/` 3 tracked 656K + `resources/scripts/postinstall.sh` 4K + 2 traineddata 7.4M，**untracked**）+ 临时测试目录（`test-tmp-*` 16K）
+- `2b6e982` — `.gitignore` 加 `resources/whisper/` + `resources/scripts/` 防御
+
+### 主题六：文档同步
+
+- `64c2c51` — 元数据（package.json / README / CHANGELOG 头部）同步 v1.6.1
+- `35cc184` — docs/ 同步 v1.6.1：SKILL_WORKFLOW 重写（删 HTTP 协议描述、改 AGENTS.md 工作流）、ENGINEERING_MAP Free 视角（更新组件/hooks/services 数字 + 删 Pro 专属章节）
+- `cbec9b6` — E2E 测试套件（`test-vault-e2e/` 8 文件 + `docs/E2E_TESTING.md` 5 步流程 + 6 项验收清单）—— 跨设备手动验证接口对齐
+- `816a724` — DEPLOY.md 同步：删 v1.3 AI key（QWEN/MINIMAX/DEEPSEEK）、改 CI/CD 段（描述 release.yml 实际行为 + 5 步发布流程）、加 arm64 dmg 优先提示、加故障排查 4 行
+- `625bd5a` — README 重写为产品视角（删头部版本号/日期 + version badge，加 📝 导航 CHANGELOG）
+
+### 主题七：dmg 体积优化（commit `0ae9959`）
+
+- **排除已 webpack 处理的包**（`electron-builder.json` `files` 加 `!**/node_modules/{mermaid,@mermaid-js,tesseract.js,tesseract.js-core,pdfjs-dist,exceljs,xlsx,mammoth,docx-preview,pptx-preview,echarts,@antfu,@babel}/**`）
+- 根因：`node_modules/mermaid` 74M **+** `out/vendor-mermaid.js` 5.1M = **重复装**（webpack 已把 mermaid 打进 vendor chunk，但 asar 仍装原包）
+- 收益：x64 dmg 212M → 151M（-61M，-29%），arm64 dmg 207M → 146M（-61M，-29%），app.asar 382M → 137M（-245M，-64%）
 
 ### Commits
 
-1. `138444d` — Skill 模板 ↔ UI 接口对齐（修 v1.6 commit 留下的脱节）
-2. `8da00c5` — 删 2 个低价值 Skill (write + list-sessions), 9 → 7
+1. `138444d` — Skill 模板 ↔ UI 接口对齐
+2. `8da00c5` — 删 2 个低价值 Skill
+3. `64c2c51` — 元数据同步 v1.6.1
+4. `35cc184` — docs/ 同步 v1.6.1
+5. `cbec9b6` — E2E 测试套件
+6. `79fbc8d` — build-free.sh 双重 -free + trap
+7. `fb70e08` — 5 个组件漏 import memo (第一波)
+8. `9d3fa7d` — dev-restart.sh
+9. `32e4bf5` — 5 个组件漏 import memo (第二波) + 防御脚本
+10. `4ed7ae8` — 清理 Pro 仓库残留
+11. `2b6e982` — .gitignore 加 Pro 残留规则
+12. `625bd5a` — README 改为产品视角
+13. `8618e2b` — release notes
+14. `e0f6f14` — SearchPanel snippet + 高亮
+15. `816a724` — DEPLOY.md 同步
+16. `0ae9959` — 排除已 webpack 处理的包 (dmg -29%)
 
 ---
 
