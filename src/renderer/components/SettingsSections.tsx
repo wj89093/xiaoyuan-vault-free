@@ -16,6 +16,42 @@ import { Sun, Moon, Monitor, Plug, Copy, Check, FileText } from 'lucide-react'
 
 // ─── ThemeSection ─────────────────────────────────────────────────────
 
+// ThemeToggleButton — 主题切换按钮 (浅色/深色/跟随系统)
+// ThemeSection 内部用, 3 个按钮共享完全相同的 inline style (v1.6.3 P2 抽)
+const ThemeToggleButton = memo(function ThemeToggleButton({
+  active,
+  disabled,
+  title,
+  onClick,
+  icon,
+  label
+}: {
+  active: boolean
+  disabled: boolean
+  title: string
+  onClick: () => void
+  icon: JSX.Element
+  label: string
+}): JSX.Element {
+  return (
+    <button
+      className={`btn ${active ? 'btn-primary' : 'btn-ghost'}`}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-1)',
+        fontSize: 12,
+        padding: 'var(--space-1) var(--space-2)'
+      }}
+    >
+      {icon} {label}
+    </button>
+  )
+})
+
 export const ThemeSection = memo(function ThemeSection(): JSX.Element {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system')
   const [themeLoading, setThemeLoading] = useState(false)
@@ -65,33 +101,30 @@ export const ThemeSection = memo(function ThemeSection(): JSX.Element {
           </span>
         </div>
         <div className="theme-toggle-group" style={{ display: 'flex', gap: 'var(--space-1)' }}>
-          <button
-            className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => applyTheme('light')}
+          <ThemeToggleButton
+            active={theme === 'light'}
             disabled={themeLoading}
             title="浅色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
-          >
-            <Sun size={13} /> 浅色
-          </button>
-          <button
-            className={`btn ${theme === 'dark' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => applyTheme('dark')}
+            onClick={() => applyTheme('light')}
+            icon={<Sun size={13} />}
+            label="浅色"
+          />
+          <ThemeToggleButton
+            active={theme === 'dark'}
             disabled={themeLoading}
             title="深色模式"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
-          >
-            <Moon size={13} /> 深色
-          </button>
-          <button
-            className={`btn ${theme === 'system' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => applyTheme('system')}
+            onClick={() => applyTheme('dark')}
+            icon={<Moon size={13} />}
+            label="深色"
+          />
+          <ThemeToggleButton
+            active={theme === 'system'}
             disabled={themeLoading}
             title="跟随系统"
-            style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)',fontSize: 12, padding: 'var(--space-1) var(--space-2)' }}
-          >
-            <Monitor size={13} /> 自动
-          </button>
+            onClick={() => applyTheme('system')}
+            icon={<Monitor size={13} />}
+            label="自动"
+          />
         </div>
       </div>
     </div>
