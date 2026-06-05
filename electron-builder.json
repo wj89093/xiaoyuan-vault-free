@@ -14,13 +14,6 @@
     "**/*.node",
     "whisper/**"
   ],
-  "extraResources": [
-    {
-      "from": "resources/whisper",
-      "to": "whisper",
-      "filter": ["**/*"]
-    }
-  ],
   "mac": {
     "target": [
       {
@@ -33,6 +26,7 @@
       "CFBundleName": "XiaoYuanVault"
     }
   },
+  "afterPack": "scripts/after-pack.js",
   "win": {
     "target": [
       {
