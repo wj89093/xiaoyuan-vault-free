@@ -1,8 +1,65 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.6.2-free
+> 当前版本：v1.6.3-free
 > 发布日期：2026-06-05
-> 最近更新：2026-06-05（dmg -45%，212M → 117M）
+> 最近更新：2026-06-05（dmg 启动闪退修复 + UI 设计契约一致性 + pre-commit hook）
+
+---
+
+## 2026-06-05 — v1.6.3-free dmg 启动闪退 + UI 设计契约 + pre-commit 防御（10 commits）
+
+### 量化成果
+
+| 维度 | v1.6.2 起点 | 现在 | 提升 |
+|------|-------------|------|------|
+| dmg 启动闪退（macOS 26 + Apple Silicon） | 是 (Squirrel.framework 触发 c-ares 链) | **修** | dmg 可正常启动 |
+| UI 设计契约符合度 | 0% | 100% | 颜色 / 间距 / 阴影 / 动效全 token 化 |
+| memo bug 防御 | 手动 | **自动化** | pre-commit hook + check-memo-import.sh |
+| 重复 inline style（3 处共享） | 是 | **抽** ThemeToggleButton | DRY + 维护性 |
+| CSS gap 失效（30 处 sed 残留前导逗号） | 是 | **修** | gap 全部生效 |
+| 内部 `'<button>' 内联 'color: #fff' 硬编码 | 2 处 | 0 处 | 走 `var(--color-text-inverse, #fff)` |
+
+### 主题一：dmg 启动闪退修复（最关键，用户可感知）
+
+- **`3cf79ed` dmg 启动闪退 - 删 Squirrel.framework**：用户报告 v1.6.1-free dmg 在 Mac mini M4 / macOS 26.5.1 / ARM-64 上启动后 0.2 秒崩溃（EXC_BREAKPOINT / SIGTRAP，code 5）。崩在 `ares_llist_replace_destructor` + c-ares DNS 解析链。**根因**：Squirrel.framework（Electron 模板自带的 Mac 自动更新器）在 macOS 26 + Apple Silicon 启动时崩 c-ares 链路。Squirrel 1.0 是 32-bit Mach-O 时代设计，现代 macOS 26 已不兼容。Free 仓库**不用 autoUpdater**（不调 Squirrel 任何 API），删后启动正常。修法：`scripts/after-pack.js` 新建（electron-builder afterPack hook，递归找 Squirrel.framework 删）+ `electron-builder.json` 加 `afterPack: scripts/after-pack.js` + 顺手修 v1.6.2 commit `4ed7ae8` 留下的 `resources/whisper` extraResources 配置 bug。
+
+### 主题二：UI 设计契约一致性（对照 Pro 仓库 `docs/UI.md` v2.0）
+
+- **`55e2570` UI 设计契约一致性**（focus-visible + 阴影 token + 4px 网格间距）：21 个文件，187 insertions / 260 deletions
+  - 颜色契约：656 处 `var(--color-*)` 引用，**0 处**硬编码 hex
+  - 间距契约：85 处 `var(--space-*)` 引用，4px 网格统一（`6px → var(--space-2)` / `10px → var(--space-2)` 等）
+  - 动效契约：28 处 `var(--transition-*)` 引用
+  - 阴影契约：1 处 `var(--shadow-sm)` 修复（KnowledgeGraphViz）
+  - **focus-visible 契约**（UI.md 设计契约 #8）：`global.css` 末尾加全局 `*:focus-visible { outline: 2px solid var(--color-primary) }` fallback，覆盖除 `.btn / .btn-icon / .editor-header-crumb` 之外的可聚焦元素；`input / textarea / contenteditable` 排除（用户已在输入，不需要 Tab 聚焦轮廓）
+- **`9f416ab` 面板 transition 统一**（3 个面板）：LintPanel 健康检查/刷新按钮 + MemoryPanel 刷新按钮 + BacklinksPanel `.backlinks-item` hover，加 `transition: var(--transition-base)`，条件状态切换时 background / cursor / color 平滑过渡（150ms ease）
+- **`0d5eb53` 2 处主按钮 `'#fff'` → `var(--color-text-inverse, #fff)`**：VersionHistoryPanel + ErrorBoundary 重试按钮
+
+### 主题三：CSS gap 失效真因修复
+
+- **`9373099` 30 处 sed 残留前导逗号 bug**（CSS gap 失效）：v1.6.3 commit `1d2f1f8` 修缺逗号时**同时产生新 bug**——sed 把 `gap: 4,fontSize: 12` 中的 `4` 替换成 `'var(--space-1)'` 时，原始 `,` 残留成前导逗号：`gap: ',var(--space-1)'`（字符串值是 `,var(--space-1)`）。React 渲染时 CSS 收到 `gap: ,var(--space-1)`（前导逗号）—— CSS 无效，**gap 完全不生效**。**30 处组件 UI 间距全错**。测试 196/196 + Lint 0 errors 都过了（没真测 CSS 渲染）。修：直接字符串替换 `gap: ',var(--space-` → `gap: 'var(--space-`，30 处一次性清。13 个文件涉及。
+
+### 主题四：防御自动化
+
+- **`1b6e266` pre-commit hook 自动跑 check-memo-import.sh**：防御 v1.5 commit `b453511` 那种"批量加 memo 漏 import" bug 再犯（v1.5 漏 10 个文件，dev 跑 ReferenceError）。方案：`.githooks/pre-commit` + `scripts/install-hooks.sh`（git 社区标准，**不依赖 husky** npm 包）。用户首次使用：`npm run precommit:install`。改 .tsx 提交时自动跑 hook，漏 memo import 时 commit 会被拒绝。
+- **`585cd7c` `precommit:install` npm 脚本**：加到 package.json scripts。
+
+### 主题五：重构
+
+- **`6364dd0` 抽 ThemeToggleButton 小组件**：ThemeSection 内 3 个主题切换按钮（浅色/深色/自动）共享完全相同的 inline style（`display/alignItems/gap/fontSize/padding` 5 个属性）。抽 ThemeToggleButton 内部组件（不抽通用 Button——那个范围太广，10 个 button 都已用 className + CSS 抽好的，**只有** 3 处 ThemeSection 重复值得抽）。
+- **`1d2f1f8` 30 处 sed 残留缺逗号**（**产生了新 bug，见主题三**）：eslint 和 vitest 都没抓到这个 bug 的"修复"，下一次类似 sed 改字符串要更稳——加 `re.sub(r"(\1,)", r"\1',")` 这种保留逗号的方式，或者直接字符串替换不用 regex。
+
+### Commits
+
+1. `3cf79ed` — dmg 启动闪退 - 删 Squirrel.framework
+2. `1d2f1f8` — sed 残留 sed 改 gap 后的缺逗号（**产生新 bug**，见 9373099）
+3. `9f416ab` — 面板 transition 统一
+4. `55e2570` — UI 设计契约一致性（focus-visible + 阴影 token + 4px 网格）
+5. `1b6e266` — pre-commit hook 自动跑 check-memo-import.sh
+6. `585cd7c` — npm run precommit:install 加 package.json
+7. `0d5eb53` — 2 处主按钮 color '#fff' → var
+8. `9373099` — 30 处 sed 残留前导逗号 bug（CSS gap 失效真因）
+9. `6364dd0` — 抽 ThemeToggleButton 小组件
+10. `46bbd9a` — E2E_TESTING.md 修路径残留（test-vault-e2e → tests/e2e-vault，**v1.6.2 末尾遗留**）
 
 ---
 
