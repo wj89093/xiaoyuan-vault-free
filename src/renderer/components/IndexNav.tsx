@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from 'react'
+import { useEffect, useState, memo, type JSX } from 'react'
 import { ChevronRight, List } from 'lucide-react'
 
 interface IndexNavProps {

@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect, type JSX } from 'react'
+import { useState, useEffect, memo, type JSX } from 'react'
 import { Shield, RefreshCw, Activity } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
