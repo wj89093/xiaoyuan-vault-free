@@ -1,9 +1,10 @@
 # 晓园 Vault (开源版)
 
-> **v1.6.1-free** · 2026-06-05
 > 免费的本地知识库 · 类 Obsidian · macOS / Windows / Linux 桌面应用
 
-[![macOS](https://img.shields.io/badge/macOS-13+-blue)] ![Windows](https://img.shields.io/badge/Windows-10+-blue)] ![Linux](https://img.shields.io/badge/Linux-glibc%202.31+-blue)] ![Electron](https://img.shields.io/badge/Electron-34-green)] ![React](https://img.shields.io/badge/React-19-blueviolet)] ![Version](https://img.shields.io/badge/version-1.6.1--free-orange)] ![License](https://img.shields.io/badge/license-MIT-brightgreen)
+[![macOS](https://img.shields.io/badge/macOS-13+-blue)] ![Windows](https://img.shields.io/badge/Windows-10+-blue)] ![Linux](https://img.shields.io/badge/Linux-glibc%202.31+-blue)] ![Electron](https://img.shields.io/badge/Electron-34-green)] ![React](https://img.shields.io/badge/React-19-blueviolet)] ![License](https://img.shields.io/badge/license-MIT-brightgreen)]
+
+> 📝 **最新进展 / 版本**：见 [CHANGELOG.md](CHANGELOG.md) — 本文件只讲产品，不讲版本细节
 
 ---
 
@@ -50,21 +51,19 @@
 3. Agent 用 4 个原子工具（read / write / edit / bash）**直接操作 vault 文件**
 4. 文件变化 → KnowledgeGraph 自动增量重建（500ms 内）
 
-### 9 个内置 Skill 场景
+### 7 个内置 Skill 场景（v1.6.1）
 
 | 场景 | 触发 | 动作 |
 |------|------|------|
-| `ingest` | 摄入文件 | `_raw/2026-06/` → `_wiki/` |
-| `query` | 搜索关键词 | FTS5 全文搜索 |
-| `recall` | 回忆上下文 | 跨笔记/会话回忆 |
-| `lint` | 质量检查 | 命名 / frontmatter / 链接 |
-| `write-note` | 写/更新 | 新建/修改 markdown |
-| `conversation-summary` | 对话结束 | 生成摘要到 `_qa/` |
-| `self-improvement` | 自检 | AI 行为模式调整 |
-| `stats` | 看统计 | vault 节点/边/文件数 |
-| `+` 自定义 | — | 自己写 Skill.md |
+| `ingest` | 摄入 / 整理文件 | `_raw/YYYY-MM/` → `_wiki/{topic}/` |
+| `query` | 搜索 / 查一下 | FTS5 全文搜索 + 引用 |
+| `lint` | 健康检查 | 5 类（死链/孤立/过期/矛盾/总数） |
+| `stats` | 知识库统计 | topic/文件/节点/边数 |
+| `log` | 自动追加 | 任何操作后追加 `log.md` |
+| `ingest-batch` | 批量导入 | 一次性 ingest 整个月份 |
+| `conversation-summary` | 对话存档 | 摘要到 `_briefing/conversations/` |
 
-详见 [`src/main/templates/Agents.md`](src/main/templates/Agents.md) 顶部索引表。
+详见 [`src/main/templates/Agents.md`](src/main/templates/Agents.md) 顶部索引表 + [`src/main/templates/skills/`](src/main/templates/skills/) 7 个独立模板。
 
 ### 自己的 Skill.md
 
@@ -91,6 +90,8 @@ open ~/Downloads/晓园-Vault-1.4.0-free.dmg
 chmod +x 晓园-Vault-1.4.0-free.AppImage
 ./晓园-Vault-1.4.0-free.AppImage
 ```
+
+> macOS 用户优先下 arm64 dmg（Apple Silicon 原生，比 x64-on-Rosetta 快 5-15%）
 
 ### 从源码运行（开发模式）
 
@@ -126,39 +127,24 @@ npm run dev
 
 ---
 
-## 性能 (2026-06-03 更新)
+## 性能 (产品视角)
 
-最近一次性能优化（6 个 commits，详见 [CHANGELOG.md](CHANGELOG.md)）：
+- **500+ 文件 vault 流畅滚动** — FileTree 完全虚拟化，不嵌套
+- **大型知识图谱首屏秒开** — lazy + Suspense 加载
+- **AI 不白屏** — ErrorBoundary 降级，子组件出错不挂整个 app
+- **外部文件修改自动感知** — `fs.watch` + 500ms debounce，Vault 不用手动刷新
 
-| 维度 | v1.4.0 起点 | 现在 | 提升 |
-|------|-------------|------|------|
-| 主 bundle 大小 | 2,650 KB | **521 KB** | **-80%** |
-| FileTree DOM 节点（500+ 文件） | 500+ 嵌套 | **~30 虚拟可见** | **-94%** |
-| Graph 增量重建 | 全量 5s | **200ms** | **-96%** |
-| SettingsPanel | 649 行 / 15 useState | **51 行 / 0** | -92% |
-| KnowledgeGraph 首屏 | 同步加载 2.6MB | **lazy + Suspense** | 首屏不加载 d3 |
-| 致命错误防御 | 白屏整个 app | **ErrorBoundary 降级** | 防白屏 |
-| 外部文件变化感知 | 不感知 | **500ms 内自动重建** | 新增 |
-
-### 性能优化 Commit 历史
-
-| Commit | 内容 |
-|--------|------|
-| `041417e` | 拆 SettingsPanel (649→51) + ErrorBoundary + Skeleton |
-| `e43ac73` | App.tsx ErrorBoundary wrap + KnowledgeGraph lazy |
-| `be2ed63` | FileTree 拍平版 + Graph 增量 IPC |
-| `a76ccd4` | FileTree 接 react-window FixedSizeList 完整虚拟化 |
-| `cb6ba97` | Editor memo + Bundle code-split (-80%) + 按钮反馈 |
-| `dc38909` | Graph 接 file:changed 事件（外部 app 修改感知） |
+具体优化历史和 commit 记录：见 [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
 ## 文档
 
-- [CHANGELOG.md](CHANGELOG.md) — 变更日志
+- [CHANGELOG.md](CHANGELOG.md) — 变更日志（**版本细节 / commit 列表**）
 - [docs/SKILL_WORKFLOW.md](docs/SKILL_WORKFLOW.md) — Skill.md 工作流
 - [docs/DEPLOY.md](docs/DEPLOY.md) — 构建 / 部署指南
 - [docs/ENGINEERING_MAP.md](docs/ENGINEERING_MAP.md) — 工程导航
+- [docs/E2E_TESTING.md](docs/E2E_TESTING.md) — 跨设备手动测试手册
 
 ---
 
