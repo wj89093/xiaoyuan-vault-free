@@ -27,14 +27,14 @@ v1.6.1 修了 2 个 Skill 模板跟 UI 面板的字段脱节：
 
 ### 2. 复制测试 vault
 
-把 `test-vault-e2e/` 整个目录复制到另一台设备的某个路径（建议放在用户主目录，路径短一点方便输入）：
+把 `tests/e2e-vault/` 整个目录复制到另一台设备的某个路径（建议放在用户主目录，路径短一点方便输入）：
 
 ```bash
 # macOS / Linux
-cp -r ~/Desktop/xiaoyuan-vault-free/~/Desktop/xiaoyuan-vault-free/test-vault-e2e ~/MyTestVault
+cp -r ~/Desktop/xiaoyuan-vault-free/tests/e2e-vault ~/MyTestVault
 
 # Windows
-xcopy /E /I C:\path\to\xiaoyuan-vault-free\~/Desktop/xiaoyuan-vault-free/test-vault-e2e %USERPROFILE%\MyTestVault
+xcopy /E /I C:\path\to\xiaoyuan-vault-free\tests\e2e-vault %USERPROFILE%\MyTestVault
 ```
 
 **结构**（已预生成）：
