@@ -8,7 +8,7 @@
   "files": [
     "out/**/*",
     "**/*.map",
-    "!**/node_modules/{mermaid,@mermaid-js,tesseract.js,tesseract.js-core,pdfjs-dist,exceljs,xlsx,mammoth,docx-preview,pptx-preview,echarts,@antfu,@babel,lucide-react,@napi-rs,pdf-parse,cytoscape,cytoscape-fcose,react-dom,react-router-dom,d3,lodash,@types,katex,react-router,codepage,zrender}/**"
+    "!**/node_modules/{mermaid,@mermaid-js,tesseract.js,tesseract.js-core,pdfjs-dist,exceljs,xlsx,mammoth,docx-preview,pptx-preview,echarts,@antfu,@babel,lucide-react,@napi-rs,pdf-parse,cytoscape,cytoscape-fcose,react-dom,react-router-dom,d3,lodash,@types,katex,react-router,codepage,zrender,es-toolkit,zlibjs,underscore,lodash-es}/**"
   ],
   "asarUnpack": [
     "**/*.node",
