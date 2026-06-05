@@ -32,3 +32,7 @@ bubble.html
 # auth-gateway runtime
 auth-gateway/data/*.db
 auth-gateway/logs/
+
+# Pro 仓库残留资源 (开源版不需要 OCR/whisper)
+resources/whisper/
+resources/scripts/
