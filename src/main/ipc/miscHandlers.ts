@@ -48,6 +48,62 @@ export function registerMiscHandlers(): void {
     return loadGraph()
   })
 
+  // P0-3 (v1.7): Agent 文本查询图谱 (替代"看 KG 截图猜节点")
+  //   - 不传 name: 返所有节点 + 边 (LIMIT 500 防暴)
+  //   - 传 name: 按 title / tags 模糊匹, 返匹中节点 + 邻接边
+  //   - maxNeighbors: 返每个匹中节点最多 N 个邻居 (默认 10)
+  ipcMain.handle(
+    'kg:queryTopics',
+    async (
+      _,
+      name?: string,
+      options?: { maxNeighbors?: number; maxResults?: number }
+    ) => {
+      const graph = await loadGraph()
+      if (!graph) {
+        return { nodes: [], edges: [], query: name ?? '' }
+      }
+
+      const maxResults = options?.maxResults ?? 50
+      const maxNeighbors = options?.maxNeighbors ?? 10
+
+      // 过滤节点
+      const matchedNodes = !name
+        ? graph.nodes
+        : graph.nodes.filter(
+            (n) =>
+              n.title.toLowerCase().includes(name.toLowerCase()) ||
+              n.tags?.some((t) => t.toLowerCase().includes(name.toLowerCase()))
+          )
+      const limited = matchedNodes.slice(0, maxResults)
+
+      // 拼邻接边 (只返从匹中节点出发的边)
+      const ids = new Set(limited.map((n) => n.id))
+      const edges = graph.edges
+        .filter((e) => ids.has(e.source) || ids.has(e.target))
+        .slice(0, maxNeighbors * limited.length) // 粗限, 后面会按节点再限
+
+      // 按节点截断 (每节点最多 maxNeighbors 条边)
+      const perNodeEdgeCount = new Map<string, number>()
+      const finalEdges: typeof edges = []
+      for (const e of edges) {
+        const sCount = perNodeEdgeCount.get(e.source) ?? 0
+        const tCount = perNodeEdgeCount.get(e.target) ?? 0
+        if (ids.has(e.source) && sCount >= maxNeighbors) continue
+        if (ids.has(e.target) && tCount >= maxNeighbors) continue
+        finalEdges.push(e)
+        if (ids.has(e.source)) perNodeEdgeCount.set(e.source, sCount + 1)
+        if (ids.has(e.target)) perNodeEdgeCount.set(e.target, tCount + 1)
+      }
+
+      return {
+        query: name ?? '',
+        nodes: limited,
+        edges: finalEdges
+      }
+    }
+  )
+
   // Open a file in the editor (sets selectedFile + loads content into editor)
   ipcMain.handle('vault:openFile', async (_, filePath: string) => {
     const vaultPath = getVaultPath()

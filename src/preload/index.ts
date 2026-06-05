@@ -192,6 +192,9 @@ const graph = {
   // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
   rebuildIncremental: (changedFiles: string[]) =>
     handler<{ nodes: number; edges: number }>('graph:rebuildIncremental', changedFiles),
+  // v1.7 (P0-3): Agent 文本查询图谱 (替代"看 KG 截图猜节点")
+  queryTopics: (name?: string, options?: { maxNeighbors?: number; maxResults?: number }) =>
+    handler<{ query: string; nodes: any[]; edges: any[] }>('kg:queryTopics', name, options),
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
   onFileChange: (cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void) =>
     onEvent('file:changed', cb as any),
