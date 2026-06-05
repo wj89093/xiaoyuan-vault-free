@@ -1,6 +1,6 @@
 # 晓园 Vault — 工程地图
 
-> 版本：v1.4 | 更新：2026-05-27
+> 版本：v1.6.1-free | 更新：2026-06-05 | **Free 仓库视角**
 > 用途：开发时快速定位代码、理解模块关系
 
 ---
@@ -8,28 +8,31 @@
 ## 一、项目结构
 
 ```
-xiaoyuan-Vault/
+xiaoyuan-vault-free/
 ├── src/
 │   ├── main/              # Electron 主进程
 │   │   ├── index.ts       # 入口（createWindow、app lifecycle）
-│   │   ├── ipc/           # IPC handler 注册（7 个模块）
-│   │   ├── services/      # 核心业务逻辑（16 个服务域）
-│   │   ├── templates/     # vault 初始化模板 + Agent 系统提示
-│   │   └── graphUtils.ts  # 知识图谱 D3 工具
+│   │   ├── ipc/           # IPC handler 注册（8 个模块 + 1 个 test）
+│   │   ├── services/      # 核心业务逻辑（14 个服务域 + 3 个顶层文件）
+│   │   ├── templates/     # vault 初始化模板 + Agent 系统提示（含 skills/ 7 个 Skill）
+│   │   └── buildFeatures.ts # IS_PRO 守卫
 │   ├── preload/           # contextBridge 暴露 API 给 renderer
 │   │   └── index.ts       # window.api.* 的所有定义
-│   ├── renderer/         # React 19 UI
+│   ├── renderer/          # React 19 UI
 │   │   ├── App.tsx        # 根组件
-│   │   ├── components/   # UI 组件（31 个）
-│   │   ├── hooks/         # React hooks（23 个）
-│   │   ├── utils/         # 编辑器工具
-│   │   └── contexts/      # D3 context provider
-│   └── shared/            # main ↔ renderer 共享类型
-│       ├── chat.ts        # ChatMessage, ChatSession, AskResult
-│       └── window.d.ts    # 窗口类型声明
-├── docs/                  # 架构文档（~33 活跃 + 18 归档）
-├── auth-gateway/          # 独立认证网关服务
-└── electron.vite.config.ts
+│   │   ├── components/    # UI 组件（37 个 .tsx）
+│   │   ├── hooks/         # React hooks（24 个 .ts）
+│   │   ├── styles/        # CSS（global / panels / inline-preview）
+│   │   └── utils/         # 编辑器工具
+│   ├── shared/            # main ↔ renderer 共享类型
+│   │   └── window.d.ts    # 窗口类型声明
+│   ├── test/              # 单元测试（顶层）
+│   └── main/              # 测试（按目录镜像）
+│       ├── ipc/           # skillHandlers.test.ts 等
+│       └── services/      # operations / graph / frontmatter / chat / search 等
+├── docs/                  # 架构文档（3 个活跃）
+├── electron.vite.config.ts
+└── package.json
 ```
 
 ---
@@ -48,33 +51,39 @@ Preload（contextBridge）
     ▼
 IPC Handlers（src/main/ipc/）
     │
-    ├── fileHandlers/     → 文件系统 CRUD + 导入 + 垃圾桶
-    ├── conversationHandlers → AI 对话 + Agent Session 路由
+    ├── fileHandlers/     → 文件 CRUD + 导入 + 垃圾桶
     ├── importHandlers    → 文件导入窗口
-    ├── maintainHandlers  → Lint + Schema + 维护任务
-    ├── vaultHandlers     → vault 创建/打开/生命周期
-    ├── authHandlers      → 认证（JWT / OAuth）
-    └── miscHandlers      → 图谱/搜索/剪贴板/内容识别
+    ├── maintainHandlers  → Lint + Schema + 维护任务 + 对话摘要
+    ├── vaultHandlers     → vault 创建/打开/生命周期 + Skill 模板递归拷贝
+    ├── settingsHandlers  → SkillSection IPC
+    ├── skillHandlers     → Skill 默认加载（注入层）
+    ├── authHandlers      → 认证（Free 仓库保留入口，auth-gateway 未部署）
+    └── miscHandlers      → 图谱/搜索/剪贴板/内容识别/query:vault
     │
     ▼
 Services（src/main/services/）
     │
-    ├── agent/            → Agent 工具定义 + Session 管理
-    │   ├── tools.ts       → TOOL_DEFS + TOOL_HANDLERS
-    │   ├── sessionManager.ts → Agent 会话生命周期
-    │   └── types.ts       → 类型定义
-    ├── ai/               → AI 调用 + Chat 窗口
-    │   ├── SelfAgentAdapter.ts（~109行）
-    │   ├── aiService.ts   → callAI / callAIGateway
-    │   ├── aiChatTools.ts → AI Chat 工具注册
-    │   └── aiChatWindow.ts → AI Chat 窗口管理
-    ├── database.ts       → vault 路径 / 文件索引
-    ├── operations/crud.ts → 文件 CRUD（InVault + DB-aware）
-    ├── graph.ts           → 知识图谱构建
-    ├── search/            → 全文搜索 + RAG 检索
-    ├── briefing/          → 每日简报生成
-    ├── lint/              → Lint 报告 + 维护任务
-    └── ...
+    ├── ai/               → 底层 callAI（Free 仓库无自研 Agent，外部 Agent 接入）
+    ├── briefing/         → 每日简报 + 对话摘要（MemoryPanel 数据源）
+    ├── chat/             → 会话存储（chat-sessions.json 保留，Pro 仓库模块）
+    ├── clipboard/        → 剪贴板监听（Free 仓库保留，浮窗在 Pro 仓库）
+    ├── database/         → vault 路径 + 文件索引 DB
+    ├── frontmatter/      → YAML frontmatter 解析
+    ├── graph/            → 知识图谱构建 + 增量重建
+    ├── lint/             → 5 类健康检查（maintain.ts）+ 报告持久化
+    ├── memory/           → Agent 记忆系统
+    ├── operations/       → 文件 CRUD + 转换 + enrich
+    ├── schema/           → Schema 存储
+    ├── search/           → FTS5 全文搜索 + RAG
+    ├── urlFetch/         → URL 抓取（微信/YouTube/B站等）
+    └── utils/            → 工具函数
+    │
+    ▼
+存储
+    ├── SQLite（vault DB）
+    ├── FTS5 全文搜索索引
+    ├── 文件树（_raw/ _wiki/ _briefing/ _schema/ _lint/ _output/）
+    └── log.md（append-only 操作日志）
 ```
 
 ---
@@ -86,40 +95,60 @@ Services（src/main/services/）
 | 文件 | 职责 | 关键 IPC |
 |------|------|---------|
 | `vaultHandlers.ts` | vault 创建/打开/最近 | `vault:open/create/listDir/getLast` |
-| `fileHandlers/index.ts` | 文件 CRUD 总入口 | 委托到 crud/import/misc/trash |
+| `settingsHandlers.ts` | 设置 + SkillSection | `settings:get/set`, `skill:loadDefault` 等 |
+| `skillHandlers.ts` | Skill 默认加载（注入层） | `skill:loadDefault` 拼 skills/ 目录 + MARKDOWN_CAPABILITIES |
+| `fileHandlers/` | 文件 CRUD 总入口 | 委托到 crud/import/misc/trash |
 | `fileHandlers/crudHandlers.ts` | 文件读/写/删/移/搜 | `file:read/write/delete/move/rename/list/search` |
 | `fileHandlers/importHandlers.ts` | 文件导入 + 拖放 | `file:import/importFromDialog` |
 | `fileHandlers/trashHandlers.ts` | 垃圾桶 | `file:trash/list/restore/delete/empty` |
 | `fileHandlers/miscHandlers.ts` | 渲染/格式转换 | `file:render/convert/getSupportedExtensions` |
-| `conversationHandlers.ts` | AI 对话 + Agent 会话 | `chat:ask/askStream/sessions` |
 | `importHandlers.ts` | 导入窗口 + 自动导入 | `import:open/autoTrigger` |
-| `maintainHandlers.ts` | 维护+Lint+Schema | `maintain:run/lint` `schema:list/getPending` |
-| `authHandlers.ts` | 认证 | `auth:getToken/clear/openLogin` |
-| `miscHandlers.ts` | 图谱/搜索/剪贴板 | `graph:load/rebuild` `clipboard:start` `query:vault` |
+| `maintainHandlers.ts` | 维护+Lint+Schema+对话摘要 | `maintain:run/lint` `schema:list/getPending` `briefing:getConversations` |
+| `authHandlers.ts` | 认证入口（Free 仓库未部署 auth-gateway）| `auth:getToken/clear/openLogin` |
+| `miscHandlers.ts` | 图谱/搜索/剪贴板/query | `graph:load/rebuild` `clipboard:start` `query:vault` |
 
 ### Services（src/main/services/）
 
 | 服务域 | 关键文件 | 职责 |
 |--------|---------|------|
-| **agent/** | `tools.ts`, `sessionManager.ts`, `types.ts` | Agent 工具定义 + 会话管理 |
-| **ai/** | `SelfAgentAdapter.ts`, `aiService.ts`, `aiChatTools.ts`, `aiChatWindow.ts` | AI 调用 + Chat UI |
-| **database** | `database.ts` | vault 路径 + 文件索引 DB |
-| **operations** | `crud.ts`, `converters.ts`, `enrich.ts`, `fileProcessor.ts` | 文件操作 + 转换 |
-| **graph** | `graph.ts` | 知识图谱（TF-IDF + 边构建）|
-| **search** | `search.ts`, `query.ts`, `ragService.ts`, `indexService.ts` | 搜索 + RAG |
-| **frontmatter** | `parse.ts`, `template.ts`, `links.ts` | YAML frontmatter |
-| **chat** | `chat.ts`, `chatSessions.ts` | 会话管理 + askQuestionStream |
-| **briefing** | `briefing.ts`, `bubbleState.ts` | 每日简报 |
-| **lint** | `lintReports.ts`, `maintain.ts` | Lint + 维护 |
-| **schema** | `schemaStorage.ts` | Schema 管理 |
-| **clipboard** | `clipboard.ts` | 剪贴板 + Bubble 窗口 |
-| **urlFetch** | `index.ts`, `providers.ts` | URL 抓取（微信/YouTube/B站等）|
-| **memory** | `agentMemory.ts` | Agent 记忆系统 |
-| **utils** | `whisper.ts`, `resolver.ts`, `operationLog.ts` | 工具函数 |
+| **ai/** | `aiService.ts` | callAI 底层（Free 仓库无 SelfAgentAdapter） |
+| **briefing/** | `briefing.ts`, `bubbleState.ts` | 每日简报 + 对话摘要（MemoryPanel 数据源）|
+| **chat/** | `chat.ts`, `chatSessions.ts` | 会话存储（chat-sessions.json，Pro 仓库模块） |
+| **clipboard/** | `clipboard.ts` | 剪贴板监听（Free 仓库保留，浮窗在 Pro 仓库）|
+| **database/** | `database.ts` | vault 路径 + 文件索引 DB |
+| **frontmatter/** | `parse.ts`, `template.ts`, `links.ts` | YAML frontmatter |
+| **graph/** | `graph.ts`, `graphQueries.ts` | 知识图谱（增量重建）|
+| **lint/** | `lintReports.ts`, `maintain.ts` | 5 类健康检查 + 报告持久化 |
+| **memory/** | `agentMemory.ts` | Agent 记忆系统 |
+| **operations/** | `crud.ts`, `converters.ts`, `enrich.ts`, `fileProcessor.ts` | 文件操作 + 转换 + enrich |
+| **schema/** | `schemaStorage.ts` | Schema 管理 |
+| **search/** | `search.ts`, `query.ts`, `ragService.ts`, `indexService.ts` | FTS5 + RAG |
+| **urlFetch/** | `index.ts`, `providers.ts` | URL 抓取 |
+| **utils/** | `whisper.ts`, `resolver.ts`, `operationLog.ts` | 工具函数 |
 
-### Agent 工具（Agent Tools）
+**顶层文件**（不在 services/ 子目录）：
+- `backupManager.ts` — vault 备份
+- `config.ts` — 配置加载
+- `fileWatcher.ts` — `fs.watch` 监听（500ms debounce） → emit `file:changed`
 
-> 定义位置：`src/main/services/agent/tools.ts`
+### 7 个 Skill 模板（src/main/templates/skills/，v1.6.x）
+
+| Skill | frontmatter 字段 | UI 渲染 | 验证 |
+|-------|------------------|---------|------|
+| `ingest.md` | （无）| FileTree + Editor | skills-templates.test.ts |
+| `ingest-batch.md` | （无）| FileTree + Editor | ↑ |
+| `lint.md` | `date, health, totalFiles` | LintPanel（5 类）| ↑ + briefing.ts 解析 |
+| `query.md` | （无）| 无（外部 Agent）| skills-templates.test.ts |
+| `stats.md` | （无）| 无（外部 Agent）| ↑ |
+| `log.md` | （无）| LogPanel | ↑ |
+| `conversation-summary.md` | `date, time, title, topic, sources` | MemoryPanel | ↑ + briefing.ts frontmatter 解析 |
+
+**已废弃**（v1.6.1 删除）：`write.md`, `list-sessions.md`（见 `docs/SKILL_WORKFLOW.md`）
+
+### Agent 工具（4 个原子工具）
+
+> Agent 自身提供工具栈（OpenClaw MCP / Claude Code / 自建），晓园不调度
+> Free 仓库**不包含**自研 Agent 实现（Pro 仓库的 `services/agent/` + `ai/SelfAgentAdapter.ts`）
 
 | 工具 | 参数 | 用途 |
 |------|------|------|
@@ -128,40 +157,25 @@ Services（src/main/services/）
 | `edit` | `{path, oldText, newText}` | 精确文本替换编辑 |
 | `bash` | `{cmd}` | 执行 shell 命令（安全沙箱，禁止 rm -rf / 路径遍历） |
 
-### AI Chat 工具（aiChatTools）
-
-> 定义位置：`src/main/services/ai/aiChatTools.ts`
-
-| 工具 | 用途 |
-|------|------|
-| `listFiles` | 列出 vault 文件树 |
-| `readFile` | 读文件内容 |
-| `searchFiles` | 全文搜索 |
-| `writeWiki` | 创建/更新 wiki 页面 |
-| `renameFile / moveFile / deleteFile` | 文件操作 |
-| `createFolder / deleteFolder` | 文件夹操作 |
-| `importFiles / importFilesFromDialog` | 文件导入 |
-| `runLint` | 触发 Lint 健康检查 |
-
-### Renderer 组件（src/renderer/components/）
+### Renderer 组件（src/renderer/components/，37 个）
 
 | 组件 | 职责 |
 |------|------|
 | `VaultRouter.tsx` | 主面板路由（编辑/图谱/设置/Lint/日志） |
-| `FileTree.tsx` + `FileTreeNode.tsx` | 递归文件树 |
+| `FileTree.tsx` + `FileTreeFlatRow.tsx` + `FileTreeNode.tsx` + `FileTreeRow.tsx` | 拍平版 + 虚拟化（react-window）+ 递归版 |
 | `FileTreeContextMenu.tsx` | 右键菜单（打开/重命名/删除/转化/复制路径） |
 | `FileTreeHoverPreview.tsx` | 文件悬停预览 |
-| `Editor.tsx` | Markdown/Office 编辑器 |
+| `Editor.tsx` | Markdown/Office 编辑器（CM6） |
 | `EditorContextMenu.tsx` | 编辑器右键菜单 |
 | `EditorHeader.tsx` | 编辑器顶部栏（文件名/保存/预览切换） |
 | `KnowledgeGraph.tsx` + `KnowledgeGraphViz.tsx` | D3 知识图谱 |
 | `SearchPanel.tsx` + `SearchResults.tsx` | 浮层搜索 |
-| `OutputPanel.tsx` | Agent 产出面板（`_output/README.md`） |
-| `MemoryPanel.tsx` | 对话摘要面板 |
+| `OutputPanel.tsx` | 产出面板（`_output/README.md`） |
+| `MemoryPanel.tsx` | 对话摘要面板（v1.6.1 跟 conversation-summary frontmatter 对齐）|
 | `BacklinksPanel.tsx` | 反向链接面板 |
-| `LintPanel.tsx` | Lint 结果面板 |
+| `LintPanel.tsx` | Lint 结果面板（v1.6.1 跟 lint 模板输出对齐 5 类）|
 | `SchemaPanel.tsx` | Schema 管理面板 |
-| `SettingsPanel.tsx` | 设置面板 |
+| `SettingsPanel.tsx` + `SettingsSections.tsx` | 设置面板（51 行 + 4 个子组件）|
 | `LogPanel.tsx` | 操作日志面板 |
 | `TrashPanel.tsx` | 垃圾桶面板 |
 | `IconSidebar.tsx` | 左侧图标导航 |
@@ -172,46 +186,63 @@ Services（src/main/services/）
 | `FloatingPanel.tsx` | 通用浮层面板 |
 | `Toast.tsx` | Toast 通知 |
 | `WelcomeScreen.tsx` + `VaultCreationWizard.tsx` | 导引 |
+| `ErrorBoundary.tsx` + `Skeleton.tsx` | 防御 + 加载占位（v1.4.0）|
+| `MermaidTest.tsx` | Mermaid 调试 |
+
+### Renderer Hooks（src/renderer/hooks/，24 个）
+
+> 详见 `src/renderer/hooks/`（按用途分组：useChat / useVault / useEditor / useFileTree / useKnowledgeGraph 等）
 
 ---
 
 ## 四、关键机制
 
-### 1. Agent 系统
-- **入口**：`SelfAgentAdapter.ts（~109行），自研实现，不依赖 pi-agent-core
-- **工具**：4 个原子工具（read/write/edit/bash），由 `agent/tools.ts` 定义
-- **会话**：`agent/sessionManager.ts` 管理生命周期
-- **系统提示**：`templates/LLM-wiki.md` + `templates/Agents.md`
-- **上下文**：读 `index.md` 理解 vault 结构，不走 RAG 向量检索
+### 1. Agent 系统（外部接入）
+- **入口**：`src/main/templates/AGENTS.md`（仓库根 10 行标准）—— 任何 AGENTS.md 兼容 Agent 自动加载
+- **工具**：4 个原子工具（read/write/edit/bash），由 Agent 自身提供
+- **系统提示**：`src/main/templates/Agents.md`（v2.4）+ `src/main/templates/skills/*.md`（7 个 Skill）
+- **Skill 注入层**（v1.6+）：`skillHandlers.ts:loadDefault` 拼 skills/ 整个目录 + MARKDOWN_CAPABILITIES.md
+- **上下文**：Agent 读 `index.md` 理解 vault 结构，不走 RAG 向量检索
 - **输出约束**：非 `.md` 文件 → 自动 `_output/`（双层：system prompt + handler）
 
 ### 2. 核心动线
 ```
-拖文件到 _raw/ → 右键「转化」→ Agent 读 index.md 
-  → 分析 topic → 生成 _wiki/{topic}/xxx.md → 更新 index.md
+Agent 收到用户消息 → 匹配触发词 → 激活对应 Skill 模板
+  → 读 index.md 了解 vault 结构
+  → 读/写/编辑对应文件
+  → 追加 log.md
+  → 通知用户
 ```
 
-### 3. Bubble 剪贴板
-- 悬浮窗口，拖放/粘贴内容
-- IPC：`bubble:expand/drop/save/move`
-- 文件：`services/clipboard/clipboard.ts` + `main/bubble.html`
+### 3. Skill 模板 ↔ UI 接口对齐（v1.6.1）
+- `conversation-summary.md` frontmatter 5 字段 = `MemoryPanel.ConversationSummary` 接口
+- `lint.md` 输出格式 5 类 = `LintPanel.ParsedLintReport.stats` 5 项
+- `skills-templates.test.ts` 用 9 个对齐断言锁住
 
-### 4. IPC 通信约定
+### 4. 文件监听（v1.4.0+）
+- `services/fileWatcher.ts` 用 `fs.watch` 监听 vault 目录
+- 500ms debounce → emit `file:changed` 事件
+- Graph 增量重建（`graph:rebuildIncremental`）只重算相关边
+
+### 5. IPC 通信约定
 - **renderer → main**：`ipcRenderer.invoke('channel', ...args)`
 - **main → renderer**：`webContents.send('channel', data)`
 - preload 用 `contextBridge` 安全暴露 `window.api`
 
-### 5. vault 目录结构
+### 6. vault 目录结构
 ```
-_vault/
-├── _raw/       # 原材料（用户导入的文件）
-├── _wiki/      # AI 生成的知识页面
-├── _briefing/  # 每日简报 + 对话摘要
-│   └── conversations/
-├── _schema/    # 领域 schema
-├── _lint/      # Lint 报告
-├── _output/    # Agent 产出物（非 .md 文件）
-└── index.md    # Agent 导航索引（最重要）
+vault/
+├── _raw/{YYYY-MM}/         # 原材料（只读，AI 不修改）
+├── _wiki/{topic}/          # AI 生成的知识页面
+├── _briefing/
+│   ├── {date}.md           # 每日简报
+│   └── conversations/{YYYY-MM-DD}/conv-HHMM.md  # 对话摘要
+├── _schema/                # 领域 schema
+├── _lint/                  # Lint 报告
+├── _output/                # Agent 产出物（非 .md 文件）
+├── log.md                  # 操作日志（append-only）
+├── index.md                # Agent 导航索引（最重要）
+└── LLM-wiki.md             # AI 控制平面
 ```
 
 ---
@@ -220,14 +251,19 @@ _vault/
 
 ```bash
 # 开发
-npm run dev          # 启动开发模式
-npm run build        # 构建生产版本
+npm run dev                    # 启动 dev server
+npm run build                  # 构建到 out/ (5.6s)
 
 # 测试
-npm test             # 单元测试（18 files，273 tests）
+npm test                       # 单元测试（17 files, 187 tests, 1 skipped, 1.5s）
+npx vitest run path/to/file    # 单文件测试
+npx vitest --ui                # 启动测试 UI
 
-# 打包
-npm run package      # 打包安装包
+# 质量
+npm run lint                   # ESLint（0 errors）
+
+# 打包（仅 Free 仓库）
+./scripts/build-free.sh        # 输出 dist/*.dmg / *.exe / *.AppImage
 ```
 
 ---
@@ -236,14 +272,12 @@ npm run package      # 打包安装包
 
 | 文档 | 用途 |
 |------|------|
-| `ENGINEERING_MAP.md` | 本文档：工程导航地图 |
-| `API.md` | IPC handler 接口参考（95+ handlers） |
-| `ARCHITECTURE_REVIEW_V4.md` | 架构审查报告 |
-| `CHANGELOG.md` | 版本变更记录 |
-| `QA_TEST_CASES.md` | QA 测试用例 |
-| `CODING_STANDARDS.md` | 编码规范 |
-| `SKILLS.md` | 技能文档 |
-| `pre-launch-checklist.md` | 上线检查清单 |
+| `ENGINEERING_MAP.md` | 本文档：Free 仓库工程导航（v1.6.1）|
+| `SKILL_WORKFLOW.md` | 7 个 Skill 模板 + AGENTS.md 工作流（v1.6.x 重写）|
+| `DEPLOY.md` | 构建 / 打包指南（v1.3+，部分需更新）|
+| `CHANGELOG.md` | 版本变更记录（v1.6.1 头部已同步）|
+
+> Pro 仓库有更多文档（`API.md` / `ARCHITECTURE_REVIEW_V4.md` / `QA_TEST_CASES.md` / `CODING_STANDARDS.md` / `pre-launch-checklist.md` / `SKILLS.md`），Free 仓库不复制。
 
 ---
 
@@ -253,16 +287,12 @@ npm run package      # 打包安装包
 |------|--------|
 | 新增 UI 组件 | `src/renderer/components/` |
 | 新增 IPC handler | `src/main/ipc/` + `preload/index.ts` |
-| 新增 Agent 工具 | `src/main/services/agent/tools.ts`（TOOL_DEFS + TOOL_HANDLERS） |
-| 修改 Agent 会话 | `src/main/services/agent/sessionManager.ts` |
-| 修改 system prompt | `src/main/templates/LLM-wiki.md` |
-| 修改 AI Chat 工具 | `src/main/services/ai/aiChatTools.ts` |
-| 修改 Bubble 行为 | `services/clipboard/clipboard.ts` + `bubble.html` |
-| 修改文件树 | `FileTree.tsx` + `FileTreeNode.tsx` |
-| 修改右键菜单 | `FileTreeContextMenu.tsx` / `EditorContextMenu.tsx` |
-| 修改 vault 初始化结构 | `src/main/templates/` |
-| 新增 Lint 检查项 | `src/main/services/lint/maintain.ts` |
+| 新增 / 改 Skill 模板 | `src/main/templates/skills/*.md`（v1.6.x 7 个）|
+| 修改 Agent system prompt | `src/main/templates/Agents.md`（v2.4）|
+| 修改 vault 初始化结构 | `src/main/templates/`（含 skills/）|
+| 新增 Lint 检查项 | `src/main/services/lint/maintain.ts`（记得同步 LintPanel 渲染）|
 | 修改文件导入逻辑 | `fileHandlers/importHandlers.ts` + `operations/fileProcessor.ts` |
-| 修改 AI 服务调用 | `services/ai/aiService.ts` |
-| 修改 Schema 系统 | `maintainHandlers.ts` + `services/schema/schemaStorage.ts` |
-| 修改 WikiLink 跳转 | `src/renderer/App.tsx`（handleEditorWikiLink） |
+| 修改文件树 | `FileTree.tsx` + `FileTreeNode.tsx` + `FileTreeFlatRow.tsx` |
+| 修改 WikiLink 跳转 | `src/renderer/App.tsx`（handleEditorWikiLink）|
+| 修改 briefing 字段 | `briefing.ts:ConversationSummary` + MemoryPanel + conversation-summary.md 三方对齐 |
+| 修改 Lint 报告字段 | `maintain.ts:MaintainReport` + LintPanel + lint.md 三方对齐 |
