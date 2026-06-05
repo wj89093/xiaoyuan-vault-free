@@ -105,7 +105,8 @@ export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelPro
               border: '1px solid var(--color-border)',
               background: loading ? 'var(--color-surface-hover)' : 'var(--color-surface)',
               cursor: loading ? 'not-allowed' : 'pointer',
-              color: loading ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)'
+              color: loading ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
+              transition: 'var(--transition-base)'
             }}
           >
             <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />{' '}

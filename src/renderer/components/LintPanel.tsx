@@ -133,7 +133,8 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
             border: '1px solid var(--color-border)',
             background: runningCheck ? 'var(--color-surface-hover)' : 'var(--color-surface)',
             cursor: runningCheck ? 'not-allowed' : 'pointer',
-            color: runningCheck ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)'
+            color: runningCheck ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
+            transition: 'var(--transition-base)'
           }}
         >
           <Activity size={11} /> {runningCheck ? '检查中...' : '健康检查'}
@@ -153,7 +154,8 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
             border: '1px solid var(--color-border)',
             background: refreshing ? 'var(--color-surface-hover)' : 'var(--color-surface)',
             cursor: refreshing ? 'not-allowed' : 'pointer',
-            color: refreshing ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)'
+            color: refreshing ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
+            transition: 'var(--transition-base)'
           }}
         >
           <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />{' '}
