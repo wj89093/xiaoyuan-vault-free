@@ -6,4 +6,4 @@
  * 此文件保留是为了让其它代码中的 `if (IS_PRO)` 守卫仍然能编译通过（守卫永远为 false）。
  */
 export const IS_PRO = false
-// 注：开源版 = !Pro，调用方可用 `!IS_PRO` 表示 IS_OPEN_SOURCE
+export const IS_OPEN_SOURCE = true
