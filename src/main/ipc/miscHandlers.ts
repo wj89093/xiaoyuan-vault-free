@@ -62,7 +62,7 @@ export function registerMiscHandlers(): void {
   ipcMain.handle('app:buildInfo', () => ({
     isPro: IS_PRO,
     isOpenSource: IS_OPEN_SOURCE,
-    buildTarget: process.env.BUILD_TARGET || 'pro',
+    buildTarget: process.env.BUILD_TARGET ?? 'pro',
   }))
   // ── Query ─────────────────────────────────────────────────────────
   ipcMain.handle('query:vault', async (_, question: string, options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }) => {
@@ -84,6 +84,7 @@ export function registerMiscHandlers(): void {
     if (!Array.isArray(changedFiles)) {
       return { nodes: 0, edges: 0, incremental: false }
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return rebuildGraphIncremental(changedFiles)
   })
 

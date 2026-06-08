@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import { memo, useState, useRef, useEffect, useMemo } from 'react'
 import type { FileInfo } from '../types'
 import { FileTreeContextMenu } from './FileTreeContextMenu'
@@ -266,6 +264,15 @@ export const FileTree = memo(function FileTree({
 
   // ── Render ────────────────────────────────────────────────────────
 
+  const emptyLabel = vaultPath ? '暂无文件' : '知识库还是空的'
+
+  // P3-2026-06-02: 派生拍平列表(给 FileTreeFlatRow 用)
+  // 暂未接入 react-window FixedSizeList,见 docs/PHASE3_PLAN_2026-06-02.md
+  const flatRows = useMemo(
+    () => flattenTree(roots, expandedFolders),
+    [roots, expandedFolders],
+  )
+
   if (isLoading) {
     return (
       <div className="file-tree" role="tree">
@@ -275,15 +282,6 @@ export const FileTree = memo(function FileTree({
       </div>
     )
   }
-
-  const emptyLabel = vaultPath ? '暂无文件' : '知识库还是空的'
-
-  // P3-2026-06-02: 派生拍平列表(给 FileTreeFlatRow 用)
-  // 暂未接入 react-window FixedSizeList,见 docs/PHASE3_PLAN_2026-06-02.md
-  const flatRows = useMemo(
-    () => flattenTree(roots, expandedFolders),
-    [roots, expandedFolders],
-  )
 
   if (files.length === 0) {
     return (
