@@ -1,6 +1,9 @@
 {
   "appId": "com.xiaoyuan.vault",
   "productName": "晓园 Vault",
+  "executableName": "Electron",
+  "asar": false,
+  "npmRebuild": false,
   "directories": {
     "buildResources": "resources",
     "output": "dist"
@@ -18,30 +21,24 @@
     "target": [
       {
         "target": "dmg",
-        "arch": ["x64", "arm64"]
+        "arch": ["arm64"]
       }
     ],
     "category": "public.app-category.productivity",
+    "hardenedRuntime": false,
+    "gatekeeperAssess": false,
     "extendInfo": {
-      "CFBundleName": "XiaoYuanVault"
-    }
+      "CFBundleName": "XiaoYuanVault",
+      "CFBundleExecutable": "Electron"
+    },
+    "identity": null
   },
   "afterPack": "scripts/after-pack.js",
   "win": {
-    "target": [
-      {
-        "target": "nsis",
-        "arch": ["x64"]
-      }
-    ]
+    "target": [{"target": "nsis", "arch": ["x64"]}]
   },
   "linux": {
-    "target": [
-      {
-        "target": "AppImage",
-        "arch": ["x64"]
-      }
-    ],
+    "target": [{"target": "AppImage", "arch": ["x64"]}],
     "category": "Office"
   },
   "nsis": {
