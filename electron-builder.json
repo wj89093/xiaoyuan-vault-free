@@ -1,8 +1,7 @@
 {
   "appId": "com.xiaoyuan.vault",
   "productName": "晓园 Vault",
-  "executableName": "Electron",
-  "asar": false,
+  "asar": true,
   "npmRebuild": false,
   "directories": {
     "buildResources": "resources",
@@ -27,10 +26,6 @@
     "category": "public.app-category.productivity",
     "hardenedRuntime": false,
     "gatekeeperAssess": false,
-    "extendInfo": {
-      "CFBundleName": "XiaoYuanVault",
-      "CFBundleExecutable": "Electron"
-    },
     "identity": null
   },
   "afterPack": "scripts/after-pack.js",
