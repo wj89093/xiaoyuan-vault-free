@@ -75,9 +75,26 @@ v1.4 仍保留用户写自己 Skill.md 的能力（**设置面板 → Skill.md**
 
 ### macOS
 
+**方式一：DMG 安装（推荐）**
+
+1. 下载 `晓园-Vault-1.8.0-free-arm64.dmg`
+2. 双击挂载 DMG
+3. **重要**：打开终端，运行以下命令解除安全限制：
+
 ```bash
-open ~/Downloads/晓园-Vault-1.4.0-free.dmg
-# 拖动到 /Applications
+sudo xattr -cr "/Volumes/晓园 Vault/晓园 Vault.app"
+```
+
+4. 将 app 拖入 /Applications
+
+**方式二：zip 安装**
+
+1. 下载 `晓园-Vault-1.8.0-free-arm64.zip`
+2. 解压后，在终端运行：
+
+```bash
+sudo xattr -cr ~/Downloads/晓园\ Vault.app
+mv ~/Downloads/晓园\ Vault.app /Applications/
 ```
 
 ### Windows
@@ -91,7 +108,9 @@ chmod +x 晓园-Vault-1.4.0-free.AppImage
 ./晓园-Vault-1.4.0-free.AppImage
 ```
 
-> macOS 用户优先下 arm64 dmg（Apple Silicon 原生，比 x64-on-Rosetta 快 5-15%）
+> macOS 用户优先下 arm64 dmg（Apple Silicon 原生）。
+>
+> **macOS 26+ 用户注意**：本应用未签名，首次打开需运行 `sudo xattr -cr` 命令解除 Gatekeeper 限制，详见上方安装说明。
 
 ### 从源码运行（开发模式）
 
