@@ -250,7 +250,40 @@ export async function createFolder(folderPath: string): Promise<boolean> {
 export async function listVaultFiles(): Promise<FileRecord[]> {
   const vp = getVaultPath()
   if (!vp) return []
-  return scanDirectory(vp)
+  const files = await scanDirectory(vp)
+  // Phase 2: _state/FS_CACHE.json (Obsidian 模式, 2026-06-11)
+  // 实时快照, 外部 AI read 一下就能看到 vault 文件树, 不需递归 ls
+  writeFsCache(vp, files).catch(() => {})
+  return files
+}
+
+// 写入 _state/FS_CACHE.json (Phase 2)
+async function writeFsCache(vaultPath: string, files: FileRecord[]): Promise<void> {
+  try {
+    const { mkdir, writeFile } = await import('fs/promises')
+    const { join } = await import('path')
+    const stateDir = join(vaultPath, '_state')
+    await mkdir(stateDir, { recursive: true })
+    // 只取一级 root 概况 (子文件 count), 减少 JSON 体积
+    const roots = files
+      .filter(f => !f.path.includes('/'))
+      .map(f => ({
+        path: f.path,
+        name: f.name,
+        isDirectory: f.isDirectory,
+        count: f.isDirectory ? files.filter(c => c.path.startsWith(f.path + '/')).length : undefined,
+        modified: f.isDirectory ? undefined : f.modified,
+      }))
+    const cache = JSON.stringify({
+      updatedAt: new Date().toISOString(),
+      totalFiles: files.filter(f => !f.isDirectory).length,
+      totalDirs: files.filter(f => f.isDirectory).length,
+      roots,
+    }, null, 2)
+    await writeFile(join(stateDir, 'FS_CACHE.json'), cache, 'utf-8')
+  } catch {
+    // silent — 外部 AI 看到旧 cache 也够用
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
