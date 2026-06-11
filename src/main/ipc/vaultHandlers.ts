@@ -13,30 +13,12 @@ import { startFileWatcher } from '../services/fileWatcher'
 // v1.5: 共享 readConfig/writeConfig (从 services/config 抽出来)
 import { readConfig, writeConfig } from "../services/config"
 
-const configPath = join(app.getPath('userData'), 'vault-config.json')
-
-async function readConfig(): Promise<Record<string, unknown>> {
-  try {
-    if (existsSync(configPath)) {
-      return JSON.parse(await readFile(configPath, 'utf-8')) as Record<string, unknown>
-    }
-  } catch {
-    log.warn('[Vault] operation failed')
-  }
-  return {}
-}
-
-async function writeConfig(data: Record<string, unknown>): Promise<void> {
-  await writeFile(configPath, JSON.stringify(data, null, 2), 'utf-8')
-}
-
 async function addVaultToList(vaultPath: string): Promise<void> {
   const config = await readConfig()
-  const vaults =
-    (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
+  const vaults = config.vaults ?? []
   const name = vaultPath.split('/').pop() ?? '未命名'
   const filtered = vaults.filter((v) => v.path !== vaultPath)
-  filtered.unshift({ path: vaultPath, name, lastOpened: Date.now() })
+  filtered.unshift({ path: vaultPath, name, lastOpenedAt: Date.now() })
   await writeConfig({ ...config, vaults: filtered.slice(0, 10), lastVaultPath: vaultPath })
 }
 
@@ -50,14 +32,15 @@ const VAULT_TEMPLATES: Array<[string, string]> = [
   ['vault-index-template.md', 'index.md'],
   ['vault-log-template.md', 'log.md'],
   ['vault-lint-template.md', '_lint/lint.md'],
-  ['vault-summary-template.md', '_briefing/summary.md']
+  ['vault-summary-template.md', '_briefing/summary.md'],
+  ['LLM-wiki.md', 'LLM-wiki.md'],
+  ['markdown-capabilities.md', 'MARKDOWN_CAPABILITIES.md'],
+  // Phase 1 (2026-06-11): 对接外部 AI 指引
+  ['connect-template.md', 'CONNECT.md'],
 ]
 const VAULT_OPTIONAL_TEMPLATES: Array<[string, string]> = [
   ['vault-usage-guide.md', '_wiki/使用说明.md'],
-  ['LLM-wiki.md', 'LLM-wiki.md'],
-  ['Agents.md', 'Agents.md'],
-  // v1.5: Agent 写入前必读 - 列出 CM6 支持的 markdown 扩展
-  ['markdown-capabilities.md', 'MARKDOWN_CAPABILITIES.md']
+  ['AGENTS.md', 'AGENTS.md'],
 ]
 
 async function initVaultDirs(vaultPath: string): Promise<void> {
@@ -118,7 +101,7 @@ export function registerVaultHandlers(): void {
 function registerVaultLifecycleHandlers(): void {
   ipcMain.handle('vault:getLast', async () => {
     const config = await readConfig()
-    const vaultPath = config.lastVaultPath as string | undefined
+    const vaultPath = config.lastVaultPath
     if (vaultPath && existsSync(vaultPath)) {
       await initDatabase(vaultPath)
       setVaultPath(vaultPath)
@@ -132,14 +115,14 @@ function registerVaultLifecycleHandlers(): void {
   // v1.5: 上次打开文件记忆 — 重开 vault 自动选中上次文件
   ipcMain.handle('vault:getLastFile', async (_event, vaultPath: string): Promise<string | null> => {
     const config = await readConfig()
-    const lastFiles = (config.lastFiles as Record<string, string> | undefined) ?? {}
+    const lastFiles = config.lastFiles ?? {}
     return lastFiles[vaultPath] ?? null
   })
 
   ipcMain.handle('vault:setLastFile', async (_event, vaultPath: string, filePath: string): Promise<boolean> => {
     try {
       const config = await readConfig()
-      const lastFiles = (config.lastFiles as Record<string, string> | undefined) ?? {}
+      const lastFiles = config.lastFiles ?? {}
       lastFiles[vaultPath] = filePath
       await writeConfig({ ...config, lastFiles })
       return true
@@ -173,18 +156,26 @@ function registerVaultLifecycleHandlers(): void {
         log.warn('[Vault] desktop symlink failed (non-critical):', e)
       }
 
+      // Phase 1: _state/VAULT_STATE.json (创建后立即写, 外部 AI 能读到)
+      await writeVaultState(vaultPath)
+
       return vaultPath
     }
   })
 
   ipcMain.handle('vault:clear', async () => {
-    await writeConfig({})
+    await writeConfig({ vaults: [] })
     return true
   })
 
   ipcMain.handle('vault:createAt', async (_, vaultPath: string) => {
     try {
-      return await createVaultAtPath(vaultPath)
+      const result = await createVaultAtPath(vaultPath)
+      // Phase 1: _state/VAULT_STATE.json (创建后立即写)
+      if (result) {
+        await writeVaultState(vaultPath)
+      }
+      return result
     } catch (err) {
       console.error('[Vault] createVaultAtPath error:', err)
       return null
@@ -206,6 +197,8 @@ function registerVaultBrowseHandlers(): void {
       setVaultPath(vaultPath)
       startFileWatcher(vaultPath)
       triggerGraphRebuild()
+      // Phase 1: _state/VAULT_STATE.json (Obsidian 模式)
+      await writeVaultState(vaultPath)
       return vaultPath
     }
     return null
@@ -217,8 +210,7 @@ function registerVaultBrowseHandlers(): void {
 
   ipcMain.handle('vault:list', async () => {
     const config = await readConfig()
-    const all =
-      (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
+    const all = config.vaults ?? []
     const existing = all.filter((v) => existsSync(v.path))
     // Clean up stale entries from config
     if (existing.length !== all.length) {
@@ -234,13 +226,14 @@ function registerVaultBrowseHandlers(): void {
     setVaultPath(vaultPath)
     startFileWatcher(vaultPath)
     triggerGraphRebuild()
+    // Phase 1: _state/VAULT_STATE.json (Obsidian 模式)
+    await writeVaultState(vaultPath)
     return vaultPath
   })
 
   ipcMain.handle('vault:remove', async (_, vaultPath: string) => {
     const config = await readConfig()
-    const vaults =
-      (config.vaults as Array<{ path: string; name: string; lastOpened: number }> | undefined) ?? []
+    const vaults = config.vaults ?? []
     await writeConfig({ ...config, vaults: vaults.filter((v) => v.path !== vaultPath) })
     return true
   })
@@ -273,4 +266,26 @@ function registerVaultDialogHandlers(): void {
     })
     return result.canceled ? null : (result.filePaths[0] ?? null)
   })
+}
+
+// ─── Phase 1: _state/VAULT_STATE.json (Obsidian 模式, 2026-06-11) ────────
+async function writeVaultState(vaultPath: string): Promise<void> {
+  try {
+    const stateDir = join(vaultPath, '_state')
+    await mkdir(stateDir, { recursive: true })
+    const state = JSON.stringify({
+      currentVault: 'personal',
+      updatedAt: new Date().toISOString(),
+      isSwitching: false,
+      vault: {
+        path: vaultPath,
+        name: vaultPath.split('/').pop() ?? '',
+      },
+      personalVault: null,
+      teamVault: null,
+    }, null, 2)
+    await writeFile(join(stateDir, 'VAULT_STATE.json'), state, 'utf-8')
+  } catch (e) {
+    log.warn('[VAULT_STATE] write failed:', e)
+  }
 }
