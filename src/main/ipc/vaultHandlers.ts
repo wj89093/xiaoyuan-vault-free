@@ -10,6 +10,8 @@ import { initDatabase, getVaultPath } from '../services/database/database'
 import { setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../graphUtils'
 import { startFileWatcher } from '../services/fileWatcher'
+// v1.9: STATE_MAP.json — AI 入门手册, 列出 vault 所有状态文件
+import { writeStateMap } from '../services/state/stateMap'
 // v1.5: 共享 readConfig/writeConfig (从 services/config 抽出来)
 import { readConfig, writeConfig } from '../services/config'
 
@@ -161,6 +163,8 @@ function registerVaultLifecycleHandlers(): void {
 
       // Phase 1: _state/VAULT_STATE.json (创建后立即写, 外部 AI 能读到)
       await writeVaultState(vaultPath)
+      // v1.9: _state/STATE_MAP.json — 同步写出 vault 状态地图
+      await writeStateMap()
 
       return vaultPath
     }
@@ -177,6 +181,8 @@ function registerVaultLifecycleHandlers(): void {
       // Phase 1: _state/VAULT_STATE.json (创建后立即写)
       if (result) {
         await writeVaultState(vaultPath)
+        // v1.9: 同步 STATE_MAP
+        await writeStateMap()
       }
       return result
     } catch (err) {
@@ -202,6 +208,8 @@ function registerVaultBrowseHandlers(): void {
       triggerGraphRebuild()
       // Phase 1: _state/VAULT_STATE.json (Obsidian 模式)
       await writeVaultState(vaultPath)
+      // v1.9: 同步 STATE_MAP
+      await writeStateMap()
       return vaultPath
     }
     return null
@@ -231,6 +239,8 @@ function registerVaultBrowseHandlers(): void {
     triggerGraphRebuild()
     // Phase 1: _state/VAULT_STATE.json (Obsidian 模式)
     await writeVaultState(vaultPath)
+    // v1.9: 同步 STATE_MAP
+    await writeStateMap()
     return vaultPath
   })
 
