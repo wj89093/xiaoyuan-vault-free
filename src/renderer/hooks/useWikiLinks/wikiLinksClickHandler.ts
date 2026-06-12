@@ -6,10 +6,9 @@
  */
 import { keymap } from '@codemirror/view'
 import type { EditorView } from '@codemirror/view'
+import type { Extension } from '@codemirror/state'
 import type { WikiLinksConfig } from './types'
 import { findLinkAtPos } from './wikiLinksParser'
-
-import type { Extension } from '@codemirror/view'
 
 /**
  * Build click handler extension for wiki links.

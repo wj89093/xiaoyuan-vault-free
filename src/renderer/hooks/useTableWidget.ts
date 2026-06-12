@@ -7,6 +7,7 @@
  * No globalThis needed — atomic-editor pattern.
  */
 import { syntaxTree } from '@codemirror/language'
+import type { SyntaxNode } from '@lezer/common'
 import { type EditorState, StateField, type Range, type Extension, Facet } from '@codemirror/state'
 import { EditorView, Decoration, WidgetType, type DecorationSet } from '@codemirror/view'
 import { treeGrowthEffect } from './useInlinePreview'
@@ -214,12 +215,12 @@ function findTableRange(view: EditorView, wrap: HTMLElement): { from: number; to
   try {
     const from = view.posAtDOM(wrap)
     if (from < 0) return null
-    let node = syntaxTree(view.state).resolveInner(from, 1)
+    let node: SyntaxNode | null = syntaxTree(view.state).resolveInner(from, 1)
     while (node && node.name !== 'Table' && node.name !== 'Document') {
       node = node.parent ?? null
     }
     if (node?.name !== 'Table') return null
-    return { from: node?.from, to: node?.to }
+    return { from: node.from, to: node.to }
   } catch {
     return null
   }
@@ -508,7 +509,7 @@ const tableDecorationField = StateField.define<DecorationSet>({
     return buildTableDecorations(state)
   },
   update(deco, tr) {
-    if (tr.docChanged || tr.selectionSet) return buildTableDecorations(tr.state)
+    if (tr.docChanged || tr.selection) return buildTableDecorations(tr.state)
     for (const e of tr.effects) {
       if (e.is(treeGrowthEffect)) return buildTableDecorations(tr.state)
     }

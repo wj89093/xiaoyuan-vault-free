@@ -1,5 +1,6 @@
 import log from 'electron-log/main'
 import { readFile, writeFile, mkdir, readdir } from 'fs/promises'
+import { existsSync } from 'fs'
 import { join } from 'path'
 import { getVaultPath } from '../database/database'
 import { listVaultFiles } from '../operations/crud'
@@ -8,8 +9,6 @@ import { callAI } from '../ai/aiService'
 import { getLintReports } from '../lint/lintReports'
 
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-
- 
 
 export interface BriefingReport {
   date: string
@@ -336,9 +335,7 @@ export function composeTopicFile(
   ].join('\n')
 
   // 拼 全部 sections (现有 + 新, 新在前)
-  const existingSections = existingContent
-    ? extractTopicSections(existingContent)
-    : []
+  const existingSections = existingContent ? extractTopicSections(existingContent) : []
   const allSections = [newSection, ...existingSections].join('\n\n---\n\n')
 
   return {
@@ -458,12 +455,14 @@ export async function getTopicSummaries(topic: string): Promise<{
 
   try {
     const raw = await readFile(topicPath, 'utf-8')
-    const parsed = parseTopicFile(raw) as { entries: { date: string; time: string; title: string }[]; decisions: string[]; nextSteps: string[] }
+    const parsed = parseTopicFile(raw) as {
+      entries: { date: string; time: string; title: string }[]
+      decisions: string[]
+      nextSteps: string[]
+    }
     const { entries, decisions, nextSteps } = parsed
     const fmMatch = raw.match(/^---\n([\s\S]*?)\n---/)
-    const updatedAt = fmMatch
-      ? (fmMatch[1].match(/updated_at:\s*(\S+)/)?.[1] ?? '')
-      : ''
+    const updatedAt = fmMatch ? (fmMatch[1].match(/updated_at:\s*(\S+)/)?.[1] ?? '') : ''
     return { topic, updatedAt, entries, decisions, nextSteps }
   } catch {
     return null
@@ -544,9 +543,7 @@ export async function getConversationSummaries(
   const topicFiltered = options?.topic
     ? summaries.filter((s) => s.topic === options.topic)
     : summaries
-  return options?.maxResults
-    ? topicFiltered.slice(0, options.maxResults)
-    : topicFiltered
+  return options?.maxResults ? topicFiltered.slice(0, options.maxResults) : topicFiltered
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────
@@ -596,7 +593,12 @@ function flattenFiles(files: unknown[]): unknown[] {
   const result: unknown[] = []
   for (const f of files) {
     result.push(f)
-    if (f && typeof f === 'object' && 'children' in f && Array.isArray((f as { children?: unknown[] }).children)) {
+    if (
+      f &&
+      typeof f === 'object' &&
+      'children' in f &&
+      Array.isArray((f as { children?: unknown[] }).children)
+    ) {
       result.push(...flattenFiles((f as { children: unknown[] }).children))
     }
   }

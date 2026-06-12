@@ -1,3 +1,5 @@
+import React from 'react'
+
 /**
  * Skeleton — 统一加载占位组件
  *
@@ -23,8 +25,8 @@ export const Skeleton = memo(function Skeleton({
   width,
   height,
   lines = 1,
-  className,
-}: SkeletonProps): JSX.Element {
+  className
+}: SkeletonProps): React.JSX.Element {
   if (variant === 'text' && lines > 1) {
     return (
       <div className="skeleton-stack" role="status" aria-label="加载中">
@@ -34,7 +36,7 @@ export const Skeleton = memo(function Skeleton({
             className={`skeleton skeleton-text ${className ?? ''}`}
             style={{
               width: i === lines - 1 ? '60%' : (width ?? '100%'),
-              height: height ?? 12,
+              height: height ?? 12
             }}
           />
         ))}
@@ -42,11 +44,12 @@ export const Skeleton = memo(function Skeleton({
     )
   }
 
-  const defaults: Record<SkeletonVariant, { w: number | string; h: number | string; br: number }> = {
-    text: { w: '100%', h: 12, br: 3 },
-    block: { w: '100%', h: 80, br: 6 },
-    circle: { w: 32, h: 32, br: 9999 },
-  }
+  const defaults: Record<SkeletonVariant, { w: number | string; h: number | string; br: number }> =
+    {
+      text: { w: '100%', h: 12, br: 3 },
+      block: { w: '100%', h: 80, br: 6 },
+      circle: { w: 32, h: 32, br: 9999 }
+    }
   const d = defaults[variant]
   const finalW = width ?? d.w
   const finalH = height ?? d.h

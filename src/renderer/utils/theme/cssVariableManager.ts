@@ -44,7 +44,7 @@ class CSSVariableManagerClass {
     if (typeof document !== 'undefined') {
       this.root = document.documentElement
       // 防抖16ms：适合60fps屏幕
-      this.debouncedSet = debounce(this.setVariables.bind(this), 16)
+      this.debouncedSet = debounce(this.setVariables.bind(this) as (...args: unknown[]) => void, 16)
     }
   }
 

@@ -10,7 +10,7 @@ import { writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { queryVault } from '../services/search/query'
 import { resolveContentType } from '../services/utils/resolver'
-import { rebuildGraph, loadGraph } from '../services/graph/graph'
+import { rebuildGraph, rebuildGraphIncremental, loadGraph } from '../services/graph/graph'
 import { getVaultPath } from '../services/database/database'
 import { IS_PRO, IS_OPEN_SOURCE } from '../buildFeatures'
 import type { GraphData } from '../services/graph/types'
@@ -62,12 +62,19 @@ export function registerMiscHandlers(): void {
   ipcMain.handle('app:buildInfo', () => ({
     isPro: IS_PRO,
     isOpenSource: IS_OPEN_SOURCE,
-    buildTarget: process.env.BUILD_TARGET ?? 'pro',
+    buildTarget: process.env.BUILD_TARGET ?? 'pro'
   }))
   // ── Query ─────────────────────────────────────────────────────────
-  ipcMain.handle('query:vault', async (_, question: string, options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }) => {
-    return queryVault(question, options)
-  })
+  ipcMain.handle(
+    'query:vault',
+    async (
+      _,
+      question: string,
+      options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }
+    ) => {
+      return queryVault(question, options)
+    }
+  )
 
   // ── Resolver ──────────────────────────────────────────────────────
   ipcMain.handle('resolver:classify', async (_, content: string, title?: string) => {
@@ -95,11 +102,7 @@ export function registerMiscHandlers(): void {
   // v1.7 (backport from Free 仓 00cc793): Agent 文本查询图谱
   ipcMain.handle(
     'kg:queryTopics',
-    async (
-      _,
-      name?: string,
-      options?: { maxNeighbors?: number; maxResults?: number }
-    ) => {
+    async (_, name?: string, options?: { maxNeighbors?: number; maxResults?: number }) => {
       const graph = await loadGraph()
       if (!graph) {
         return { nodes: [], edges: [], query: name ?? '' }
@@ -112,7 +115,9 @@ export function registerMiscHandlers(): void {
   ipcMain.handle('vault:openFile', async (_, filePath: string) => {
     const vaultPath = getVaultPath()
     const fullPath = vaultPath
-      ? filePath.startsWith(vaultPath) ? filePath : join(vaultPath, filePath)
+      ? filePath.startsWith(vaultPath)
+        ? filePath
+        : join(vaultPath, filePath)
       : filePath
 
     // Ensure .system directory exists

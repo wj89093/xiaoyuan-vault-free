@@ -24,7 +24,7 @@ declare global {
 }
 
 // Expose DOMPurify globally for mermaid v11 (which uses window.DOMPurify.sanitize internally)
-window.DOMPurify = DOMPurify
+;(window as any).DOMPurify = DOMPurify
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

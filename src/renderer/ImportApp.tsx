@@ -122,7 +122,7 @@ export function ImportApp(): JSX.Element {
       const path = await window.api.saveUrlContent(vaultPath ?? '', title, content)
       setResults((prev) => [...prev, { type: 'url', name: title, path, status: 'ok' }])
       setUrlInput('')
-    } catch (err) {
+    } catch (err: any) {
       setUrlError(err.message ?? '获取失败')
     } finally {
       setFetching(false)

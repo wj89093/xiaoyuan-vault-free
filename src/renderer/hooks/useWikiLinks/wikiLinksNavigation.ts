@@ -13,7 +13,7 @@ import { EditorView } from '@codemirror/view'
  * @returns CM6 Extension
  */
 export function editorNavigationExtension(onNavigate?: (target: string) => void) {
-  if (!onNavigate) return EditorView.extension
+  if (!onNavigate) return []
 
   return EditorView.domEventHandlers({
     click(event, view) {

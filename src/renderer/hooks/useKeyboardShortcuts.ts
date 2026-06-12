@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect } from 'react'
+import { useEffect, type Dispatch, type SetStateAction } from 'react'
 
 export function useKeyboardShortcuts(
   vaultPath: string | null,
-  setShowQuickSwitch: (v: boolean | ((prev: boolean) => boolean)) => void,
-  setShowShortcuts: (v: boolean | ((prev: boolean) => boolean)) => void,
+  setShowQuickSwitch: Dispatch<SetStateAction<boolean>>,
+  setShowShortcuts: Dispatch<SetStateAction<boolean>>,
   showQuickSwitch: boolean,
   showShortcuts: boolean
 ) {
@@ -50,7 +50,7 @@ export function useKeyboardShortcuts(
 
 export function useGlobalShortcuts(
   vaultPath: string | null,
-  setShowQuickSwitch: (v: boolean) => void
+  setShowQuickSwitch: Dispatch<SetStateAction<boolean>>
 ) {
   // P1-3: store unsubscribe to avoid listener accumulation on remount
   useEffect(() => {

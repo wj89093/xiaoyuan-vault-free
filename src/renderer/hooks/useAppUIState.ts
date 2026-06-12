@@ -1,50 +1,50 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, type Dispatch, type SetStateAction } from 'react'
 
 export interface AppUIState {
   showSearchFloat: boolean
-  setShowSearchFloat: (v: boolean) => void
+  setShowSearchFloat: Dispatch<SetStateAction<boolean>>
   showOutput: boolean
-  setShowOutput: (v: boolean) => void
+  setShowOutput: Dispatch<SetStateAction<boolean>>
   showOnboarding: boolean
-  setShowOnboarding: (v: boolean) => void
+  setShowOnboarding: Dispatch<SetStateAction<boolean>>
   vaultList: Array<{ path: string; name: string; lastOpened: number }>
-  setVaultList: (v: Array<{ path: string; name: string; lastOpened: number }>) => void
+  setVaultList: Dispatch<SetStateAction<Array<{ path: string; name: string; lastOpened: number }>>>
   showVaultCreation: boolean
-  setShowVaultCreation: (v: boolean) => void
+  setShowVaultCreation: Dispatch<SetStateAction<boolean>>
   activeView: string
-  setActiveView: (v: string) => void
+  setActiveView: Dispatch<SetStateAction<string>>
   // ── From merged useUIState ──────────────────────────────────────
   showQuickSwitch: boolean
-  setShowQuickSwitch: (v: boolean) => void
+  setShowQuickSwitch: Dispatch<SetStateAction<boolean>>
   showGraph: boolean
-  setShowGraph: (v: boolean) => void
+  setShowGraph: Dispatch<SetStateAction<boolean>>
   showShortcuts: boolean
-  setShowShortcuts: (v: boolean) => void
+  setShowShortcuts: Dispatch<SetStateAction<boolean>>
   showBacklinks: boolean
-  setShowBacklinks: (v: boolean) => void
+  setShowBacklinks: Dispatch<SetStateAction<boolean>>
   toggleBacklinks: () => void
   showTrash: boolean
-  setShowTrash: (v: boolean) => void
+  setShowTrash: Dispatch<SetStateAction<boolean>>
   toggleTrash: () => void
   showSettings: boolean
-  setShowSettings: (v: boolean) => void
+  setShowSettings: Dispatch<SetStateAction<boolean>>
   openSettings: (payload?: { panel?: string; folder?: string }) => void
   showLint: boolean
-  setShowLint: (v: boolean) => void
+  setShowLint: Dispatch<SetStateAction<boolean>>
   openLint: () => void
   showSchema: boolean
-  setShowSchema: (v: boolean) => void
+  setShowSchema: Dispatch<SetStateAction<boolean>>
   openSchema: () => void
   showLog: boolean
-  setShowLog: (v: boolean) => void
+  setShowLog: Dispatch<SetStateAction<boolean>>
   openLog: () => void
   showVersionHistory: boolean
-  setShowVersionHistory: (v: boolean) => void
+  setShowVersionHistory: Dispatch<SetStateAction<boolean>>
   openVersionHistory: () => void
   showBriefing: boolean
-  setShowBriefing: (v: boolean) => void
+  setShowBriefing: Dispatch<SetStateAction<boolean>>
   showIndexFloat: boolean
-  setShowIndexFloat: (v: boolean) => void
+  setShowIndexFloat: Dispatch<SetStateAction<boolean>>
   toggleQuickSwitch: () => void
   toggleGraph: () => void
   toggleShortcuts: () => void

@@ -11,7 +11,11 @@
  */
 import { Decoration, type EditorView, WidgetType, type DecorationSet } from '@codemirror/view'
 import type { EditorState } from '@codemirror/state'
-import { serializeFrontmatter as fmSerialize, getFieldSchema, type ParsedField } from '../frontmatter-utils'
+import {
+  serializeFrontmatter as fmSerialize,
+  getFieldSchema,
+  type ParsedField
+} from '../frontmatter-utils'
 import { findFrontmatter } from './detection'
 import { registerFrontmatterBuilder } from '../blockDecorationsField'
 
@@ -34,7 +38,7 @@ class FrontmatterWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    (this as any).view = view
+    ;(this as any).view = view
     const root = el('div', 'cm-fm-card')
     const titleF = this.fields.find((f) => f.key === 'title')
     const others = this.fields.filter((f) => f.key !== 'title')
@@ -117,9 +121,10 @@ class FrontmatterWidget extends WidgetType {
   private sync(root: HTMLElement) {
     if (!(this as any).view) return
     const result = this.collectFormData(root)
-        // @ts-expect-error - serializeFrontmatter inference issue in class context
-    const yml = (fmSerialize as (t: string, f: unknown[]) => string)(result.title, result.fields)
-    (this as any).view.dispatch({ changes: { from: this.range.from, to: this.range.to, insert: yml } })
+    const yml = (fmSerialize as any)(result.title, result.fields) as string
+    ;(this as any).view.dispatch({
+      changes: { from: this.range.from, to: this.range.to, insert: yml }
+    })
   }
 
   private collectFormData(root: HTMLElement): { title: string; fields: ParsedField[] } {

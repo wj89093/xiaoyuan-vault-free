@@ -8,7 +8,7 @@ import { useEffect, useRef } from 'react'
 export function useOnboardingOrchestrator(
   vaultPath: string | null,
   showOnboarding: boolean,
-  onOpenAIChat: (msg: string) => void
+  onOpenAIChat: (msg: string, autoSend?: boolean) => void
 ): void {
   const firedRef = useRef(false)
 

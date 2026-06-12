@@ -18,7 +18,7 @@
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "precommit:install": "scripts/install-hooks.sh",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   },

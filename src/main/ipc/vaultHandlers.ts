@@ -1,4 +1,4 @@
-import { ipcMain, dialog, app, BrowserWindow } from 'electron'
+import { ipcMain, dialog, BrowserWindow } from 'electron'
 import { getMainWindowRef } from '../mainWindowRef'
 import { mkdir, writeFile, readFile, symlink } from 'fs/promises'
 import { join } from 'path'
@@ -11,7 +11,7 @@ import { setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../graphUtils'
 import { startFileWatcher } from '../services/fileWatcher'
 // v1.5: 共享 readConfig/writeConfig (从 services/config 抽出来)
-import { readConfig, writeConfig } from "../services/config"
+import { readConfig, writeConfig } from '../services/config'
 
 async function addVaultToList(vaultPath: string): Promise<void> {
   const config = await readConfig()
@@ -36,11 +36,11 @@ const VAULT_TEMPLATES: Array<[string, string]> = [
   ['LLM-wiki.md', 'LLM-wiki.md'],
   ['markdown-capabilities.md', 'MARKDOWN_CAPABILITIES.md'],
   // Phase 1 (2026-06-11): 对接外部 AI 指引
-  ['connect-template.md', 'CONNECT.md'],
+  ['connect-template.md', 'CONNECT.md']
 ]
 const VAULT_OPTIONAL_TEMPLATES: Array<[string, string]> = [
   ['vault-usage-guide.md', '_wiki/使用说明.md'],
-  ['AGENTS.md', 'AGENTS.md'],
+  ['AGENTS.md', 'AGENTS.md']
 ]
 
 async function initVaultDirs(vaultPath: string): Promise<void> {
@@ -119,18 +119,21 @@ function registerVaultLifecycleHandlers(): void {
     return lastFiles[vaultPath] ?? null
   })
 
-  ipcMain.handle('vault:setLastFile', async (_event, vaultPath: string, filePath: string): Promise<boolean> => {
-    try {
-      const config = await readConfig()
-      const lastFiles = config.lastFiles ?? {}
-      lastFiles[vaultPath] = filePath
-      await writeConfig({ ...config, lastFiles })
-      return true
-    } catch (err) {
-      log.error('[Vault] setLastFile failed:', err)
-      return false
+  ipcMain.handle(
+    'vault:setLastFile',
+    async (_event, vaultPath: string, filePath: string): Promise<boolean> => {
+      try {
+        const config = await readConfig()
+        const lastFiles = config.lastFiles ?? {}
+        lastFiles[vaultPath] = filePath
+        await writeConfig({ ...config, lastFiles })
+        return true
+      } catch (err) {
+        log.error('[Vault] setLastFile failed:', err)
+        return false
+      }
     }
-  })
+  )
 
   ipcMain.handle('vault:create', async () => {
     const mainWindow = getMainWindow()
@@ -273,17 +276,21 @@ async function writeVaultState(vaultPath: string): Promise<void> {
   try {
     const stateDir = join(vaultPath, '_state')
     await mkdir(stateDir, { recursive: true })
-    const state = JSON.stringify({
-      currentVault: 'personal',
-      updatedAt: new Date().toISOString(),
-      isSwitching: false,
-      vault: {
-        path: vaultPath,
-        name: vaultPath.split('/').pop() ?? '',
+    const state = JSON.stringify(
+      {
+        currentVault: 'personal',
+        updatedAt: new Date().toISOString(),
+        isSwitching: false,
+        vault: {
+          path: vaultPath,
+          name: vaultPath.split('/').pop() ?? ''
+        },
+        personalVault: null,
+        teamVault: null
       },
-      personalVault: null,
-      teamVault: null,
-    }, null, 2)
+      null,
+      2
+    )
     await writeFile(join(stateDir, 'VAULT_STATE.json'), state, 'utf-8')
   } catch (e) {
     log.warn('[VAULT_STATE] write failed:', e)

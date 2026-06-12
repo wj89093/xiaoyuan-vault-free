@@ -61,9 +61,9 @@ const FREEZE_TAIL_MS = 100
 
 const freezeMousePlugin = ViewPlugin.fromClass(
   class {
-    private down = false
-    private releaseTimer: number | null = null
-    private readonly onDown = (event: PointerEvent) => {
+    down = false
+    releaseTimer: number | null = null
+    readonly onDown = (event: PointerEvent) => {
       if (event.button !== 0) return
       const target = event.target
       if (!(target instanceof Node) || !this.view.contentDOM.contains(target)) return
@@ -76,7 +76,7 @@ const freezeMousePlugin = ViewPlugin.fromClass(
         this.view.dispatch({ effects: setFrozen.of(true) })
       }
     }
-    private readonly onUp = () => {
+    readonly onUp = () => {
       if (!this.down) return
       this.down = false
       if (this.releaseTimer != null) window.clearTimeout(this.releaseTimer)
@@ -357,13 +357,18 @@ function buildAllDecorations(view: EditorView, docChanged = true): DecorationSet
       if (node.name === 'TaskMarker') {
         const markerText = doc.sliceString(from, to)
         const checked = /\[x\]/i.test(markerText)
-        ranges.push(Decoration.replace({ widget: checked ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED }).range(from, to))
+        ranges.push(
+          Decoration.replace({ widget: checked ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED }).range(
+            from,
+            to
+          )
+        )
         return
       }
 
       // ── Bullet List → Bullet Widget (on inactive lines) ──────────────
       if (!isActive && node.name === 'ListMark') {
-        const parent = node.parent
+        const parent = node.node.parent
         if (parent?.name === 'BulletList' || parent?.name === 'TaskList') {
           pushReplace(ranges, doc, from, to, { widget: BULLET_WIDGET })
         }
@@ -451,7 +456,10 @@ function buildAllDecorations(view: EditorView, docChanged = true): DecorationSet
   // v1.5 perf: 已排序时跳过 sort (tree.iterate 顺序遍历, 大多数情况已有序)
   let sorted = true
   for (let i = 1; i < ranges.length; i++) {
-    if (ranges[i].from < ranges[i - 1].from) { sorted = false; break }
+    if (ranges[i].from < ranges[i - 1].from) {
+      sorted = false
+      break
+    }
   }
   if (!sorted) ranges.sort((a: any, b: any) => a.from - b.from)
   return Decoration.set(ranges, true)

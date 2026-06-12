@@ -1,42 +1,34 @@
 /**
  * useImportObserver — IPC import event listener + pending queue
  *
- * Exposes pendingImports so App can display count, and fires onboarding
- * AI analysis on first import during onboarding flow.
+ * Listens for `onImportCompleted` events from main process and accumulates
+ * imported file paths in `pendingImports`. App.tsx consumes the queue and
+ * is responsible for any onboarding triggers (it has access to the AI
+ * sendMessage handle, which the hook cannot reach via closure).
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface UseImportObserverOptions {
   showOnboarding: boolean
-  /** Called after import completes — receives the list of imported file paths */
-  onFirstImportAnalyze: (filePaths: string[]) => void
+  /** Called after each import with the newly imported file paths */
+  onFilesImported?: (filePaths: string[]) => void
 }
 
-export function useImportObserver({
-  showOnboarding,
-  onFirstImportAnalyze
-}: UseImportObserverOptions): { pendingImports: string[]; clearPending: () => void } {
+export function useImportObserver({ showOnboarding, onFilesImported }: UseImportObserverOptions): {
+  pendingImports: string[]
+  clearPending: () => void
+} {
   const [pendingImports, setPendingImports] = useState<string[]>([])
-  const analyzedRef = useRef(false)
 
   useEffect(() => {
     if (!window.api) return
     return window.api.onImportCompleted?.(async (importedPaths?: string[]) => {
       if (importedPaths && importedPaths.length > 0) {
         setPendingImports((prev) => [...prev, ...importedPaths])
-        // Onboarding: first import triggers AI structure analysis
-        if (
-          showOnboarding &&
-          !sessionStorage.getItem('onboarding_analyzed') &&
-          !analyzedRef.current
-        ) {
-          sessionStorage.setItem('onboarding_analyzed', '1')
-          analyzedRef.current = true
-          setTimeout(() => onFirstImportAnalyze(importedPaths), 1000)
-        }
+        onFilesImported?.(importedPaths)
       }
     })
-  }, [showOnboarding, onFirstImportAnalyze])
+  }, [showOnboarding, onFilesImported])
 
   return { pendingImports, clearPending: () => setPendingImports([]) }
 }

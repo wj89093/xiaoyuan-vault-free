@@ -4,7 +4,7 @@ import React from 'react'
 import { QuickSwitch } from './components/QuickSwitch'
 // P4-2026-06-02 (backport): lazy 加载 - 知识图谱只在用户点击图标时显示,首屏不加载 vendor-d3(691KB)
 const KnowledgeGraph = lazy(() =>
-  import('./components/KnowledgeGraph').then(m => ({ default: m.KnowledgeGraph })),
+  import('./components/KnowledgeGraph').then((m) => ({ default: m.KnowledgeGraph }))
 )
 import { ShortcutGuide } from './components/ShortcutGuide'
 import { MermaidTest } from './components/MermaidTest'
@@ -165,7 +165,24 @@ function App(): JSX.Element {
 
   // ── Import observer ───────────────────────────────────────────────
   const importCb = useImportObserverCallbacks(vaultState.setFiles)
-  useImportObserver(importCb)
+  const { pendingImports, clearPending } = useImportObserver(importCb)
+
+  // Onboarding: first import triggers file analysis (AI prompt was
+  // wired through handleSendMessage in earlier versions; that handle
+  // is no longer available after the v1.8.0 chat-panel refactor, so
+  // we just drain the pending queue here and the read-and-prompt
+  // logic remains in importCb.onFirstImportAnalyze for callers that
+  // can still pass a working handle).
+  useEffect(() => {
+    if (
+      importCb.showOnboarding &&
+      pendingImports.length > 0 &&
+      !sessionStorage.getItem('onboarding_analyzed')
+    ) {
+      sessionStorage.setItem('onboarding_analyzed', '1')
+      clearPending()
+    }
+  }, [pendingImports, importCb.showOnboarding, clearPending])
 
   // ── Event listeners ──────────────────────────────────────────────
   useSettingsListener(openSchema, openLint, openSettings)
@@ -280,10 +297,13 @@ function App(): JSX.Element {
   )
 
   // P1-2026-06-02 (backport): stable callbacks for memoized KnowledgeGraph / ShortcutGuide
-  const handleGraphSelect = useCallback((path: string) => {
-    void vaultState.handleSelectFile(path)
-    setShowGraph(false)
-  }, [vaultState.handleSelectFile, setShowGraph])
+  const handleGraphSelect = useCallback(
+    (path: string) => {
+      void vaultState.handleSelectFile(path)
+      setShowGraph(false)
+    },
+    [vaultState.handleSelectFile, setShowGraph]
+  )
   const handleGraphClose = useCallback(() => setShowGraph(false), [setShowGraph])
   const handleShortcutsClose = useCallback(() => setShowShortcuts(false), [setShowShortcuts])
 

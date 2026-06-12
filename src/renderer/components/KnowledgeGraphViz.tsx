@@ -180,7 +180,8 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     svg.attr('width', w).attr('height', h)
     const mainG = svg.append('g')
 
-    const zoom = d3.zoom()
+    const zoom = d3
+      .zoom()
       .scaleExtent([0.1, 4])
       .on('zoom', (e) => {
         mainG.attr('transform', e.transform)
@@ -244,7 +245,8 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
         }
       })
       .call(
-        d3.drag()
+        d3
+          .drag()
           .on('start', (e, d) => {
             if (!e.active && simRef.current) simRef.current.alphaTarget(0.3).restart()
             d.fx = d.x
@@ -276,22 +278,28 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
 
     // Custom tooltip on hover (immediate, no browser delay)
     // v1.5: hover 高亮 — 当前节点放大 + 其他节点/边 dim
-    nodeSel.on('mouseenter', function (e, d) {
+    nodeSel.on('mouseenter', function (this: SVGGElement, e, d) {
       // 当前节点: r 放大 1.3x, stroke 出现 (accent)
-      d3.select(this).select('circle')
-        .transition().duration(150)
+      d3.select(this)
+        .select('circle')
+        .transition()
+        .duration(150)
         .attr('r', (dd: any) => scale(deg.get(dd.id) ?? 1) * 1.3)
         .attr('stroke', COLORS.selStroke)
         .attr('stroke-width', 2.5)
       // 其他节点 dim 到 0.2
-      d3.select(this.parentNode as any).selectAll('g[data-node-id]')
+      d3.select(this.parentNode as any)
+        .selectAll('g[data-node-id]')
         .filter((dd: any) => dd.id !== d.id)
         .select('circle')
-        .transition().duration(150)
+        .transition()
+        .duration(150)
         .attr('opacity', 0.2)
       // 所有边 dim 到 0.1
-      d3.select(this.parentNode?.parentNode as any).selectAll('line')
-        .transition().duration(150)
+      d3.select(this.parentNode?.parentNode as any)
+        .selectAll('line')
+        .transition()
+        .duration(150)
         .attr('stroke-opacity', 0.1)
       // Find or create tooltip element
       const svgEl = svgRef.current
@@ -327,22 +335,28 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
         tip.style.top = Math.max(e.clientY - containerRect.top - 30, 4) + 'px'
       }
     })
-    nodeSel.on('mouseleave', function (e, d) {
+    nodeSel.on('mouseleave', function (this: SVGGElement, e, d) {
       // 还原当前节点
-      d3.select(this).select('circle')
-        .transition().duration(200)
+      d3.select(this)
+        .select('circle')
+        .transition()
+        .duration(200)
         .attr('r', (dd: any) => scale(deg.get(dd.id) ?? 1))
         .attr('stroke', (dd: any) => (selectedFile === dd.id ? COLORS.selStroke : 'transparent'))
         .attr('stroke-width', (dd: any) => (selectedFile === dd.id ? 2.5 : 0))
       // 还原其他节点 opacity
-      d3.select(this.parentNode as any).selectAll('g[data-node-id]')
+      d3.select(this.parentNode as any)
+        .selectAll('g[data-node-id]')
         .filter((dd: any) => dd.id !== d.id)
         .select('circle')
-        .transition().duration(200)
+        .transition()
+        .duration(200)
         .attr('opacity', (dd: any) => (selectedFile === dd.id ? 1 : 0.8))
       // 还原所有边 stroke-opacity
-      d3.select(this.parentNode?.parentNode as any).selectAll('line')
-        .transition().duration(200)
+      d3.select(this.parentNode?.parentNode as any)
+        .selectAll('line')
+        .transition()
+        .duration(200)
         .attr('stroke-opacity', (ld: any) => (ld.type === 'folder' ? 0.25 : 0.6))
       const tip = svgRef.current?.parentElement?.querySelector('.d3-tooltip') as HTMLElement | null
       if (tip) tip.style.display = 'none'
@@ -388,7 +402,6 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
         n.vy = 0
       }
     }
-     
 
     // Cluster force helper (extracted so it can be referenced before definition)
     function clusterForce(alpha: number) {
@@ -408,10 +421,12 @@ export const KnowledgeGraphViz = memo(function KnowledgeGraphViz({
     }
     // eslint-enable react-hooks/immutability
 
-    const sim = d3.forceSimulation()
+    const sim = d3
+      .forceSimulation()
       .force(
         'link',
-        d3.forceLink()
+        d3
+          .forceLink()
           .id((d) => d.id)
           .distance((d) => (d.type === 'folder' ? 80 : 50))
           .strength((d) => (d.type === 'folder' ? 0.15 : 0.3))

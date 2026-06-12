@@ -259,7 +259,7 @@ export interface XyVaultAPI {
   graphRebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
   graphOnFileChange(
-    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void,
+    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
   ): () => void
 
   // Vault namespace (P3-2026-06-03: 补 renderer 用的命名空间 API)
@@ -335,7 +335,7 @@ export interface XyVaultAPI {
     rebuild(): Promise<GraphLoadResult>
     rebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
     onFileChange(
-      cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void,
+      cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
     ): () => void
   }
 
@@ -349,6 +349,13 @@ export interface XyVaultAPI {
   // Settings (flat namespace aliases)
   settingsGetTheme(): Promise<'light' | 'dark' | 'system'>
   settingsSetTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
+
+  // v1.5: lastFile aliases (flat — called by useVaultState)
+  getLastFile(vaultPath: string): Promise<string | null>
+  setLastFile(vaultPath: string, filePath: string): Promise<boolean>
+
+  // v1.4: writeFile (called by SettingsSections)
+  writeFile?(filePath: string, content: string): Promise<void>
 
   // Maintenance
   runMaintenance(): Promise<unknown>

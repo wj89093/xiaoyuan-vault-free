@@ -5,6 +5,10 @@ import { join } from 'path'
 import { isValidSkillName, composeInjectedSkillText } from './skillHandlers'
 
 const TEST_DIR = join(__dirname, '../../test-tmp-skill')
+const INJECT_TEST_DIR = join(__dirname, '../../test-tmp-skill-inject')
+const SKILL_INGEST = '# 🔧 Skill 模板: ingest\n\ningest content'
+const SKILL_QUERY = '# 🔧 Skill 模板: query\n\nquery content'
+const CAPS_CONTENT = '# 编辑器能力清单\n\n支持 Markdown 编辑'
 
 describe('skillHandlers — user Skill CRUD (v1.4)', () => {
   let skillsDir: string

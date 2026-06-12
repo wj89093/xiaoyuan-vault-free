@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, memo, type JSX } from 'react'
 import { Plus, FolderPlus, FileText, Pencil, Trash2 } from 'lucide-react'
 import type { FileInfo } from '../types'
+import type { FlatTreeItem } from '../utils/flattenTree'
 import log from 'electron-log/renderer'
 
 interface FileTreeContextMenuProps {
   x: number
   y: number
-  file: FileInfo
+  file: FileInfo | FlatTreeItem
   vaultPath: string
   onClose: () => void
   onRefresh: () => void

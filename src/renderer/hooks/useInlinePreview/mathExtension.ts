@@ -6,8 +6,8 @@
  *   Display ($$...$$): Decoration.replace(widget, block:true)    → shared blockDecorationsField
  */
 import { Decoration, WidgetType, type EditorView } from '@codemirror/view'
-import type { EditorState } from '@codemirror/state'
-import type { DecorationSet, Range } from '@codemirror/view'
+import type { EditorState, Range } from '@codemirror/state'
+import type { DecorationSet } from '@codemirror/view'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { registerBlockMathBuilder } from '../blockDecorationsField'

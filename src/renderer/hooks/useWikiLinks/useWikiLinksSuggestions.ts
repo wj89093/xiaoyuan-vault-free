@@ -5,7 +5,7 @@
  * can use it without tight coupling to the vault state.
  */
 import type { WikiLinkSuggestion } from './types'
-import type { FileInfo } from './types'
+import type { FileInfo } from '../../types'
 
 // Global suggestion provider (set by App.tsx when vault files are loaded)
 let _getSuggestions: ((query: string) => Promise<WikiLinkSuggestion[]>) | null = null

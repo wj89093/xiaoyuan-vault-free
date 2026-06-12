@@ -35,9 +35,9 @@ export function wikiLinksCompletionSource(config: WikiLinksConfig) {
 
     let results: any[] = []
     if (explicitProvider) {
-      results = await explicitProvider(query)
+      results = (await explicitProvider(query)) ?? []
     } else if (globalProvider) {
-      results = await globalProvider(query)
+      results = (await globalProvider(query)) ?? []
     } else if (vaultFiles.length > 0) {
       // Local vault file fallback: filter by label match, case-insensitive
       const q = query.toLowerCase()

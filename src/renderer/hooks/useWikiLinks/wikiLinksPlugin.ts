@@ -24,6 +24,7 @@ import type {
   ParsedWikiLink
 } from './types'
 import { parseWikiLinks } from './wikiLinksParser'
+import type { WikiLinkResolvedTarget } from './types'
 import { WikiLinkWidget } from './WikiLinkWidget'
 import { shouldResolveWikiLink, wikiLinkElementFromEvent } from './helpers'
 

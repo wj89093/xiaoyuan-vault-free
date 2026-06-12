@@ -32,9 +32,15 @@ export interface FileTreeRowData {
     onDragOver: (e: React.DragEvent) => void
     onDragLeave: () => void
   }
+  itemRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
+  flatItemsRef: React.MutableRefObject<{ path: string; isDirectory: boolean }[]>
 }
 
-export const Row = memo(function Row({ index, style, data }: ListChildComponentProps<FileTreeRowData>) {
+export const Row = memo(function Row({
+  index,
+  style,
+  data
+}: ListChildComponentProps<FileTreeRowData>) {
   const item = data.items[index]
   if (!item?.path) return null
   const c = data.callbacks
@@ -57,7 +63,8 @@ export const Row = memo(function Row({ index, style, data }: ListChildComponentP
         onDropOnFile={c.onDropOnFile}
         onDragOver={c.onDragOver}
         onDragLeave={c.onDragLeave}
-        // 不传 itemRefs: 虚拟化后只有可见 ~30 行有 DOM 节点,ref 数组不再有意义
+        itemRefs={data.itemRefs}
+        flatItemsRef={data.flatItemsRef}
       />
     </div>
   )

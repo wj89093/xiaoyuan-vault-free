@@ -3,6 +3,7 @@ import React from 'react'
 import type { JSX } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import type { FileInfo } from '../types'
+import type { FlatTreeItem } from '../utils/flattenTree'
 
 interface FileTreeNodeProps {
   file: FileInfo
@@ -14,8 +15,8 @@ interface FileTreeNodeProps {
   dropTarget: string | null
   onToggle: (path: string) => void
   onSelect: (path: string) => void
-  onContextMenu: (e: React.MouseEvent, file: FileInfo) => void
-  onMouseEnter: (e: React.MouseEvent, file: FileInfo) => void
+  onContextMenu: (e: React.MouseEvent, file: FileInfo | FlatTreeItem) => void
+  onMouseEnter: (e: React.MouseEvent, file: FileInfo | FlatTreeItem) => void
   onMouseLeave: () => void
   onDragStart: (e: React.DragEvent, path: string) => void
   onDropOnFolder: (e: React.DragEvent, folderPath: string) => void

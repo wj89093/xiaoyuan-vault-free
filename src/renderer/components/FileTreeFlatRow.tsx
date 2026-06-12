@@ -32,6 +32,7 @@ export interface FileTreeFlatRowProps {
   onDragOver: (e: React.DragEvent) => void
   onDragLeave: () => void
   itemRefs: React.MutableRefObject<(HTMLDivElement | null)[]>
+  flatItemsRef: React.MutableRefObject<{ path: string; isDirectory: boolean }[]>
 }
 
 export const FileTreeFlatRow = memo(function FileTreeFlatRow({
@@ -52,7 +53,8 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
   onDragOver,
   onDragLeave,
   itemRefs,
-}: FileTreeFlatRowProps): JSX.Element | null {
+  flatItemsRef: _flatItemsRef
+}: FileTreeFlatRowProps): React.JSX.Element | null {
   if (!item?.path) return null
 
   const isExpanded = expandedFolders.has(item.path)
@@ -64,16 +66,20 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
 
   return (
     <div
-      ref={el => { itemRefs.current[flatIdx] = el }}
+      ref={(el) => {
+        itemRefs.current[flatIdx] = el
+      }}
       className={[
         'file-tree-item',
         isSelected ? 'selected' : '',
         isDropTarget ? 'drop-target' : '',
-        isFocused ? 'keyboard-focused' : '',
-      ].filter(Boolean).join(' ')}
+        isFocused ? 'keyboard-focused' : ''
+      ]
+        .filter(Boolean)
+        .join(' ')}
       style={{ paddingLeft: depthIndent }}
       tabIndex={0}
-      onClick={() => item.isDirectory ? onToggle(item.path) : onSelect(item.path)}
+      onClick={() => (item.isDirectory ? onToggle(item.path) : onSelect(item.path))}
       onContextMenu={(e) => {
         e.preventDefault()
         onContextMenu(e, item)
@@ -82,16 +88,22 @@ export const FileTreeFlatRow = memo(function FileTreeFlatRow({
       onMouseLeave={onMouseLeave}
       onDragOver={(e) => onDragOver(e)}
       onDragLeave={onDragLeave}
-      onDrop={(e) => item.isDirectory ? onDropOnFolder(e, item.path) : onDropOnFile(e, item.path)}
+      onDrop={(e) => (item.isDirectory ? onDropOnFolder(e, item.path) : onDropOnFile(e, item.path))}
       onDragStart={(e) => onDragStart(e, item.path)}
       role="treeitem"
       aria-selected={isSelected}
       aria-expanded={item.isDirectory ? isExpanded : undefined}
     >
       <span title={isExpanded ? '折叠' : '展开'}>
-        {item.isDirectory
-          ? (isExpanded ? <ChevronDown className="file-tree-chevron" size={12} /> : <ChevronRight className="file-tree-chevron" size={12} />)
-          : <span style={{ width: 12, display: 'inline-block' }} />}
+        {item.isDirectory ? (
+          isExpanded ? (
+            <ChevronDown className="file-tree-chevron" size={12} />
+          ) : (
+            <ChevronRight className="file-tree-chevron" size={12} />
+          )
+        ) : (
+          <span style={{ width: 12, display: 'inline-block' }} />
+        )}
       </span>
       <span className="file-tree-name">{item.name}</span>
     </div>

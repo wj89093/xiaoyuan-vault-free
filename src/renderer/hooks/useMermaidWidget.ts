@@ -10,7 +10,7 @@
  *   - error fallback: shows error state in widget if mermaid parse fails
  */
 import { syntaxTree, ensureSyntaxTree } from '@codemirror/language'
-import type { SyntaxNode } from '@codemirror/language'
+import type { SyntaxNode } from '@lezer/common'
 import {
   Decoration,
   WidgetType,
@@ -111,10 +111,10 @@ class MermaidWidget extends WidgetType {
     return true
   }
 
-  coordsAt(dom: HTMLElement, pos: number, side: number): Rect | null {
+  coordsAt(dom: HTMLElement, pos: number, side: -1 | 1): Rect | null {
     if (!this._view) return dom.getBoundingClientRect()
     const abs = this._from + pos
-    return this._view.coordsAt(abs, side) ?? dom.getBoundingClientRect()
+    return this._view.coordsAtPos(abs, side) ?? dom.getBoundingClientRect()
   }
 
   ignoreEvent(): boolean {
@@ -187,7 +187,7 @@ async function renderMermaidInWidget(
       securityLevel: 'loose',
       // A: ELK layout — 节点不重叠/间距合理 (Mermaid 11+ 内置)
       flowchart: { useMaxWidth: true, htmlLabels: true },
-      config: { layout: 'elk' },
+      layout: 'elk' as const,
       themeVariables: {
         // 节点主体: 用 app accent (紫色), 而不是 Mermaid 默认蓝
         primaryColor: accent,
@@ -224,7 +224,7 @@ async function renderMermaidInWidget(
     // Unique ID per render
     const id = `mw-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
-    await mermaid.parse(code, { startOnLoad: false })
+    await mermaid.parse(code)
     const { svg } = await mermaid.render(id, code)
 
     container.innerHTML = svg

@@ -50,7 +50,8 @@ const vault = {
   clearLast: () => handler<boolean>('vault:clear'),
   // v1.5: 上次打开文件记忆
   getLastFile: (vaultPath: string) => handler<string | null>('vault:getLastFile', vaultPath),
-  setLastFile: (vaultPath: string, filePath: string) => handler<boolean>('vault:setLastFile', vaultPath, filePath),
+  setLastFile: (vaultPath: string, filePath: string) =>
+    handler<boolean>('vault:setLastFile', vaultPath, filePath),
   refresh: () => handler<{ ok: boolean }>('vault:refresh'),
   list: () => handler<Array<{ path: string; name: string; lastOpened: number }>>('vault:list'),
   openPath: (path: string) => handler<string | null>('vault:openPath', path),
@@ -144,7 +145,10 @@ const chat = {
 
 const query = {
   resolve: (content: string, title?: string) => handler<any>('resolver:classify', content, title),
-  vault: (question: string, options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }) => handler<any>('query:vault', question, options)
+  vault: (
+    question: string,
+    options?: { topic?: string; maxResults?: number; maxWikiFiles?: number }
+  ) => handler<any>('query:vault', question, options)
 }
 
 const auth = {
@@ -152,8 +156,7 @@ const auth = {
   getEmail: () => handler<string | null>('auth:getEmail'),
   clear: () => handler<boolean>('auth:clear'),
   openLogin: () => handler<string>('auth:openLogin'),
-  debugLogin: (email: string, code: string) =>
-    handler<string>('auth:debugLogin', email, code),
+  debugLogin: (email: string, code: string) => handler<string>('auth:debugLogin', email, code),
   onTokenReceived: (cb: (data: { token: string; email: string }) => void) =>
     onEvent('auth:tokenReceived', cb as any)
 }
@@ -196,8 +199,9 @@ const graph = {
   queryTopics: (name?: string, options?: { maxNeighbors?: number; maxResults?: number }) =>
     handler<{ query: string; nodes: any[]; edges: any[] }>('kg:queryTopics', name, options),
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
-  onFileChange: (cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void) =>
-    onEvent('file:changed', cb as any),
+  onFileChange: (
+    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
+  ) => onEvent('file:changed', cb as any)
 }
 
 const maintenance = {
@@ -213,7 +217,8 @@ const maintenance = {
     nextSteps: string[]
     discussion?: string
   }) => handler<{ path: string; ok: boolean; error?: string }>('briefing:saveConversation', params),
-  getConversations: (date: string) => handler<any[]>('briefing:getConversations', date),
+  getConversations: (date: string, options?: { topic?: string; maxResults?: number }) =>
+    handler<any[]>('briefing:getConversations', date, options),
   getTopicSummaries: (topic: string) => handler<any>('briefing:getTopicSummaries', topic)
 }
 
@@ -236,7 +241,7 @@ const import_ = {
 
 const skill = {
   list: () => handler<Array<{ name: string; path: string }>>('skill:list'),
-  loadDefault: () => handler<string>('skill:loadDefault'),
+  loadDefault: (skills?: string[]) => handler<string>('skill:loadDefault', skills),
   read: (name: string) => handler<string>('skill:read', name),
   save: (name: string, content: string) => handler<boolean>('skill:save', name, content),
   delete: (name: string) => handler<boolean>('skill:delete', name)
@@ -295,13 +300,15 @@ const api = {
   fileExists: (filePath: string) => file.exists(filePath),
   getLastVault: () => vault.getLast(),
   generateBriefing: () => maintenance.generateBriefing(),
-  getConversations: (date: string, options?: { topic?: string; maxResults?: number }) => maintenance.getConversations(date, options),
+  getConversations: (date: string, options?: { topic?: string; maxResults?: number }) =>
+    maintenance.getConversations(date, options),
   getTopicSummaries: (topic: string) => maintenance.getTopicSummaries(topic),
   graphLoad: () => graph.load(),
   graphRebuild: () => graph.rebuild(),
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
-  graphOnFileChange: (cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void) =>
-    onEvent('file:changed', cb as any),
+  graphOnFileChange: (
+    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
+  ) => onEvent('file:changed', cb as any),
   authGetToken: () => auth.getToken(),
   authGetEmail: () => auth.getEmail(),
   authClear: () => auth.clear(),

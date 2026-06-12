@@ -1,12 +1,12 @@
+import React, { useEffect } from 'react'
 import { ChevronRight, Check, Clock } from 'lucide-react'
-import { useEffect } from 'react'
 
 interface EditorHeaderProps {
   selectedFile: string | null
   isDirty: boolean
   isSaving?: boolean
   onSave: () => void
-  onShowHistory?: () => void   // 打开历史版本面板
+  onShowHistory?: () => void // 打开历史版本面板
 }
 
 /**
@@ -15,7 +15,13 @@ interface EditorHeaderProps {
  * 显示完整路径：_wiki / _topics / 文件.md
  * 参考 mdeditor 的路径切片设计 + Apple HIG 面包屑规范
  */
-export function EditorHeader({ selectedFile, isDirty, isSaving = false, onSave, onShowHistory }: EditorHeaderProps): JSX.Element {
+export function EditorHeader({
+  selectedFile,
+  isDirty,
+  isSaving = false,
+  onSave,
+  onShowHistory
+}: EditorHeaderProps): React.JSX.Element {
   // ⌘S / Ctrl+S keyboard shortcut — promised in title tooltip
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -49,9 +55,14 @@ export function EditorHeader({ selectedFile, isDirty, isSaving = false, onSave, 
             title="查看历史版本"
             aria-label="查看历史版本"
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '4px 6px', borderRadius: 4,
-              display: 'flex', alignItems: 'center', color: 'var(--text-secondary)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 6px',
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              color: 'var(--text-secondary)'
             }}
           >
             <Clock size={14} />
@@ -75,12 +86,7 @@ export function EditorHeader({ selectedFile, isDirty, isSaving = false, onSave, 
           </button>
         )}
         {!showSaveButton && isDirty === false && selectedFile && (
-          <button
-            className="editor-header-save saved"
-            title="已保存"
-            aria-label="已保存"
-            disabled
-          >
+          <button className="editor-header-save saved" title="已保存" aria-label="已保存" disabled>
             <Check size={12} aria-hidden="true" />
           </button>
         )}
@@ -118,9 +124,14 @@ export function EditorHeader({ selectedFile, isDirty, isSaving = false, onSave, 
           title="查看历史版本"
           aria-label="查看历史版本"
           style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '4px 6px', borderRadius: 4,
-            display: 'flex', alignItems: 'center', color: 'var(--text-secondary)',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 6px',
+            borderRadius: 4,
+            display: 'flex',
+            alignItems: 'center',
+            color: 'var(--text-secondary)'
           }}
         >
           <Clock size={14} />
@@ -146,12 +157,7 @@ export function EditorHeader({ selectedFile, isDirty, isSaving = false, onSave, 
         </button>
       )}
       {!showSaveButton && selectedFile && (
-        <button
-          className="editor-header-save saved"
-          title="已保存"
-          aria-label="已保存"
-          disabled
-        >
+        <button className="editor-header-save saved" title="已保存" aria-label="已保存" disabled>
           <Check size={12} aria-hidden="true" />
         </button>
       )}
