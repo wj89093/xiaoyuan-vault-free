@@ -22,7 +22,11 @@ describe('v1.9 STATE_MAP.json (AI-visible vault state map)', () => {
     // 模拟 vault 内部有 _state/ + .xiaoyuan/ 各放一个文件
     mkdirSync(join(tmpVault, '_state'), { recursive: true })
     mkdirSync(join(tmpVault, '.xiaoyuan'), { recursive: true })
-    writeFileSync(join(tmpVault, '_state', 'VAULT_STATE.json'), '{"updatedAt":"2026-06-12T00:00:00Z"}', 'utf-8')
+    writeFileSync(
+      join(tmpVault, '_state', 'VAULT_STATE.json'),
+      '{"updatedAt":"2026-06-12T00:00:00Z"}',
+      'utf-8'
+    )
     writeFileSync(join(tmpVault, '.xiaoyuan', 'graph.json'), '{"nodes":[],"edges":[]}', 'utf-8')
     mockGetVaultPath.mockReturnValue(tmpVault)
   })

@@ -83,6 +83,10 @@ export async function saveFolderSchema(schema: FolderSchema): Promise<void> {
   if (!dir) return
   if (!existsSync(dir)) await mkdir(dir, { recursive: true })
   await writeFile(schemaFilePath(schema.folder), JSON.stringify(schema, null, 2), 'utf-8')
+  // v1.9: 同步写 _state/schemas/INDEX.json (AI 入门摘要)
+  // 动态 import 避免 schemaStorage ←→ schemasIndex 循环依赖
+  const { writeSchemasIndex } = await import('../state/schemasIndex')
+  void writeSchemasIndex().catch(() => {})
 }
 
 /** 获取所有待确认的 schema（基于 confirmed=false 且未被 settings 排除的 schema） */

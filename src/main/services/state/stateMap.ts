@@ -158,7 +158,7 @@ export function getStateMapEntries(): {
   const categories: Record<string, string[]> = {
     'AI 入门 (先读这两个)': ['VAULT_STATE', 'FS_CACHE'],
     知识图谱: ['GRAPH_SUMMARY', 'GRAPH', 'FOLDER_MAP'],
-    文件契约: ['SCHEMAS'],
+    文件契约: ['SCHEMAS_INDEX', 'SCHEMAS'],
     健康检查: ['LINT_REPORTS'],
     '内部数据 (AI 可读但不推荐默认)': [
       'TASKS',

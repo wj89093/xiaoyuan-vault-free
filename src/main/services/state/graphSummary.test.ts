@@ -77,12 +77,8 @@ describe('v1.9 graph/SUMMARY.json (AI-readable graph health)', () => {
 
     it('broken link: edge target 不在 nodes → 计入 broken', () => {
       const s = buildGraphSummary({
-        nodes: [
-          { id: 'a.md', title: 'A', tags: [], edge_count: 1 }
-        ],
-        edges: [
-          { source: 'a.md', target: 'missing.md', relation: 'typed_link', weight: 1 }
-        ],
+        nodes: [{ id: 'a.md', title: 'A', tags: [], edge_count: 1 }],
+        edges: [{ source: 'a.md', target: 'missing.md', relation: 'typed_link', weight: 1 }],
         updated_at: 0
       })
       expect(s.brokenLinks).toBe(1)
@@ -122,9 +118,7 @@ describe('v1.9 graph/SUMMARY.json (AI-readable graph health)', () => {
 
     it('正常 graph → 写 _state/graph/SUMMARY.json', async () => {
       mockLoadGraph.mockResolvedValue({
-        nodes: [
-          { id: 'a.md', title: 'A', tags: ['合同'], edge_count: 1 }
-        ],
+        nodes: [{ id: 'a.md', title: 'A', tags: ['合同'], edge_count: 1 }],
         edges: [{ source: 'a.md', target: 'b.md', relation: 'shared_tag', weight: 1 }],
         updated_at: 1234567890
       })
