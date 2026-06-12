@@ -40,6 +40,10 @@ export async function saveLintReport(report: LintReportWithFixes): Promise<void>
   const existing: LintReportWithFixes[] = await readLintReportsInternal().catch(() => [])
   const updated = [report, ...existing].slice(0, 30)
   await writeFile(cachePath, JSON.stringify(updated, null, 2), 'utf-8')
+  // v1.9: 同步写 _state/lint/SUMMARY.json (AI 入门摘要)
+  // 动态 import 避免 lintReports ←→ lintSummary 循环依赖
+  const { writeLintSummary } = await import('../state/lintSummary')
+  void writeLintSummary().catch(() => {})
 }
 
 async function readLintReportsInternal(): Promise<LintReportWithFixes[]> {

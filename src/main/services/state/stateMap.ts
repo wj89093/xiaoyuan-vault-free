@@ -112,6 +112,13 @@ export function getStateMapEntries(): {
       exists: false
     },
     {
+      name: 'LINT_SUMMARY',
+      path: '_state/lint/SUMMARY.json',
+      purpose: 'lint 健康度摘要 (deadLinks/orphanPages/pendingFixes)',
+      whenToRead: '想知道 vault 整体健康度 (推荐先读这个)',
+      exists: false
+    },
+    {
       name: 'TASKS',
       path: '.xiaoyuan/tasks.json',
       purpose: '后台维护任务队列',
@@ -159,7 +166,7 @@ export function getStateMapEntries(): {
     'AI 入门 (先读这两个)': ['VAULT_STATE', 'FS_CACHE'],
     知识图谱: ['GRAPH_SUMMARY', 'GRAPH', 'FOLDER_MAP'],
     文件契约: ['SCHEMAS_INDEX', 'SCHEMAS'],
-    健康检查: ['LINT_REPORTS'],
+    健康检查: ['LINT_SUMMARY', 'LINT_REPORTS'],
     '内部数据 (AI 可读但不推荐默认)': [
       'TASKS',
       'CHAT_SESSIONS',
