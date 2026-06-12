@@ -38,7 +38,9 @@ const VAULT_TEMPLATES: Array<[string, string]> = [
   ['LLM-wiki.md', 'LLM-wiki.md'],
   ['markdown-capabilities.md', 'MARKDOWN_CAPABILITIES.md'],
   // Phase 1 (2026-06-11): 对接外部 AI 指引
-  ['connect-template.md', 'CONNECT.md']
+  ['connect-template.md', 'CONNECT.md'],
+  // v1.9 (2026-06-12): AI 入门指南 — 告诉外部 AI 怎么使用 _state/ SUMMARY/INDEX
+  ['ai-onboarding-v19.md', 'AI-ONBOARDING.md']
 ]
 const VAULT_OPTIONAL_TEMPLATES: Array<[string, string]> = [
   ['vault-usage-guide.md', '_wiki/使用说明.md'],

@@ -1,8 +1,89 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.7.0-free
-> 发布日期：2026-06-05
-> 最近更新：2026-06-05（v1.7.0 末尾增量: kg:queryTopics 抽纯函数实测 + conversation-summary 按 topic 跨日累积）
+> 当前版本：v1.9.0-free
+> 发布日期：2026-06-12
+> 最近更新：2026-06-12（v1.9.0 Obsidian 模式 + 两层状态模型 + AI 入门手册 + 3 个 SUMMARY/INDEX）
+
+---
+
+## 2026-06-12 — v1.9.0-free Obsidian 模式 + 两层状态模型（6 commits）
+
+### 主题
+
+让外部 AI 能以**接近零成本**了解 vault 状态。设计哲学：
+
+> **AI 不在乎物理路径，在乎“有什么能 read”**。所以在 `_state/` 下提供一系列 SUMMARY / INDEX 文件，让 AI 启动后读 8KB 就能全盘了解 vault，不需要递归 ls / 调 IPC / 读完整图谱。
+
+### 两层状态模型
+
+```
+_state/         ← AI 可见 (摘要 + 索引) [v1.9 完备]
+  VAULT_STATE.json          当前 vault (个人/团队) + 切换状态 (v1.8.0)
+  FS_CACHE.json             vault 一级文件树快照 (v1.8.0)
+  STATE_MAP.json            状态地图 — 列出 vault 所有可读状态 + 用途 (v1.9 NEW)
+  graph/SUMMARY.json        图谱健康度 (orphan/broken/topDomains) (v1.9 NEW)
+  schemas/INDEX.json        schema 目录索引 (folder/field/confirmed) (v1.9 NEW)
+  lint/SUMMARY.json         lint 健康度 (deadLinks/pendingFixes) (v1.9 NEW)
+
+.xiaoyuan/      ← 内部数据 (完整源, AI 也能读但不推荐默认)
+  index.db                  SQLite 主索引 (v1.4+)
+  graph.json                完整图谱 (drill-down 用)
+  schemas/<folder>.json     per-folder schema 源
+  lint-reports.json         最近 30 个完整 lint 报告
+  folder-map.json           folder→type 映射
+  tasks.json                后台任务队列
+  chat/ skills/             chat 与 skill 内部数据
+```
+
+### 量化成果
+
+| 维度 | v1.8.0 起点 | v1.9.0 | 提升 |
+|------|-------------|--------|------|
+| 外部 AI 了解 vault 状态 | 递归 ls + 猜路径 + 读完整 graph.json | 读 3 个 SUMMARY/INDEX (共 8KB) | **~95% token** |
+| AI 入门步骤 | 0 步 (无手册) | 读 STATE_MAP 一次 | **入门门槛 0 → 1** |
+| `_state/` AI 可见文件 | 2 (VAULT_STATE, FS_CACHE) | 6 (加 STATE_MAP, graph/SUMMARY, schemas/INDEX, lint/SUMMARY) | **+200%** |
+| 状态变更触发 SUMMARY 重建 | 0 | graph save / schema save / lint save | **实时同步** |
+
+### 6 个 commit
+
+1. `968d74f` fix: typecheck + lint cleanup (tsc -b reveal pre-existing errors)
+2. `6faf1e7` test: fix 3 pre-existing test failures
+3. `18ef8bf` feat(state): v1.9 STATE_MAP.json — AI 入门手册
+4. `eb9cca9` feat(state): v1.9 graph/SUMMARY.json — 图谱健康度摘要
+5. `faa4db8` feat(state): v1.9 schemas/INDEX.json — schema 目录索引
+6. `9c11ed2` feat(state): v1.9 lint/SUMMARY.json — lint 健康度摘要
+
+### 关键设计决策
+
+- **不统一物理路径** — AI 不在乎路径，在乎"有什么能 read"
+- **摘要优于全量** — 不搬完整 graph 到 _state/，只搬数字
+- **静默更新** — 所有 SUMMARY/INDEX 写入 `catch {}`，AI 读旧值比报错好
+- **低频不污染高频** — STATE_MAP 只在 vault 切换时写，graph/SUMMARY 只在 saveGraph 末尾写
+- **渐进迁移** — 按“AI 用得多”逐个加，不一蹴而就
+- **动态 import 解循环** — schemaStorage ←→ schemasIndex / graphStorage ←→ graphSummary / lintReports ←→ lintSummary 都用 `await import()` 解初始化竞态
+
+### 单元测试覆盖
+
+- `stateMap.test.ts`: 4 tests
+- `graphSummary.test.ts`: 7 tests
+- `schemasIndex.test.ts`: 6 tests
+- `lintSummary.test.ts`: 6 tests
+- **总 +23 新 tests，v1.9 总计 240/241 pass** (+23 from v1.8.0 217/218)
+
+### 外部 AI 启动后推荐读顺序
+
+1. `_state/STATE_MAP.json` (~2KB) — "vault 有什么状态文件"
+2. `_state/VAULT_STATE.json` (~0.5KB) — "现在打开的是哪个 vault"
+3. `_state/graph/SUMMARY.json` (~1KB) — "图谱健康度"
+4. `_state/schemas/INDEX.json` (~1KB) — "哪些 folder 有 schema"
+5. `_state/lint/SUMMARY.json` (~1KB) — "vault 整体健康度"
+6. 按需 drill-down 到 `.xiaoyuan/*.json`
+
+总计 **~7KB** 对 AI 几乎无成本，**5 个 read = 全盘了解 vault**。
+
+---
+
+
 
 ---
 
