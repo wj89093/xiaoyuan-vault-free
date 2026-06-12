@@ -24,19 +24,13 @@ const vaultHandlersSource = readFileSync(
   join(process.cwd(), 'src/main/ipc/vaultHandlers.ts'),
   'utf-8'
 )
-const preloadSource = readFileSync(
-  join(process.cwd(), 'src/preload/index.ts'),
-  'utf-8'
-)
-const windowDtsSource = readFileSync(
-  join(process.cwd(), 'src/shared/window.d.ts'),
-  'utf-8'
-)
+const preloadSource = readFileSync(join(process.cwd(), 'src/preload/index.ts'), 'utf-8')
+const windowDtsSource = readFileSync(join(process.cwd(), 'src/shared/window.d.ts'), 'utf-8')
 
 describe('v1.5 上次打开文件记忆 — IPC 暴露', () => {
   it('vaultHandlers 暴露 vault:getLastFile 和 vault:setLastFile', () => {
-    expect(vaultHandlersSource).toMatch(/ipcMain\.handle\(['"]vault:getLastFile['"]/)
-    expect(vaultHandlersSource).toMatch(/ipcMain\.handle\(['"]vault:setLastFile['"]/)
+    expect(vaultHandlersSource).toMatch(/ipcMain\.handle\(\s*['"]vault:getLastFile['"]/)
+    expect(vaultHandlersSource).toMatch(/ipcMain\.handle\(\s*['"]vault:setLastFile['"]/)
   })
 
   it('preload 暴露 vault.getLastFile / setLastFile', () => {

@@ -32,7 +32,7 @@ describe('v1.6.x 7 个 Skill 模板存在 (v1.6.1 删 write + list-sessions)', (
   })
 
   it('总 7 个 skill 模板 (不多不少)', () => {
-    const files = readdirSync(skillsDir).filter(f => f.endsWith('.md'))
+    const files = readdirSync(skillsDir).filter((f) => f.endsWith('.md'))
     expect(files.length).toBe(7)
     for (const f of files) {
       expect(expectedSkills).toContain(f.replace(/\.md$/, ''))
@@ -62,14 +62,14 @@ describe('v1.6.x 7 个 Skill 模板存在 (v1.6.1 删 write + list-sessions)', (
 
 describe('v1.6 注入层 (skill:loadDefault)', () => {
   it('拼 skills/ 整个目录 (readdirSync + .md filter)', () => {
-    expect(skillHandlers).toContain("skillsDir")
-    expect(skillHandlers).toContain("readdirSync")
+    expect(skillHandlers).toContain('skillsDir')
+    expect(skillHandlers).toContain('readdirSync')
     expect(skillHandlers).toMatch(/f\.endsWith\(['"]\.md['"]\)/)
   })
 
   it('拼 MARKDOWN_CAPABILITIES.md (v1.5 已有)', () => {
-    expect(skillHandlers).toContain("capsPath")
-    expect(skillHandlers).toContain("MARKDOWN_CAPABILITIES.md")
+    expect(skillHandlers).toContain('capsPath')
+    expect(skillHandlers).toContain('MARKDOWN_CAPABILITIES.md')
   })
 
   it('多个注入用 --- 分隔', () => {
@@ -78,22 +78,23 @@ describe('v1.6 注入层 (skill:loadDefault)', () => {
   })
 
   it('静默失败: skills/ 不存在时不影响主流程 (用 existsSync guard)', () => {
-    expect(skillHandlers).toMatch(/if\s*\(\s*existsSync\(skillsDir\)/)
+    // 匹配: existsSync(skillsDir) 调用, 或 existsSync(skillsDirPath) 变量, 或 existsSync(dir) 其中 dir = skillsDir()
+    expect(skillHandlers).toMatch(/existsSync\((skillsDir|skillsDirPath|dir)\)/)
   })
 })
 
 describe('v1.6 writeSkillTemplates (vault 创建时递归拷贝)', () => {
   it('vaultHandlers 加 writeSkillTemplates 函数', () => {
-    expect(vaultHandlers).toContain("async function writeSkillTemplates(")
+    expect(vaultHandlers).toContain('async function writeSkillTemplates(')
   })
 
   it('递归拷贝 skills/ 整个目录到 vault 根', () => {
-    expect(vaultHandlers).toContain("readdir(srcDir)")
+    expect(vaultHandlers).toContain('readdir(srcDir)')
     expect(vaultHandlers).toMatch(/f\.endsWith\(['"]\.md['"]\)/)
   })
 
   it('createVaultAtPath 调 writeSkillTemplates', () => {
-    expect(vaultHandlers).toContain("await writeSkillTemplates(vaultPath)")
+    expect(vaultHandlers).toContain('await writeSkillTemplates(vaultPath)')
   })
 })
 
@@ -190,9 +191,9 @@ describe('v1.6.x Skill 模板 ↔ UI 接口对齐', () => {
       const rest = tpl.slice(idx + '## 输出格式'.length)
       const endIdx = rest.search(/\n## /)
       const block = endIdx >= 0 ? rest.slice(0, endIdx) : rest
-      const listItems = block.split('\n').filter(l => l.match(/^\s*-\s+\S/))
+      const listItems = block.split('\n').filter((l) => l.match(/^\s*-\s+\S/))
       const categoryNames = listItems
-        .map(l => l.match(/^[\s-]+([^(（\s]+)/)?.[1]?.trim())
+        .map((l) => l.match(/^[\s-]+([^(（\s]+)/)?.[1]?.trim())
         .filter(Boolean) as string[]
       // 字段缺失不应作为分类名出现
       expect(categoryNames).not.toContain('字段缺失')

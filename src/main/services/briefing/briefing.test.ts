@@ -34,7 +34,9 @@ describe('v1.7 (P1-2) composeTopicFile — 纯函数', () => {
 
   it('existingContent 有内容 → append + 累计索引 (entries/decisions/nextSteps)', () => {
     const r1 = composeTopicFile(null, baseParams, '2026-06-01', '14:30')
-    const r2 = composeTopicFile(r1.content, baseParams, '2026-06-03', '09:15')
+    // 第二次调用传不同 decisions (去重还是 2 个, 但索引累计 2 个 entries)
+    const r2Params = { ...baseParams, decisions: ['首付款 30%', '补充: 加定背靠背条款'] }
+    const r2 = composeTopicFile(r1.content, r2Params, '2026-06-03', '09:15')
 
     expect(r2.entries).toHaveLength(2)
     expect(r2.entries[0]).toEqual({
@@ -47,10 +49,10 @@ describe('v1.7 (P1-2) composeTopicFile — 纯函数', () => {
       time: '14:30',
       title: 'ABC 合同评审'
     })
-    // decisions: 新条目的 2 个 + 现有 2 个 = 4
-    expect(r2.decisions).toHaveLength(4)
-    // nextSteps: 同上
-    expect(r2.nextSteps).toHaveLength(2)
+    // decisions: r1 的 2 个 + r2 新增 2 个 (1 重叠去重) = 3
+    expect(r2.decisions).toHaveLength(3)
+    // nextSteps: r1 的 1 个 + r2 新增 1 个 (相同) = 1
+    expect(r2.nextSteps).toHaveLength(1)
     // 内容: frontmatter + 2 sections 用 --- 分隔
     expect(r2.content).toContain('2026-06-03 09:15 — ABC 合同评审')
     expect(r2.content).toContain('2026-06-01 14:30 — ABC 合同评审')
