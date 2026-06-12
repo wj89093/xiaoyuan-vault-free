@@ -66,6 +66,10 @@ export async function saveGraph(graph: GraphData): Promise<void> {
   const graphPath = await getGraphPath()
   graph.updated_at = Date.now()
   await writeFile(graphPath, JSON.stringify(graph, null, 2), 'utf-8')
+  // v1.9: 同步写 _state/graph/SUMMARY.json (AI 入门摘要)
+  // 静态 import 避免每次动态加载 (perf)
+  const { writeGraphSummary } = await import('../state/graphSummary')
+  void writeGraphSummary().catch(() => {})
 }
 
 // ── Folder type map ───────────────────────────────────────────────────

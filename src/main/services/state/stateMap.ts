@@ -84,6 +84,13 @@ export function getStateMapEntries(): {
       exists: false
     },
     {
+      name: 'GRAPH_SUMMARY',
+      path: '_state/graph/SUMMARY.json',
+      purpose: '图谱健康度摘要 (orphanFiles/brokenLinks/topDomains)',
+      whenToRead: '想知道 vault 图谱健康度 (推荐优先读这个)',
+      exists: false
+    },
+    {
       name: 'FOLDER_MAP',
       path: '.xiaoyuan/folder-map.json',
       purpose: 'folder → type 映射 (e.g. _wiki/合同管理 → 合同领域)',
@@ -150,10 +157,17 @@ export function getStateMapEntries(): {
 
   const categories: Record<string, string[]> = {
     'AI 入门 (先读这两个)': ['VAULT_STATE', 'FS_CACHE'],
-    '知识图谱': ['GRAPH', 'FOLDER_MAP'],
-    '文件契约': ['SCHEMAS'],
-    '健康检查': ['LINT_REPORTS'],
-    '内部数据 (AI 可读但不推荐默认)': ['TASKS', 'CHAT_SESSIONS', 'CHAT_MESSAGES', 'MEMORY_FACTS', 'TOOL_CALLS', 'INDEX_DB']
+    知识图谱: ['GRAPH_SUMMARY', 'GRAPH', 'FOLDER_MAP'],
+    文件契约: ['SCHEMAS'],
+    健康检查: ['LINT_REPORTS'],
+    '内部数据 (AI 可读但不推荐默认)': [
+      'TASKS',
+      'CHAT_SESSIONS',
+      'CHAT_MESSAGES',
+      'MEMORY_FACTS',
+      'TOOL_CALLS',
+      'INDEX_DB'
+    ]
   }
 
   return { files, categories }
@@ -169,7 +183,10 @@ function resolveVaultRelative(vaultPath: string, relPath: string): string {
 /**
  * Enrich entries with exists/size/updatedAt. Mutates and returns entries.
  */
-async function enrichEntries(vaultPath: string, entries: StateFileEntry[]): Promise<StateFileEntry[]> {
+async function enrichEntries(
+  vaultPath: string,
+  entries: StateFileEntry[]
+): Promise<StateFileEntry[]> {
   for (const entry of entries) {
     const abs = resolveVaultRelative(vaultPath, entry.path)
     try {
@@ -209,11 +226,7 @@ export async function writeStateMap(): Promise<void> {
     }
     const stateDir = join(vaultPath, '_state')
     if (!existsSync(stateDir)) await mkdir(stateDir, { recursive: true })
-    await writeFile(
-      join(stateDir, 'STATE_MAP.json'),
-      JSON.stringify(map, null, 2),
-      'utf-8'
-    )
+    await writeFile(join(stateDir, 'STATE_MAP.json'), JSON.stringify(map, null, 2), 'utf-8')
   } catch (e) {
     log.warn('[STATE_MAP] write failed:', e)
   }
