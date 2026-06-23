@@ -302,6 +302,27 @@ export function useVaultState() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [selectedFile, isDirty, content])
 
+  // ── 2026-06-23 17:26 窗口焦点恢复时自动刷新文件列表 ──
+  //   修复: 用户在 Finder 删除/重建文件夹后, app 不识别外部变更
+  //   根因: 无文件系统监听 (no chokidar/fs.watch), 只在 import:completed 刷新
+  //   修法: 窗口从 Finder 切回来时自动 scanDirectory (1s 防抖)
+  //   三仓通用 (xiaoyuan-team / xiaoyuan-vault-free / xiaoyuan-Vault)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const onFocus = () => {
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        void handleRefresh()
+        timer = null
+      }, 1000)
+    }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      if (timer) clearTimeout(timer)
+    }
+  }, [handleRefresh])
+
   // Track recent files
 
   useEffect(() => {
