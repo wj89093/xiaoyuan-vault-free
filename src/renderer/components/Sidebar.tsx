@@ -56,7 +56,7 @@ export const Sidebar = memo(function Sidebar({
   onManageVault,
   onSwitchVault
 }: SidebarProps): JSX.Element {
-  const [sidebarTab, setSidebarTab] = useState<'files' | 'wiki'>('files')
+  const [sidebarTab, setSidebarTab] = useState<'files' | 'wiki'>('wiki') // 6-24 backport: 打开 app 默认看知识 (跟 Team 仓 af864e7 一致)
   const [showVaultMenu, setShowVaultMenu] = useState(false)
   const [showMultiVault, setShowMultiVault] = useState(false)
   const [isSwitching, setIsSwitching] = useState(false)
