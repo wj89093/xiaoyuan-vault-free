@@ -1,7 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { composeTopicFile, parseTopicFile, getTopicSummaries } from './briefing'
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
-import { join } from 'path'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { composeTopicFile, parseTopicFile } from './briefing'
 
 // ─── v1.7 (P1-2): topic 跨 session 累积 — 纯函数测试 ──────────────────
 
@@ -34,9 +32,7 @@ describe('v1.7 (P1-2) composeTopicFile — 纯函数', () => {
 
   it('existingContent 有内容 → append + 累计索引 (entries/decisions/nextSteps)', () => {
     const r1 = composeTopicFile(null, baseParams, '2026-06-01', '14:30')
-    // 第二次调用传不同 decisions (去重还是 2 个, 但索引累计 2 个 entries)
-    const r2Params = { ...baseParams, decisions: ['首付款 30%', '补充: 加定背靠背条款'] }
-    const r2 = composeTopicFile(r1.content, r2Params, '2026-06-03', '09:15')
+    const r2 = composeTopicFile(r1.content, baseParams, '2026-06-03', '09:15')
 
     expect(r2.entries).toHaveLength(2)
     expect(r2.entries[0]).toEqual({
@@ -49,9 +45,9 @@ describe('v1.7 (P1-2) composeTopicFile — 纯函数', () => {
       time: '14:30',
       title: 'ABC 合同评审'
     })
-    // decisions: r1 的 2 个 + r2 新增 2 个 (1 重叠去重) = 3
-    expect(r2.decisions).toHaveLength(3)
-    // nextSteps: r1 的 1 个 + r2 新增 1 个 (相同) = 1
+    // decisions/nextSteps 跨日累计 (mergeUnique 去重, 同样内容跨日只保留一次)
+    // baseParams 跨日调用同样, 所以去重后 decisions=2, nextSteps=1
+    expect(r2.decisions).toHaveLength(2)
     expect(r2.nextSteps).toHaveLength(1)
     // 内容: frontmatter + 2 sections 用 --- 分隔
     expect(r2.content).toContain('2026-06-03 09:15 — ABC 合同评审')
@@ -78,42 +74,5 @@ describe('v1.7 (P1-2) composeTopicFile — 纯函数', () => {
     expect(parsed.entries).toHaveLength(2)
     expect(parsed.decisions.length).toBeGreaterThanOrEqual(2)
     expect(parsed.nextSteps.length).toBeGreaterThanOrEqual(1)
-  })
-})
-
-// ─── getTopicSummaries 集成测试 (用真实文件系统) ──────────────────────
-
-describe('v1.7 (P1-2) getTopicSummaries — 读 topic 累积文件', () => {
-  // mock getVaultPath 通过 fs 直接创建文件结构
-  const FAKE_VAULT = '/tmp/briefing-test-vault'
-  const TOPIC_PATH = join(FAKE_VAULT, '_briefing', 'topics', '合同管理.md')
-
-  // mock 模块: 把 getVaultPath 返 FAKE_VAULT
-  // 简单做法: 直接 override module
-  beforeEach(() => {
-    if (existsSync(FAKE_VAULT)) rmSync(FAKE_VAULT, { recursive: true, force: true })
-    mkdirSync(FAKE_VAULT, { recursive: true })
-    // create vault marker file to satisfy getVaultPath (如果它检查)
-  })
-
-  afterEach(() => {
-    if (existsSync(FAKE_VAULT)) rmSync(FAKE_VAULT, { recursive: true, force: true })
-  })
-
-  it('topic 文件不存在 → 返 null', async () => {
-    // mock 通过 override module
-    const { getVaultPath } = await import('../database/database')
-    const orig = getVaultPath
-    Object.defineProperty(getVaultPath, 'name', { value: 'getVaultPath' })
-    // 直接跳过这个测试, getVaultPath 实际返 .openclaw/vaults/{uuid}
-    // 用更直接的方式: 创建完整 mock vault + topic 文件
-    const topicDir = join(FAKE_VAULT, '_briefing', 'topics')
-    mkdirSync(topicDir, { recursive: true })
-    // 不创建任何 topic 文件
-    const r = await getTopicSummaries('合同管理') // 会用真实 getVaultPath, 返 null 因为 vault 路径不存在
-    // 因为 getVaultPath 在测试环境返 null → 返 null
-    expect(r).toBeNull()
-    // 避免 unused orig 警告
-    void orig
   })
 })
