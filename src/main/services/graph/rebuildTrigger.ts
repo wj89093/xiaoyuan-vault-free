@@ -1,6 +1,6 @@
 import log from 'electron-log/main'
-import { getMainWindowRef } from './mainWindowRef'
-import { rebuildGraph } from './services/graph/graph'
+import { getMainWindowRef } from '../../mainWindowRef'
+import { rebuildGraph } from './graph'
 
 export function triggerGraphRebuild(): void {
   setTimeout(() => {

@@ -4,7 +4,7 @@ import log from 'electron-log/main'
 import { fetchURL, saveURLToVault } from '../services/urlFetch'
 import { openImportWindow } from '../importWindow'
 import { importFilesToVault, setVaultPath } from '../services/clipboard/clipboard'
-import { triggerGraphRebuild } from '../graphUtils'
+import { triggerGraphRebuild } from '../services/graph/rebuildTrigger'
 import {
   convertWithJS,
   getSupportedExtensions,

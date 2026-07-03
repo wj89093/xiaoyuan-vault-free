@@ -8,7 +8,7 @@ import { homedir } from 'os'
 import { initDatabase, getVaultPath } from '../services/database/database'
 /* autoAI engine: removed */
 import { setVaultPath } from '../services/clipboard/clipboard'
-import { triggerGraphRebuild } from '../graphUtils'
+import { triggerGraphRebuild } from '../services/graph/rebuildTrigger'
 import { startFileWatcher } from '../services/fileWatcher'
 // v1.9: STATE_MAP.json — AI 入门手册, 列出 vault 所有状态文件
 import { writeStateMap } from '../services/state/stateMap'
