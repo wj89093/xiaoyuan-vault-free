@@ -146,9 +146,9 @@ export function tokenize(text: string): Map<string, number> {
 
   const cleaned = text
     .replace(/#{1,6}\s+/g, '')
-    .replace(/[*_~`]+/g, '')
+    .replace(/[*_~]+/g, '') // 不删反引号 — code block 依赖 ``` 标识, 否则 strip 提前删掉反引号
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/```[\s\S]*?```/g, '')
+    .replace(/```[\s\S]*?```/g, '') // code block 先于 inline 删, 用 ` 标识
     .replace(/[-*+]\s+/g, '')
     .replace(/^\|.*\|$/gm, '')
     .toLowerCase()
