@@ -1,4 +1,3 @@
-import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
@@ -15,6 +14,9 @@ export default tseslint.config(
       'src/**/*.mjs',
       'src/**/*.cjs',
       'src/renderer/**/*.js',
+      // Agent vetted bash 脚本 (CommonJS require, 不走 TS 规则)
+      'server/tools/**',
+      'tests/e2e-vault/**',
     ]
   },
 

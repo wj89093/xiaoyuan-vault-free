@@ -8,8 +8,6 @@ import { parseFrontmatter } from '../frontmatter/index'
 import { callAI } from '../ai/aiService'
 import { getLintReports } from '../lint/lintReports'
 
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 export interface BriefingReport {
   date: string
   period?: string // e.g. "2026-04-28 ~ 2026-05-01"
