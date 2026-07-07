@@ -2,10 +2,15 @@
  * preload API — grouped by domain
  *
  * Renderer calls window.api.<namespace>.<method>() instead of flat window.api.<method>().
- * Grouping: vault | file | schema | autoAI | url | converter | ai | chat | enrich | auth | provider | graph | maintenance | clipboard | shortcuts | import | agent
+ * Grouping: vault | file | schema | autoAI | url | converter | ai | enrich | auth | graph | maintenance | clipboard | shortcuts | import | skill
+ *
+ * 2026-07-07 (Free 仓清理): 删 chat / provider / file:create / _agent / agent plugin 全部相关 API
+ *   - 这些是 Pro 专属功能 (self-agent / aiChat 浮窗 / 自定义 provider), Free 仓不实现
+ *   - 见 src/main/buildFeatures.ts "开源版只保留 vault 主功能 + Skill.md 插件"
+ *   - audit 工具发现 free 仓这些 API preload 暴露但 main 完全没注册 + renderer 不调
  */
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ChatMessage, AskResult, ImportFileResult } from '../shared/chat'
+import type { ImportFileResult } from '../shared/chat'
 
 console.log('[preload] script started')
 
@@ -66,8 +71,6 @@ const file = {
   search: (query: string) => handler<any[]>('file:search', query),
   read: (path: string) => handler<string>('file:read', path),
   render: (path: string) => handler<{ type: string }>('file:render', path),
-  create: (path: string, title: string, type?: string) =>
-    handler<boolean>('file:create', path, title, type),
   save: (path: string, content: string) => handler<boolean>('file:save', path, content),
   exists: (path: string) => handler<boolean>('file:exists', path),
   walkDir: (path: string) => handler<any>('file:walkDir', path),
@@ -126,23 +129,6 @@ const converter = {
   transcribe: (filePath: string) => handler<any>('converter:transcribe', filePath)
 }
 
-const chat = {
-  ask: (question: string, history?: ChatMessage[]) =>
-    handler<AskResult>('chat:ask', question, history ?? []),
-  sessionAsk: (question: string, history: any[], vaultPath?: string) =>
-    handler<any>('chat:sessionAsk', question, history, vaultPath),
-  session: (params: { action: 'get' | 'reset' | 'delete' | 'abort'; vaultPath?: string }) =>
-    handler<any>('chat:session', params),
-  onStreamChunk: (cb: (data: { chunk: string }) => void) => onEvent('chat:streamChunk', cb as any),
-  onGreeting: (cb: (data: { text: string }) => void) => onEvent('chat:greeting', cb as any),
-  onStreamDone: (cb: (data: AskResult) => void) => onEvent('chat:streamDone', cb as any),
-  onStreamError: (cb: (data: { error: string }) => void) => onEvent('chat:streamError', cb as any),
-  onAborted: (cb: () => void) => onEvent('chat:aborted', cb as any),
-  onToolUpdate: (
-    cb: (data: { name: string; args: unknown; status: string; result?: string }) => void
-  ) => onEvent('chat:toolUpdate', cb as any)
-}
-
 const query = {
   resolve: (content: string, title?: string) => handler<any>('resolver:classify', content, title),
   vault: (
@@ -164,29 +150,7 @@ const auth = {
 const settings = {
   get: () => handler<{ theme: 'light' | 'dark' | 'system' }>('settings:get'),
   getTheme: () => handler<'light' | 'dark' | 'system'>('settings:getTheme'),
-  setTheme: (theme: 'light' | 'dark' | 'system') => handler<string>('settings:setTheme', theme),
-  getAgentPlugin: () =>
-    handler<{
-      enabled: boolean
-      endpoint: string
-      apiKey: string
-      protocol: 'ws' | 'http'
-      name: string
-    }>('settings:getAgentPlugin'),
-  setAgentPlugin: (config: {
-    enabled: boolean
-    endpoint: string
-    apiKey: string
-    protocol: 'ws' | 'http'
-    name: string
-  }) => handler<any>('settings:setAgentPlugin', config),
-  setAgentPluginEnabled: (enabled: boolean) =>
-    handler<boolean>('settings:setAgentPluginEnabled', enabled)
-}
-
-const provider = {
-  get: () => handler<string>('provider:get'),
-  set: (provider: string) => handler<boolean>('provider:set', provider)
+  setTheme: (theme: 'light' | 'dark' | 'system') => handler<string>('settings:setTheme', theme)
 }
 
 const graph = {
@@ -247,15 +211,6 @@ const skill = {
   delete: (name: string) => handler<boolean>('skill:delete', name)
 }
 
-// ─── Agent namespace (bash event forwarding from main process) ─────────
-// bash:chunk / bash:done are sent by tools.ts via webContents.send()
-const _agent = {
-  onBashChunk: (cb: (data: { chunk: string }) => void) => onEvent('bash:chunk', cb as any),
-  onBashDone: (cb: (data: { result: string }) => void) => onEvent('bash:done', cb as any),
-  onVaultFileOpened: (cb: (data: { path: string }) => void) =>
-    onEvent('vault:fileOpened', cb as any)
-}
-
 // ─── Main export (flat + namespace for new code) ──────────────────────
 
 const api = {
@@ -266,11 +221,9 @@ const api = {
   lint,
   url,
   converter,
-  chat,
   query,
   auth,
   settings,
-  provider,
   graph,
   maintenance,
   clipboard,

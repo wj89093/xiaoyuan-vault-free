@@ -1,45 +1,26 @@
 import { ipcMain } from 'electron'
 import Store from 'electron-store'
 
+// 2026-07-07 (Free 仓清理): 删 agentPlugin 字段
+//   - agent plugin 是 Pro 专属 (self-agent 功能), Free 仓不实现
+//   - 配合 preload 删 settings.getAgentPlugin/setAgentPlugin/setAgentPluginEnabled
+//   - 见 src/main/buildFeatures.ts "开源版只保留 vault 主功能 + Skill.md 插件"
+
 const SETTINGS_STRUCT = {
   theme: {
     type: 'string' as const,
     enum: ['light' as const, 'dark' as const, 'system' as const]
-  },
-  agentPlugin: {
-    type: 'object' as const,
-    properties: {
-      enabled: { type: 'boolean' },
-      endpoint: { type: 'string' },
-      apiKey: { type: 'string' },
-      protocol: { type: 'string', enum: ['ws', 'http'] },
-      name: { type: 'string' }
-    }
   }
 }
 
 type SettingsSchema = {
   theme: 'light' | 'dark' | 'system'
-  agentPlugin: {
-    enabled: boolean
-    endpoint: string
-    apiKey: string
-    protocol: 'ws' | 'http'
-    name: string
-  }
 }
 
 const settingsStore = new Store<SettingsSchema>({
   name: 'settings',
   defaults: {
-    theme: 'system',
-    agentPlugin: {
-      enabled: false,
-      endpoint: 'ws://localhost:8080/agent',
-      apiKey: '',
-      protocol: 'ws',
-      name: '自定义 Agent'
-    }
+    theme: 'system'
   }
 })
 
@@ -58,21 +39,5 @@ export function registerSettingsHandlers(): void {
     }
     settingsStore.set('theme', theme)
     return theme
-  })
-
-  // ── Agent Plugin Settings ─────────────────────────────────────────
-
-  ipcMain.handle('settings:getAgentPlugin', () => {
-    return settingsStore.get('agentPlugin')
-  })
-
-  ipcMain.handle('settings:setAgentPlugin', (_event, config: SettingsSchema['agentPlugin']) => {
-    settingsStore.set('agentPlugin', config)
-    return config
-  })
-
-  ipcMain.handle('settings:setAgentPluginEnabled', (_event, enabled: boolean) => {
-    settingsStore.set('agentPlugin.enabled', enabled)
-    return enabled
   })
 }

@@ -2,18 +2,14 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
 // Mock window.addEventListener / removeEventListener (used by electron-log/renderer)
+// 2026-07-07 (Free 仓清理): 删 chatLoad/chatSessions/chatCreate/chatSave/chatDelete/chatAsk mock
+//   - chat 相关 API 已从 preload + window.d.ts 全部删除
 Object.defineProperty(global, 'window', {
   value: {
     api: {
       importFiles: vi.fn(),
       fetchUrl: vi.fn(),
       saveUrlContent: vi.fn(),
-      chatLoad: vi.fn(),
-      chatSessions: vi.fn().mockResolvedValue([]),
-      chatCreate: vi.fn(),
-      chatSave: vi.fn(),
-      chatDelete: vi.fn(),
-      chatAsk: vi.fn(),
       createFolder: vi.fn(),
       createFile: vi.fn(),
       saveFile: vi.fn(),

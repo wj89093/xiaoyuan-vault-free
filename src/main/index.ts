@@ -80,7 +80,7 @@ function createWindow(): void {
     log.info('Main window ready')
   })
 
-  // Refresh file tree when window comes back from hidden (AI Chat hides main window)
+  // Refresh file tree when window comes back from hidden
   mainWindow.on('show', () => {
     mainWindow?.webContents.send('import:completed', [])
   })
@@ -105,7 +105,6 @@ function setupIpcHandlers(): void {
   registerMaintainHandlers()
   // 开源版：Skill.md 插件是核心入口（不是 Pro 专属）
   registerSkillHandlers()
-  // AI Chat IPC handlers 由 clipboard.ts 的 ensureIPC() 统一注册
 }
 
 // ─── URL Scheme 注册 ────────────────────────────────────────
@@ -158,7 +157,6 @@ void app.whenReady().then(() => {
     const win = ensureMainWindow()
     if (win) openImportWindow(win)
   })
-  // AI Chat shortcut — Pro 版专属
 
   log.info(
     `[GlobalShortcut] Cmd+Shift+O (show), Cmd+Shift+F (search), Cmd+Shift+I (import)${IS_PRO ? ', Cmd+I (AI Chat)' : ''} registered`

@@ -12,33 +12,9 @@ export interface FileInfo {
   tags?: string
 }
 
-export interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  pagesUsed?: Array<{ file: string; title: string }>
-  sourceMode?: 'knowledge_base' | 'mixed' | 'ai_only'
-  saved?: boolean
-  timestamp?: number
-}
-
-export interface ChatSession {
-  id: string
-  title: string
-  updatedAt: string
-  createdAt?: number
-}
-
-export interface AskResult {
-  answer: string
-  sources: Array<{ file: string; title: string; snippet: string }>
-  confidence: number
-}
-
-export interface AskStreamChunk {
-  chunk: string
-  partial: string
-}
+// 2026-07-07 (Free 仓清理): 删 ChatMessage / ChatSession / AskResult / AskStreamChunk 4 个 chat 类型
+//   - chat 是 Pro 专属功能, Free 仓不实现 (见 src/main/buildFeatures.ts)
+//   - 配合删 preload/index.ts 的 chat namespace + shared/chat.ts 的 chat 类型
 
 export interface URLFetchResult {
   title: string
@@ -194,7 +170,7 @@ export interface XyVaultAPI {
   clipboardStop(): Promise<boolean>
   clipboardSetVaultPath(vaultPath: string): Promise<boolean>
 
-  // AI operations (flat API — legacy, prefer window.api.chat.* / window.api.agent.*)
+  // AI operations (flat API — legacy)
   aiReason(question: string, context: string[]): Promise<string>
   aiClassify(content: string, folders: string[]): Promise<string>
   aiTags(content: string): Promise<string[]>
@@ -204,49 +180,12 @@ export interface XyVaultAPI {
   openImportWindow(): Promise<boolean>
   queryVault(question: string): Promise<unknown>
 
-  // Nested chat API
-  chat: {
-    // Legacy non-streaming ask
-    ask(question: string, history?: ChatMessage[]): Promise<AskResult>
-    // Main entry: single-session streaming chat
-    sessionAsk(question: string, history: any[], vaultPath?: string): Promise<any>
-    session(params: { action: string; vaultPath?: string }): Promise<any>
-    // Event listeners (used by useChat hook)
-    onStreamChunk(cb: (data: { chunk: string; partial: string }) => void): () => void
-    onStreamDone(cb: (data: AskResult) => void): () => void
-    onStreamError(cb: (data: { error: string }) => void): () => void
-    onToolUpdate(
-      cb: (data: { name: string; args: unknown; status: string; result?: string }) => void
-    ): () => void
-  }
-
   // Auth
   authGetToken(): Promise<string | null>
   authGetEmail(): Promise<string | null>
   authClear(): Promise<boolean>
   authOpenLogin(): Promise<string>
   onAuthTokenReceived(callback: (data: AuthTokenReceived) => void): () => void
-
-  // Provider
-  providerGet(): Promise<string>
-  providerSet(provider: string): Promise<boolean>
-
-  // Agent Plugin (open-source build)
-  settingsGetAgentPlugin(): Promise<{
-    enabled: boolean
-    endpoint: string
-    apiKey: string
-    protocol: 'ws' | 'http'
-    name: string
-  }>
-  settingsSetAgentPlugin(config: {
-    enabled: boolean
-    endpoint: string
-    apiKey: string
-    protocol: 'ws' | 'http'
-    name: string
-  }): Promise<void>
-  settingsSetAgentPluginEnabled(enabled: boolean): Promise<boolean>
 
   // Folder map
   folderMapLoad(): Promise<Record<string, string>>
@@ -359,17 +298,6 @@ export interface XyVaultAPI {
 
   // Maintenance
   runMaintenance(): Promise<unknown>
-
-  // Agent namespace (bash events forwarded from main process tools.ts)
-  agent: {
-    onBashChunk(cb: (data: { chunk: string }) => void): () => void
-    onBashDone(cb: (data: { result: string }) => void): () => void
-  }
-
-  agentCallTool(
-    toolName: string,
-    args: Record<string, unknown>
-  ): Promise<{ ok: boolean; result?: string; error?: string }>
 
   // ─── Skill.md 用户 CRUD (v1.4 精简：仅用户写自己的 Skill) ───
   skillList(): Promise<Array<{ name: string; path: string }>>
