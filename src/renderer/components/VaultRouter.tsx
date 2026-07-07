@@ -170,6 +170,37 @@ export function VaultRouter({
         <div className="editor-container">
           {selectedFile ? (
             <>
+              {/* 2026-07-07 (backport from team 0640bba): multi-tab tab bar */}
+              <div className="editor-tab-bar">
+                <div className="editor-tab-bar-tabs">
+                  {vaultState.openTabs.map((tabPath: string, index: number) => {
+                    const fileName = tabPath.split('/').pop()?.replace(/\.md$/, '') ?? tabPath
+                    const isActive = index === vaultState.activeTabIndex
+                    return (
+                      <div
+                        key={tabPath}
+                        className={`obsidian-top-bar-tab${isActive ? ' active' : ''}`}
+                        onClick={() => vaultState.switchTab(index)}
+                      >
+                        <span className="obsidian-top-bar-tab-name" title={fileName}>
+                          {fileName}
+                        </span>
+                        <button
+                          className="obsidian-top-bar-tab-close"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            vaultState.closeTab(index)
+                          }}
+                          title="关闭"
+                          aria-label="关闭"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
               <EditorHeader
                 selectedFile={selectedFile}
                 isDirty={isDirty}

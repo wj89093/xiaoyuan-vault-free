@@ -3371,3 +3371,78 @@ textarea:focus-visible,
 [contenteditable]:focus-visible {
   outline: none;
 }
+
+/* 2026-07-07 (backport from team 0640bba): multi-tab editor tab bar */
+.editor-tab-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--color-bg);
+  min-height: 32px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.editor-tab-bar-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.obsidian-top-bar-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-md, 6px);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  max-width: 220px;
+  border-left: 3px solid transparent;
+  transition: background 100ms ease, border-color 100ms ease;
+}
+
+.obsidian-top-bar-tab:hover {
+  background: var(--color-surface-active);
+}
+
+.obsidian-top-bar-tab.active {
+  background: var(--color-surface-active);
+  border-left-color: var(--color-primary, #007aff);
+}
+
+.obsidian-top-bar-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.obsidian-top-bar-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.obsidian-top-bar-tab-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+}

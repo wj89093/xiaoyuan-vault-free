@@ -10,6 +10,10 @@ export interface VaultState {
   vaultPath: string | null
   files: FileInfo[]
   selectedFile: string | null
+  // 2026-07-07 (backport from team 0640bba + 097dc46): multi-tab support
+  // openTabs 维护所有打开的文件, selectedFile 是 derived (openTabs[activeTabIndex])
+  openTabs: string[]
+  activeTabIndex: number
   content: string
   isDirty: boolean
   searchQuery: string
@@ -27,10 +31,17 @@ export interface VaultState {
   setNativePreview: (p: { path: string; content: string } | null) => void
   setIsNativePreview: (v: boolean) => void
   setShowSearchResults: (v: boolean) => void
+  // Tab operations (backport from team)
+  openTab: (path: string) => void
+  closeTab: (index: number) => void
+  switchTab: (index: number) => void
   // Actions
   handleNewVault: () => Promise<void>
   handleOpenVault: () => Promise<void>
-  handleSelectFile: (filePath: string) => Promise<void>
+  // 2026-07-07 (backport from team 097dc46): handleSelectFile 加 addTab 参数
+  //   addTab=false (默认, FileTree 点击): 重置 openTabs=[filePath], 单 tab 模式
+  //   addTab=true (右键/主动): 多 tab 模式, 加新 tab 或切到已存在的 tab
+  handleSelectFile: (filePath: string, options?: { addTab?: boolean }) => Promise<void>
   handleSave: () => Promise<void>
   handleNewFile: (folderPath: string, fileName: string) => Promise<void>
   handleNewFolder: (parentPath: string, folderName: string) => Promise<void>
@@ -47,6 +58,9 @@ export function useVaultState() {
   const [vaultPath, setVaultPath] = useState<string | null>(null)
   const [files, setFiles] = useState<FileInfo[]>([])
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
+  // 2026-07-07 (backport from team 0640bba): multi-tab state
+  const [openTabs, setOpenTabs] = useState<string[]>([])
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(0)
   const [content, setContent] = useState<string>('')
   const [isDirty, setIsDirty] = useState(false)
   const [_isLoading, setIsLoading] = useState(false)
@@ -129,7 +143,30 @@ export function useVaultState() {
   }, [])
 
   const handleSelectFile = useCallback(
-    async (filePath: string) => {
+    async (filePath: string, options?: { addTab?: boolean }) => {
+      // 2026-07-07 (backport from team 097dc46): 加 addTab 参数
+      //   addTab=false (默认, FileTree 点击): 重置 openTabs=[filePath], activeTabIndex=0 (单 tab 模式)
+      //   addTab=true (右键/主动): 保留多 tab 逻辑 (加新 tab 或切到已存在的 tab)
+      //   不管哪种, 都走完整流程 (auto-save 当前 + readFile + setContent)
+      const addTab = options?.addTab ?? false
+      const tabIndex = openTabs.indexOf(filePath)
+      if (addTab) {
+        if (tabIndex >= 0) {
+          // 已开 tab → 切到该 tab
+          setActiveTabIndex(tabIndex)
+        } else {
+          // 新文件 → 添加 tab
+          setOpenTabs(prev => [...prev, filePath])
+          setActiveTabIndex(openTabs.length)
+        }
+      } else {
+        // 单 tab 模式: 重置 openTabs 为 [新文件], activeTabIndex=0
+        //   避免 FileTree 浏览时 tab bar 被旧 tab 干扰
+        setOpenTabs([filePath])
+        setActiveTabIndex(0)
+      }
+      setSelectedFile(filePath)
+
       // Flush auto-save (only for markdown files — skip binary previews)
       if (autoSaveTimer.current) {
         clearTimeout(autoSaveTimer.current)
@@ -385,10 +422,47 @@ export function useVaultState() {
     })().catch(() => {})
   }, [])
 
+  // 2026-07-07 (backport from team 0640bba): multi-tab operations
+  // openTab 走 handleSelectFile(path, { addTab: true }) (统一逻辑 + 自动 readFile)
+  //   之前 openTab 不读文件, 导致"在新标签页打开"后内容是旧的 (跟 switchTab 同源 bug)
+  const openTab = useCallback((path: string) => {
+    void handleSelectFile(path, { addTab: true })
+  }, [handleSelectFile])
+
+  const closeTab = useCallback((index: number) => {
+    setOpenTabs(prev => {
+      const next = prev.filter((_, i) => i !== index)
+      if (next.length === 0) {
+        setSelectedFile(null)
+        setActiveTabIndex(0)
+      } else if (activeTabIndex >= index && activeTabIndex > 0) {
+        setActiveTabIndex(activeTabIndex - 1)
+        setSelectedFile(next[activeTabIndex - 1])
+      } else if (activeTabIndex >= next.length) {
+        setActiveTabIndex(next.length - 1)
+        setSelectedFile(next[next.length - 1])
+      } else {
+        setSelectedFile(next[activeTabIndex])
+      }
+      return next
+    })
+  }, [activeTabIndex])
+
+  // switchTab 调 handleSelectFile 走完整流程 (读文件 + setContent)
+  //   4800a28 修复: 之前 switchTab 只 setSelectedFile 不读文件 → 点击 tab 切不动
+  //   用 { addTab: true } 保留多 tab 逻辑 (不重置 openTabs)
+  const switchTab = useCallback((index: number) => {
+    if (index >= 0 && index < openTabs.length) {
+      void handleSelectFile(openTabs[index], { addTab: true })
+    }
+  }, [openTabs, handleSelectFile])
+
   return {
     vaultPath,
     files,
     selectedFile,
+    openTabs,
+    activeTabIndex,
     content,
     isDirty,
     searchQuery: search.searchQuery,
@@ -405,6 +479,9 @@ export function useVaultState() {
     setNativePreview,
     setIsNativePreview,
     setShowSearchResults: search.setShowSearchResults,
+    openTab,
+    closeTab,
+    switchTab,
     handleNewVault,
     handleOpenVault,
     handleSelectFile,
