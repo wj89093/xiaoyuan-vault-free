@@ -3446,3 +3446,49 @@ textarea:focus-visible,
   background: rgba(255, 255, 255, 0.1);
   color: var(--color-text-primary);
 }
+
+/* 2026-07-07 (backport from team dac12e5 + d3e9433): FloatingPanel headerActions 样式 */
+.floating-panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.floating-panel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-tertiary, #8e8e93);
+  cursor: pointer;
+  transition: background 100ms ease, color 100ms ease;
+}
+
+.floating-panel-action-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f5f5f7);
+  color: var(--color-text-primary, #1d1d1f);
+}
+
+.floating-panel-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.floating-panel-action-btn.spinning svg {
+  animation: fp-spin 1s linear infinite;
+}
+
+@keyframes fp-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

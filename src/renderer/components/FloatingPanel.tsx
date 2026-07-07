@@ -11,6 +11,10 @@ interface FloatingPanelProps {
   children: React.ReactNode
   /** Override vertical position from bottom (for stacking multiple panels) */
   bottomOffset?: number
+  // 2026-07-07 (backport from team dac12e5 + d3e9433): header actions slot
+  // 渲染在关闭按钮左边 (e.g. 刷新按钮 + spinning 动画)
+  // 不传则不渲染, 不影响现有 panel (IndexFloat / MemoryPanel 等)
+  headerActions?: React.ReactNode
 }
 
 export const FloatingPanel = memo(function FloatingPanel({
@@ -21,7 +25,8 @@ export const FloatingPanel = memo(function FloatingPanel({
   height = 600,
   defaultPos,
   children,
-  bottomOffset: _bb = 80
+  bottomOffset: _bb = 80,
+  headerActions
 }: FloatingPanelProps): JSX.Element {
   void _bb
   const [pos, setPos] = useState(
@@ -147,6 +152,9 @@ export const FloatingPanel = memo(function FloatingPanel({
       >
         {icon && <span style={{ fontSize: 14 }}>{icon}</span>}
         <span style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{title}</span>
+        {headerActions && (
+          <div className="floating-panel-actions">{headerActions}</div>
+        )}
         <kbd
           title="按 Escape 关闭面板"
           style={{

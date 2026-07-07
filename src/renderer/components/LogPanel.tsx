@@ -123,7 +123,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [lastRefresh, setLastRefresh] = useState('')
+  // 2026-07-07 (backport from team d3e9433): 删除 lastRefresh state (toolbar 删了不需要显示时间)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef('')
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -142,10 +142,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
         contentRef.current = newContent
         setContent(newContent)
       }
-      const now = new Date()
-      setLastRefresh(
-        now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      )
+      // 2026-07-07 (backport from team d3e9433): 删除 setLastRefresh (toolbar 删了不需要)
     } catch {
       setLoadError(true)
     }
@@ -211,43 +208,19 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
       width={500}
       height={580}
       bottomOffset={80}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: 'var(--space-2) var(--space-3)',
-          gap: 'var(--space-2)',borderBottom: '1px solid var(--color-border)'
-        }}
-      >
+      // 2026-07-07 (backport from team d3e9433): 刷新按钮挪到 title bar 关闭按钮左边
+      headerActions={
         <button
           onClick={() => void loadLog()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',fontSize: 11,
-            padding: 'var(--space-1) var(--space-3)',
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-            cursor: 'pointer',
-            color: 'var(--color-text-primary)'
-          }}
+          disabled={loading}
+          className={'floating-panel-action-btn' + (loading ? ' spinning' : '')}
+          title={loading ? '加载中...' : '刷新日志'}
+          aria-label="刷新日志"
         >
-          <RefreshCw size={11} /> 刷新
+          <RefreshCw size={13} />
         </button>
-        {lastRefresh && (
-          <span style={{ fontSize: 10, color: 'var(--color-text-tertiary, #8e8e93)' }}>
-            {lastRefresh}
-          </span>
-        )}
-        <span
-          style={{ fontSize: 11, color: 'var(--color-text-tertiary, #8e8e93)', marginLeft: 'auto' }}
-        >
-          {content ? content.split('\n').length + ' 行' : ''}
-        </span>
-      </div>
-
+      }
+    >
       {loading ? (
         <div
           style={{

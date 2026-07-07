@@ -41,38 +41,19 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
       width={420}
       height={520}
       bottomOffset={80}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: 'var(--space-2) var(--space-3)',
-          gap: 'var(--space-2)',borderBottom: '1px solid var(--color-border)'
-        }}
-      >
+      // 2026-07-07 (backport from team d3e9433): 刷新按钮挪到 title bar 关闭按钮左边
+      headerActions={
         <button
           onClick={() => void loadOutput()}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',fontSize: 11,
-            padding: 'var(--space-1) var(--space-3)',
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-            cursor: 'pointer',
-            color: 'var(--color-text-primary)'
-          }}
+          disabled={loading}
+          className={'floating-panel-action-btn' + (loading ? ' spinning' : '')}
+          title={loading ? '加载中...' : '刷新产出'}
+          aria-label="刷新产出"
         >
-          <RefreshCw size={11} /> 刷新
+          <RefreshCw size={13} />
         </button>
-        <span
-          style={{ fontSize: 11, color: 'var(--color-text-tertiary, #8e8e93)', marginLeft: 'auto' }}
-        >
-          {content ? content.split('\n').length + ' 行' : ''}
-        </span>
-      </div>
-
+      }
+    >
       {loading ? (
         <div
           style={{

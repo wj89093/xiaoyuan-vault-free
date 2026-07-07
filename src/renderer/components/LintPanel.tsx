@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, memo, type JSX } from 'react'
-import { Shield, RefreshCw, Activity } from 'lucide-react'
+import { Shield, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
 interface LintPanelProps {
@@ -26,28 +26,11 @@ interface ParsedLintReport {
 export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPanelProps): JSX.Element {
   const [report, setReport] = useState<ParsedLintReport | null>(null)
   const [loading, setLoading] = useState(false)
-  const [runningCheck, setRunningCheck] = useState(false)
-  const [healthCheckError, setHealthCheckError] = useState(false)
   const [loadError, setLoadError] = useState(false)
-  const [lastChecked, setLastChecked] = useState<string>('')
   const [refreshing, setRefreshing] = useState(false)
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({})
 
-  async function runHealthCheck() {
-    if (!vaultPath) return
-    setHealthCheckError(false)
-    setRunningCheck(true)
-    try {
-      const result = await (window.api as any).maintenance.run()
-      if (result) {
-        await loadLintReport()
-      }
-    } catch {
-      setHealthCheckError(true)
-    } finally {
-      setRunningCheck(false)
-    }
-  }
+  // 2026-07-07 (backport from team dac12e5): 删 runHealthCheck + runningCheck/healthCheckError/lastChecked state (toolbar 健康检查按钮删了, dead code)
 
   async function loadLintReport() {
     if (!vaultPath) return
@@ -82,8 +65,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
       } else {
         setReport(null)
       }
-      const now = new Date()
-      setLastChecked(now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }))
+      // 2026-07-07 (backport): 删除 setLastChecked 调用 (toolbar 删了不需要显示时间)
     } catch {
       setLoadError(true)
     }
@@ -109,87 +91,26 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
       width={480}
       height={580}
       bottomOffset={80}
-    >
-      {/* Sub-header bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: 'var(--space-2) var(--space-3)',
-          gap: 'var(--space-2)',borderBottom: '1px solid var(--color-border)'
-        }}
-      >
-        <button
-          onClick={() => {
-            void runHealthCheck()
-          }}
-          disabled={runningCheck}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',fontSize: 11,
-            padding: 'var(--space-1) var(--space-2)',
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: runningCheck ? 'var(--color-surface-hover)' : 'var(--color-surface)',
-            cursor: runningCheck ? 'not-allowed' : 'pointer',
-            color: runningCheck ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
-            transition: 'var(--transition-base)'
-          }}
-        >
-          <Activity size={11} /> {runningCheck ? '检查中...' : '健康检查'}
-        </button>
+      // 2026-07-07 (backport from team dac12e5): 删 toolbar 整栏 + 健康检查按钮
+      //   保留刷新按钮挪到 title bar 关闭按钮左边
+      //   runHealthCheck 函数 + runningCheck/healthCheckError/lastChecked state 也删 (dead code)
+      headerActions={
         <button
           onClick={() => {
             setRefreshing(true)
             void loadLintReport().finally(() => setRefreshing(false))
           }}
           disabled={refreshing}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',fontSize: 11,
-            padding: 'var(--space-1) var(--space-2)',
-            borderRadius: 6,
-            border: '1px solid var(--color-border)',
-            background: refreshing ? 'var(--color-surface-hover)' : 'var(--color-surface)',
-            cursor: refreshing ? 'not-allowed' : 'pointer',
-            color: refreshing ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
-            transition: 'var(--transition-base)'
-          }}
+          className={'floating-panel-action-btn' + (refreshing ? ' spinning' : '')}
+          title={refreshing ? '刷新中...' : '刷新'}
+          aria-label="刷新"
         >
-          <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />{' '}
-          {refreshing ? '刷新中...' : '刷新'}
+          <RefreshCw size={13} />
         </button>
-        <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
-          {report ? `${report.stats.totalWikiFiles} 个 wiki 页面` : '点击「健康检查」分析知识库'}
-        </span>
-        {lastChecked && (
-          <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>
-            上次 {lastChecked}
-          </span>
-        )}
-        <span
-          style={{
-            fontSize: 11,
-            color: totalIssues > 0 ? 'var(--color-red)' : 'var(--color-green)',
-            marginLeft: 'auto'
-          }}
-        >
-          {runningCheck
-            ? '检查中...'
-            : loading
-              ? '加载中...'
-              : report
-                ? totalIssues > 0
-                  ? `${totalIssues} 个问题`
-                  : '状态良好'
-                : '暂无报告'}
-        </span>
-      </div>
-
+      }
+    >
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {loading || runningCheck ? (
+        {loading ? (
           <div
             style={{
               color: 'var(--color-text-tertiary)',
@@ -198,13 +119,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
               padding: 32
             }}
           >
-            {runningCheck ? '检查中...' : '加载中...'}
-          </div>
-        ) : healthCheckError ? (
-          <div
-            style={{ color: 'var(--color-red)', fontSize: 13, textAlign: 'center', padding: 32 }}
-          >
-            检查失败，请重试
+            加载中...
           </div>
         ) : loadError ? (
           <div

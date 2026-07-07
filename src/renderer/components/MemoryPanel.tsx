@@ -83,36 +83,23 @@ export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelPro
 
   return (
     <div role="region" aria-label="记忆面板" aria-busy={loading}>
-      <FloatingPanel title="记忆" icon={<BarChart3 size={15} />} onClose={onClose}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: 'var(--space-2) var(--space-3)',
-            gap: 'var(--space-2)',borderBottom: '1px solid var(--color-border)'
-          }}
-        >
+      <FloatingPanel
+        title="记忆"
+        icon={<BarChart3 size={15} />}
+        onClose={onClose}
+        // 2026-07-07 (backport from team d3e9433): 刷新按钮挪到 title bar 关闭按钮左边
+        headerActions={
           <button
             onClick={() => void loadConversations()}
             disabled={loading}
+            className={'floating-panel-action-btn' + (loading ? ' spinning' : '')}
+            title={loading ? '加载中...' : '刷新记忆'}
             aria-label="刷新记忆"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-1)',fontSize: 11,
-              padding: 'var(--space-1) var(--space-2)',
-              borderRadius: 6,
-              border: '1px solid var(--color-border)',
-              background: loading ? 'var(--color-surface-hover)' : 'var(--color-surface)',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              color: loading ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)',
-              transition: 'var(--transition-base)'
-            }}
           >
-            <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />{' '}
-            {loading ? '加载中...' : '刷新'}
+            <RefreshCw size={13} />
           </button>
-        </div>
+        }
+      >
         {loading ? (
           <div className="memory-panel-loading">
             <RefreshCw
