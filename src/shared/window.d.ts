@@ -170,15 +170,8 @@ export interface XyVaultAPI {
   clipboardStop(): Promise<boolean>
   clipboardSetVaultPath(vaultPath: string): Promise<boolean>
 
-  // AI operations (flat API — legacy)
-  aiReason(question: string, context: string[]): Promise<string>
-  aiClassify(content: string, folders: string[]): Promise<string>
-  aiTags(content: string): Promise<string[]>
-  aiSummary(content: string): Promise<string>
-  aiWrite(outline: string): Promise<string>
-  resolveContent(content: string, title?: string): Promise<unknown>
+  // 2026-07-08 backport from team 7d9c613: free 仓 importHandlers 链还活着 (Sidebar.tsx:207 用), 保留 openImportWindow, 删其他 7 个
   openImportWindow(): Promise<boolean>
-  queryVault(question: string): Promise<unknown>
 
   // Auth
   authGetToken(): Promise<string | null>
@@ -252,21 +245,6 @@ export interface XyVaultAPI {
     get(): Promise<{ theme: 'light' | 'dark' | 'system' }>
     getTheme(): Promise<'light' | 'dark' | 'system'>
     setTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
-    getAgentPlugin(): Promise<{
-      enabled: boolean
-      endpoint: string
-      apiKey: string
-      protocol: 'ws' | 'http'
-      name: string
-    }>
-    setAgentPlugin(config: {
-      enabled: boolean
-      endpoint: string
-      apiKey: string
-      protocol: 'ws' | 'http'
-      name: string
-    }): Promise<void>
-    setAgentPluginEnabled(enabled: boolean): Promise<boolean>
   }
   // Graph namespace
   graph: {
