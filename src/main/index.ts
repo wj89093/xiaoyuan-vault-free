@@ -16,6 +16,8 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import log from 'electron-log/main'
 import { createTray } from './tray'
 import { IS_PRO } from './buildFeatures'
+import { AutoCommitWorker } from './services/vault/autoCommitWorker'
+import { getVaultPath } from './services/database/database'
 import { openImportWindow } from './importWindow'
 import { setMainWindowRef } from './mainWindowRef'
 import { triggerGraphRebuild } from './services/graph/rebuildTrigger'
@@ -57,6 +59,10 @@ process.on('uncaughtException', (error) => {
 })
 
 let mainWindow: BrowserWindow | null = null
+
+// 2026-07-09 backport: auto-commit worker (free 仓版本, 不带 IS_TEAM 守卫)
+let autoCommitWorker: AutoCommitWorker | null = null
+let autoCommitWorkerStopping = false
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -131,6 +137,23 @@ void app.whenReady().then(() => {
   createWindow()
   createTray(mainWindow!)
 
+  // 2026-07-09 backport: 启 auto-commit worker (free 仓无 IS_TEAM 守卫, 默认全启)
+  const vp = getVaultPath()
+  if (vp) {
+    autoCommitWorker = new AutoCommitWorker(vp)
+    autoCommitWorker.on((e) => {
+      if (e.type === 'committed') {
+        log.info(`[main] auto-commit ${e.sha}: ${e.filesChanged} files`)
+        // 后续可 IPC emit 到 renderer 弹 Toast (现在只 log)
+      }
+    })
+    void autoCommitWorker.start().catch((err) => {
+      log.error('[main] autoCommitWorker start failed:', err)
+    })
+  } else {
+    log.info('[main] no vault path yet, skip autoCommitWorker')
+  }
+
   // Helper: ensure main window exists
   const ensureMainWindow = (): BrowserWindow | null => {
     if (!mainWindow || mainWindow.isDestroyed()) {
@@ -195,5 +218,22 @@ app.on('before-quit', (e) => {
   if (!(app as any).isQuitting) {
     e.preventDefault()
     log.info('Quit prevented, hiding to tray')
+    return
+  }
+
+  // 2026-07-09 backport: tray 真退出 → 等 autoCommitWorker.lastResortCommit 兜底
+  if (autoCommitWorker && !autoCommitWorkerStopping) {
+    e.preventDefault()
+    autoCommitWorkerStopping = true
+    log.info('[main] quit: 等待 lastResortCommit (B 方案兜底)...')
+    autoCommitWorker
+      .stop()
+      .catch((err) => {
+        log.error('[main] autoCommitWorker.stop failed:', err)
+      })
+      .finally(() => {
+        log.info('[main] worker stopped, 真正退出')
+        app.quit()
+      })
   }
 })
