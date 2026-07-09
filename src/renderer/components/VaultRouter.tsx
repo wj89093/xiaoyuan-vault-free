@@ -283,7 +283,15 @@ export function VaultRouter({
       {ui.showLint && <LintPanel onClose={() => ui.setShowLint(false)} vaultPath={vaultPath} />}
       {ui.showSchema && <SchemaPanel onClose={() => ui.setShowSchema(false)} />}
       {ui.showLog && (
-        <LogPanel onClose={() => ui.setShowLog(false)} onSelectFile={handleSelectFile} />
+        <LogPanel
+          initialTab={ui.logInitialTab}
+          onClose={() => {
+            ui.setShowLog(false)
+            // 2026-07-09: 关闭时 reset 回 'log', 下次开默认 log tab
+            ui.setLogInitialTab('log')
+          }}
+          onSelectFile={handleSelectFile}
+        />
       )}
 
       <ToastContainer toasts={toasts as unknown as ToastMessage[]} onDismiss={dismissToast} />

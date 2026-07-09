@@ -38,6 +38,10 @@ export interface AppUIState {
   showLog: boolean
   setShowLog: Dispatch<SetStateAction<boolean>>
   openLog: () => void
+  // 2026-07-09: AuditNotice onOpenAudit 直接跳 audit tab 用
+  logInitialTab: 'log' | 'audit'
+  setLogInitialTab: Dispatch<SetStateAction<'log' | 'audit'>>
+  openLogWithTab: (tab: 'log' | 'audit') => void
   showVersionHistory: boolean
   setShowVersionHistory: Dispatch<SetStateAction<boolean>>
   openVersionHistory: () => void
@@ -70,6 +74,8 @@ export function useAppUIState(): AppUIState {
   const [showLint, setShowLint] = useState(false)
   const [showSchema, setShowSchema] = useState(false)
   const [showLog, setShowLog] = useState(false)
+  // 2026-07-09: AuditNotice onOpenAudit 直接跳 audit tab 用 (默认 'log' 保持向后兼容)
+  const [logInitialTab, setLogInitialTab] = useState<'log' | 'audit'>('log')
   const [showBriefing, setShowBriefing] = useState(false)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
   const [showIndexFloat, setShowIndexFloat] = useState(false)
@@ -83,6 +89,11 @@ export function useAppUIState(): AppUIState {
     setShowLint(true)
   }, [])
   const openLog = useCallback(() => {
+    setShowLog(true)
+  }, [])
+  // 2026-07-09: AuditNotice 跳转用, 同时 setShowLog + 改初始 tab
+  const openLogWithTab = useCallback((tab: 'log' | 'audit') => {
+    setLogInitialTab(tab)
     setShowLog(true)
   }, [])
   const openSchema = useCallback(() => {
@@ -137,6 +148,9 @@ export function useAppUIState(): AppUIState {
     showLog,
     setShowLog,
     openLog,
+    logInitialTab,
+    setLogInitialTab,
+    openLogWithTab,
     showBriefing,
     setShowBriefing,
     showVersionHistory,

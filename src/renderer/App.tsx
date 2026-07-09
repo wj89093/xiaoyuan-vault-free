@@ -17,7 +17,7 @@ import { useAppUIState } from './hooks/useAppUIState'
 import { useKeyboardShortcuts, useGlobalShortcuts } from './hooks/useKeyboardShortcuts'
 
 import { useImportObserver } from './hooks/useImportObserver'
-import { useToasts, showToast } from './components/Toast'
+import { useToasts } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
 // ── Settings event listener hook ────────────────────────────────────
@@ -364,15 +364,12 @@ function App(): JSX.Element {
           handleViewChange={handleViewChange}
         />
 
-        {/* 2026-07-09 backport: 启动 / 切 vault 后检查 uncommitted 改动 */}
+        {/* 2026-07-09: 启动 / 切 vault 后检查 uncommitted 改动 */}
         <AuditNotice
           vaultPath={vaultPath}
           onOpenAudit={() => {
-            // 简化: 弹 toast 提示, 不直接跳 audit tab (free 仓 useAppUIState 没 logInitialTab)
-            // team 仓有 panelActions.openPanel('log', { initialTab: 'audit' }) 机制, free 仓没有
-            // 后续如要直接跳, 需 useAppUIState 加 logInitialTab state + VaultRouter 透传
-            ui.openLog()
-            showToast('info', '已打开日志面板, 请切换到"审计" tab 查看详情')
+            // 直接跳 audit tab (LogPanel initialTab = 'audit')
+            ui.openLogWithTab('audit')
           }}
         />
       </div>
