@@ -211,6 +211,22 @@ export interface XyVaultAPI {
     createAt(path: string): Promise<string | null>
     remove(path: string): Promise<boolean>
     path(): Promise<string | null>
+    // 2026-07-09 backport: post-commit audit (App 启动检查 uncommitted + 读 _log/)
+    gitStatus(vaultPath: string): Promise<{
+      uncommittedCount: number
+      files: Array<{ path: string; status: 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked'; author: string | null; mtime: number; diffLines: number }>
+      isGitRepo: boolean
+      hasPostCommitHook: boolean
+    }>
+    gitDiff(vaultPath: string, filePath: string): Promise<string>
+    readAuditLog(vaultPath: string, limit?: number): Promise<Array<{
+      ts: string
+      actor: string
+      sha: string
+      files_changed: number
+      files: string[]
+      source: string
+    }>>
   }
   // File namespace
   file: {

@@ -63,7 +63,21 @@ const vault = {
   selectDirectory: () => handler<string | null>('dialog:selectDirectory'),
   createAt: (path: string) => handler<string | null>('vault:createAt', path),
   remove: (path: string) => handler<boolean>('vault:remove', path),
-  path: () => handler<string | null>('vault:path')
+  path: () => handler<string | null>('vault:path'),
+  // 2026-07-09 backport: post-commit audit (从 team ada72e9)
+  gitStatus: (vaultPath: string) =>
+    handler<{
+      uncommittedCount: number
+      files: Array<{ path: string; status: string; author: string | null; mtime: number; diffLines: number }>
+      isGitRepo: boolean
+      hasPostCommitHook: boolean
+    }>('vault:gitStatus', vaultPath),
+  gitDiff: (vaultPath: string, filePath: string) =>
+    handler<string>('vault:gitDiff', vaultPath, filePath),
+  readAuditLog: (vaultPath: string, limit?: number) =>
+    handler<Array<{ ts: string; actor: string; sha: string; files_changed: number; files: string[]; source: string }>>(
+      'vault:readAuditLog', vaultPath, limit,
+    ),
 }
 
 const file = {

@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useMemo, memo, type JSX } from 'react'
-import { FileText, RefreshCw } from 'lucide-react'
+import { FileText, RefreshCw, Shield } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
+import { AuditTab } from './AuditTab'
 
 interface LogPanelProps {
   onClose: () => void
   onSelectFile?: (path: string) => void
+  // 2026-07-09 backport: 允许从外部指定初始 tab (audit 通知点'查看'用)
+  initialTab?: 'log' | 'audit'
 }
 
 function renderLogMd(raw: string): string {
@@ -119,10 +122,14 @@ function processLine(line: string, dir?: string): string {
   return html
 }
 
-export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPanelProps): JSX.Element {
+export const LogPanel = memo(function LogPanel({ onClose, onSelectFile, initialTab }: LogPanelProps): JSX.Element {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  // 2026-07-09 backport (from team ada72e9): 加 'audit' tab, 配合 post-commit 审计
+  const [activeTab, setActiveTab] = useState<'log' | 'audit'>(initialTab ?? 'log')
+  // 2026-07-09 backport: 审计 tab 要 vault 路径, loadLog 时缓存一次
+  const [vaultPathInTab, setVaultPathInTab] = useState<string | null>(null)
   // 2026-07-07 (backport from team d3e9433): 删除 lastRefresh state (toolbar 删了不需要显示时间)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef('')
@@ -132,6 +139,8 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
     setLoadError(false)
     try {
       const vaultPath = await (window.api as any).getVaultPath?.()
+      // 2026-07-09 backport: 缓存给 AuditTab 用 (避免 audit tab 启动时再拉一次)
+      if (vaultPath) setVaultPathInTab(vaultPath)
       if (!vaultPath) {
         setContent('')
         if (isInitial) setLoading(false)
@@ -202,8 +211,8 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
 
   return (
     <FloatingPanel
-      title="日志"
-      icon={<FileText size={15} />}
+      title={activeTab === 'log' ? '日志' : '审计'}
+      icon={activeTab === 'log' ? <FileText size={15} /> : <Shield size={15} />}
       onClose={onClose}
       width={500}
       height={580}
@@ -221,7 +230,44 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile }: LogPan
         </button>
       }
     >
-      {loading ? (
+      {/* 2026-07-09 backport: 双 tab 切换 (日志 / 审计) */}
+      <div
+        style={{
+          display: 'flex',
+          borderBottom: '1px solid var(--color-border)',
+          background: 'var(--color-surface-hover, #f9f9fb)',
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={() => setActiveTab('log')}
+          style={{
+            flex: 1, padding: '8px 12px', background: activeTab === 'log' ? 'var(--color-bg)' : 'transparent',
+            border: 'none', borderBottom: activeTab === 'log' ? '2px solid var(--color-primary, #007aff)' : '2px solid transparent',
+            color: activeTab === 'log' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+            cursor: 'pointer', fontSize: 12, fontWeight: activeTab === 'log' ? 600 : 400,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}
+        >
+          <FileText size={12} /> 日志
+        </button>
+        <button
+          onClick={() => setActiveTab('audit')}
+          style={{
+            flex: 1, padding: '8px 12px', background: activeTab === 'audit' ? 'var(--color-bg)' : 'transparent',
+            border: 'none', borderBottom: activeTab === 'audit' ? '2px solid var(--color-primary, #007aff)' : '2px solid transparent',
+            color: activeTab === 'audit' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+            cursor: 'pointer', fontSize: 12, fontWeight: activeTab === 'audit' ? 600 : 400,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          }}
+        >
+          <Shield size={12} /> 审计
+        </button>
+      </div>
+
+      {activeTab === 'audit' ? (
+        <AuditTab vaultPath={vaultPathInTab} limit={50} onSelectFile={onSelectFile} />
+      ) : loading ? (
         <div
           style={{
             textAlign: 'center',

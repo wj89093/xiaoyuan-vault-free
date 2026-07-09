@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# post-commit — vault git 提交后审计钩子 (2026-07-07)
+#
+# 用途: agent 不开 app 直接 commit 时,自动写一条审计记录到 _log/,
+#   配合 app 启动时检查 uncommitted diff 的"双层审计"设计
+#
+# 写入格式 (jsonl, 每行一个事件):
+#   {"ts":"2026-07-07T14:30:52+08:00","actor":"agent-xiaodao","sha":"abc1234",
+#    "files_changed":3,"files":["_wiki/leads/线索003.md",...]}
+#
+# 设计原则:
+#   - 失败 exit 0 (post-commit 不能阻塞 commit, 跟 pre-commit 不同)
+#   - actor 来源: git config user.name (强制要求 agent 改前 set)
+#   - 写入路径: _log/YYYY-MM-DD/{actor}-{HHMMSS}.jsonl
+#   - 自动 git add (审计进版本控制, 不丢)
+#   - SKIP_VAULT_AUDIT=1 可 bypass
+#
+# 关联文档:
+#   - AI-ONBOARDING.md "改文件前的 Git Author 设置" 章节
+#   - team-agent-onboarding.md "git config user.name 约定"
+#   - hooks/pre-commit 配合 (commit 前校验 + commit 后审计)
+
+set -uo pipefail
+
+VAULT_ROOT="$(git rev-parse --show-toplevel)"
+
+# 0. 跳过审计的环境变量 (紧急时人工 bypass)
+if [ "${SKIP_VAULT_AUDIT:-}" = "1" ]; then
+  exit 0
+fi
+
+# 1. 读 actor (跟 pre-commit 一致, 强制要求 git config user.name)
+ACTOR=$(git config user.name 2>/dev/null || echo "")
+
+if [ -z "$ACTOR" ]; then
+  # actor 空 (没 set git config), 写 "unknown" 审计 (不阻塞)
+  ACTOR="unknown"
+fi
+
+# 2. 读 commit 信息
+SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
+SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "")
+TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)  # ISO 8601 UTC
+DATE_DIR=$(date +%Y-%m-%d)
+TIME_HMS=$(date +%H%M%S)
+
+# 3. 收集本次 commit 改动的文件 (ACMR = Added/Copied/Modified/Renamed)
+FILES_CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || echo "")
+FILES_COUNT=$(echo -n "$FILES_CHANGED" | grep -c . 2>/dev/null || echo 0)
+
+# 4. 构造 jsonl 行 (单行, 用 jq 没装, 手工转义)
+# 转义 ACTOR (双引号 + 反斜杠)
+ACTOR_ESC=$(printf '%s' "$ACTOR" | sed 's/\\/\\\\/g; s/"/\\"/g')
+SHORT_SHA_ESC=$(printf '%s' "$SHORT_SHA" | sed 's/\\/\\\\/g; s/"/\\"/g')
+JSONL_LINE="{\"ts\":\"$TIMESTAMP\",\"actor\":\"$ACTOR_ESC\",\"sha\":\"$SHORT_SHA_ESC\",\"files_changed\":$FILES_COUNT,\"files\":["
+
+# 5. 处理 files 列表 (逗号分隔, 同样转义)
+FIRST=1
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  FILE_ESC=$(printf '%s' "$file" | sed 's/\\/\\\\/g; s/"/\\"/g')
+  if [ $FIRST -eq 1 ]; then
+    JSONL_LINE="${JSONL_LINE}\"$FILE_ESC\""
+    FIRST=0
+  else
+    JSONL_LINE="${JSONL_LINE},\"$FILE_ESC\""
+  fi
+done <<< "$FILES_CHANGED"
+
+JSONL_LINE="${JSONL_LINE}]}"
+
+# 6. 写审计文件: _log/YYYY-MM-DD/{actor-safe}-{HHMMSS}.jsonl
+LOG_DIR="$VAULT_ROOT/_log/$DATE_DIR"
+mkdir -p "$LOG_DIR"
+
+# actor 含 / 或 : 时替换成 _ (避免路径非法)
+ACTOR_SAFE=$(printf '%s' "$ACTOR" | tr '/:' '__')
+AUDIT_FILE="$LOG_DIR/${ACTOR_SAFE}-${TIME_HMS}.jsonl"
+
+echo "$JSONL_LINE" >> "$AUDIT_FILE"
+
+# 7. 自动 git add 审计文件 (让审计进版本控制, 不丢)
+cd "$VAULT_ROOT" && git add "$AUDIT_FILE" 2>/dev/null || true
+
+exit 0

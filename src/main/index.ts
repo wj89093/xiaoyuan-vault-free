@@ -29,6 +29,7 @@ import { registerMaintainHandlers } from './ipc/maintainHandlers'
 import { registerFileHandlers } from './ipc/fileHandlers'
 import { registerVaultHandlers } from './ipc/vaultHandlers'
 import { registerSkillHandlers } from './ipc/skillHandlers'
+import { registerAuditHandlers } from './ipc/auditHandlers'
 // 不要在 index.ts 重复注册，否则会报 "Attempted to register a second handler"
 
 // Config file for persisting app state
@@ -111,6 +112,8 @@ function setupIpcHandlers(): void {
   registerMaintainHandlers()
   // 开源版：Skill.md 插件是核心入口（不是 Pro 专属）
   registerSkillHandlers()
+  // 2026-07-09 backport: post-commit audit (vault:gitStatus / gitDiff / readAuditLog)
+  registerAuditHandlers()
 }
 
 // ─── URL Scheme 注册 ────────────────────────────────────────
