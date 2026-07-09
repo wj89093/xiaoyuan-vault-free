@@ -10,6 +10,8 @@ import { initDatabase, getVaultPath } from '../services/database/database'
 import { setVaultPath } from '../services/clipboard/clipboard'
 import { triggerGraphRebuild } from '../services/graph/rebuildTrigger'
 import { startFileWatcher } from '../services/fileWatcher'
+// 2026-07-09: 启动自动装 post-commit hook (W7+ free 仓版, 跟 team 仓 90c267d 同设计)
+import { installPostCommitHookIfMissing } from '../services/vault/installPostCommitHook'
 // v1.9: STATE_MAP.json — AI 入门手册, 列出 vault 所有状态文件
 import { writeStateMap } from '../services/state/stateMap'
 // v1.5: 共享 readConfig/writeConfig (从 services/config 抽出来)
@@ -93,6 +95,8 @@ async function createVaultAtPath(vaultPath: string): Promise<string> {
   setVaultPath(vaultPath)
   startFileWatcher(vaultPath)
   triggerGraphRebuild()
+  // 2026-07-09: 启动自动装 post-commit hook (用户后续 git init 时也有效, 失败不影响主流程)
+  await installPostCommitHookIfMissing(vaultPath)
   return vaultPath
 }
 
@@ -111,6 +115,8 @@ function registerVaultLifecycleHandlers(): void {
       setVaultPath(vaultPath)
       startFileWatcher(vaultPath)
       triggerGraphRebuild()
+      // 2026-07-09: 老 vault 第一次启动自动装 hook (5b27682 + 90c267d 短尾巴)
+      await installPostCommitHookIfMissing(vaultPath)
       return vaultPath
     }
     return null
