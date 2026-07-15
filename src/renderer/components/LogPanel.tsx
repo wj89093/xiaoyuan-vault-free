@@ -138,7 +138,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile, initialT
   const loadLog = async (isInitial = false) => {
     setLoadError(false)
     try {
-      const vaultPath = await (window.api as any).getVaultPath?.()
+      const vaultPath = await window.api.getVaultPath?.()
       // 2026-07-09 backport: 缓存给 AuditTab 用 (避免 audit tab 启动时再拉一次)
       if (vaultPath) setVaultPathInTab(vaultPath)
       if (!vaultPath) {
@@ -146,7 +146,7 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile, initialT
         if (isInitial) setLoading(false)
         return
       }
-      const newContent = (await (window.api as any).readFile(`${vaultPath}/log.md`)) ?? ''
+      const newContent = (await window.api.readFile(`${vaultPath}/log.md`)) ?? ''
       if (newContent !== contentRef.current) {
         contentRef.current = newContent
         setContent(newContent)
@@ -169,20 +169,15 @@ export const LogPanel = memo(function LogPanel({ onClose, onSelectFile, initialT
       void loadLog()
     }, 2000)
 
-    const unsubChunk = (window.api as any).agent?.onBashChunk?.(() => {
-      void loadLog()
-    })
-    const unsubDone = (window.api as any).agent?.onBashDone?.(() => {
-      void loadLog()
-    })
+    // 2026-07-15: free 仓 agent 相关 API 已删, onBashChunk/onBashDone 不存在
+    // 2026-07-15: free 仓 agent 相关 API 已删, onBashChunk/onBashDone 不存在
     const unsubImport = window.api.onImportCompleted?.(() => {
       void loadLog()
     })
 
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current)
-      unsubChunk?.()
-      unsubDone?.()
+      // unsubChunk / unsubDone 都是 undefined (free 仓无 agent onBashChunk/Done)
       unsubImport?.()
     }
   }, [])

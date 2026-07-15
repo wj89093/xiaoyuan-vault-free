@@ -25,15 +25,15 @@ export const MemoryPanel = memo(function MemoryPanel({ onClose }: MemoryPanelPro
     setLoading(true)
     setLoadError(null)
     try {
-      const vaultPath = await (window.api as any).getVaultPath?.()
+      const vaultPath = await window.api.getVaultPath?.()
       if (!vaultPath) {
         setConversations([])
         setLoading(false)
         return
       }
       const today = new Date().toISOString().slice(0, 10)
-      const convs = await (window.api as any).getConversations?.(today)
-      setConversations(convs ?? [])
+      const convs = await window.api.getConversations?.(today)
+      setConversations((convs ?? []) as ConversationSummary[])
     } catch (err) {
       console.error('[MemoryPanel] loadConversations failed:', err)
       setLoadError(err instanceof Error ? err.message : String(err))

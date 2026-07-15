@@ -65,7 +65,7 @@ export const Sidebar = memo(function Sidebar({
   // Load vault list when popover opens
   useEffect(() => {
     if (showVaultMenu) {
-      void (window.api as any)
+      void window.api
         .vaultList?.()
         .then((list: VaultInfo[]) => {
           setVaultList(list)
@@ -77,7 +77,7 @@ export const Sidebar = memo(function Sidebar({
   // Auto-refresh file index when switching to wiki tab
   useEffect(() => {
     if (sidebarTab === 'wiki') {
-      void (window.api as any).vaultRefresh?.()
+      void window.api.vaultRefresh?.()
     }
   }, [sidebarTab])
 
@@ -114,7 +114,7 @@ export const Sidebar = memo(function Sidebar({
     if (onSwitchVault) {
       await onSwitchVault(path)
     } else {
-      await (window.api as any).vaultOpenPath?.(path)
+      await window.api.vaultOpenPath?.(path)
     }
   }
 

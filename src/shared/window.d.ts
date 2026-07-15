@@ -293,6 +293,10 @@ export interface XyVaultAPI {
   // Maintenance
   runMaintenance(): Promise<unknown>
 
+  // Briefing
+  generateBriefing(): Promise<unknown>
+  getConversations(date: string, options?: { topic?: string; maxResults?: number }): Promise<unknown[]>
+
   // ─── Skill.md 用户 CRUD (v1.4 精简：仅用户写自己的 Skill) ───
   skillList(): Promise<Array<{ name: string; path: string }>>
   skillLoadDefault(): Promise<string>

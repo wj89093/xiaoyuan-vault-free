@@ -43,7 +43,7 @@ export function AuditNotice({ vaultPath, autoHideMs = AUTO_HIDE_DEFAULT, onOpenA
     let cancelled = false
     void (async () => {
       try {
-        const result = await (window.api as any).vault.gitStatus(vaultPath)
+        const result = await window.api.vault.gitStatus(vaultPath)
         if (!cancelled) {
           setStatus(result)
           setDismissed(false)  // 切 vault 重新弹

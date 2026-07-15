@@ -37,7 +37,7 @@ export function AuditTab({ vaultPath, limit = 50, onSelectFile }: AuditTabProps)
     setLoading(true)
     setError(null)
     try {
-      const result = await (window.api as any).vault.readAuditLog(vaultPath, limit)
+      const result = await window.api.vault.readAuditLog(vaultPath, limit)
       setEntries(result ?? [])
     } catch (err) {
       setError(String(err instanceof Error ? err.message : err))

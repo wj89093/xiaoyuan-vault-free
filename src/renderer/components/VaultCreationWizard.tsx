@@ -89,7 +89,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
   }, [name, basePath])
 
   const handleBrowse = async () => {
-    const path = await (window.api as any).selectDirectory?.()
+    const path = await window.api.vault.selectDirectory?.()
     if (path) setBasePath(path)
   }
 
@@ -97,7 +97,7 @@ export const VaultCreationWizard = memo(function VaultCreationWizard({ onClose, 
     if (!name.trim() || !basePath || !isStep1Valid) return
     setCreating(true)
     try {
-      const result = await (window.api as any).vault?.createAt?.(fullPath)
+      const result = await window.api.vault?.createAt?.(fullPath)
       if (result) {
         onCreated(fullPath, name.trim())
       }

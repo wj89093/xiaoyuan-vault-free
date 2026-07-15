@@ -45,7 +45,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
         return
       }
 
-      const lintReports = await (window.api as any).getLintReports?.()
+      const lintReports = await window.api.getLintReports?.()
       if (lintReports && lintReports.length > 0) {
         const r = lintReports[0] as any
         setReport({

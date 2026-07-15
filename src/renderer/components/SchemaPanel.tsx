@@ -30,7 +30,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
 
   const loadSchemas = async () => {
     try {
-      const vaultPath = await (window.api as any).getVaultPath?.()
+      const vaultPath = await window.api.getVaultPath?.()
       if (!vaultPath) {
         setAllSchemas([])
         setLoaded(true)
@@ -259,7 +259,7 @@ export const SchemaPanel = memo(function SchemaPanel({ onClose }: SchemaPanelPro
                             onClick={async () => {
                               setSaving(true)
                               try {
-                                const vaultPath = await (window.api as any).getVaultPath?.()
+                                const vaultPath = await window.api.getVaultPath?.()
                                 if (!vaultPath) return
                                 await window.api.saveFile(
                                   `${vaultPath}/_schema/${schema.folder}/confirmed.md`,

@@ -13,13 +13,13 @@ export const OutputPanel = memo(function OutputPanel({ onClose }: OutputPanelPro
   const loadOutput = async () => {
     setLoading(true)
     try {
-      const vaultPath = await (window.api as any).getVaultPath?.()
+      const vaultPath = await window.api.getVaultPath?.()
       if (!vaultPath) {
         setContent('')
         setLoading(false)
         return
       }
-      const resp = await (window.api as any).readFile(`${vaultPath}/_output/README.md`)
+      const resp = await window.api.readFile(`${vaultPath}/_output/README.md`)
       setContent(resp ?? '')
     } catch {
       // Most common case: _output/README.md doesn't exist yet

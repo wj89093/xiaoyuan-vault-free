@@ -282,6 +282,10 @@ const api = {
   authOpenLogin: () => auth.openLogin(),
   authDebugLogin: (email: string, code: string) => auth.debugLogin(email, code),
   selectDirectory: () => handler<string | null>('dialog:selectDirectory'),
+  // 2026-07-15 backport: team 仓补 vaultRefresh (Sidebar.tsx 调用)
+  vaultRefresh: () => vault.refresh(),
+  // 2026-07-15 backport: team 仓补 vaultOpenPath (Sidebar.tsx 调用)
+  vaultOpenPath: (path: string) => vault.openPath(path),
   getBuildInfo: () =>
     handler<{ isPro: boolean; isOpenSource: boolean; buildTarget: string }>('app:buildInfo'),
   settingsGetTheme: () => settings.getTheme(),

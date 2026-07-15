@@ -142,13 +142,10 @@ function App(): JSX.Element {
   const { toasts, dismiss: dismissToast } = useToasts()
 
   // ── vault:openFile event (opens agent-prompt.md in editor) ─────────
+  // 2026-07-15: free 仓无 vault:fileOpened IPC, 保留 useEffect 框架 (未来兼容)
   useEffect(() => {
-    const unsub = (window.api as any).onVaultFileOpened?.((data: { path: string }) => {
-      setSelectedFile(data.path)
-    })
-    return () => {
-      unsub?.()
-    }
+    // no-op: free 仓不实现 vault:fileOpened 事件
+    return () => { }
   }, [setSelectedFile])
 
   const ui = useAppUIState()

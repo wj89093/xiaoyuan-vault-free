@@ -185,9 +185,11 @@ export const FileTreeContextMenu = memo(function FileTreeContextMenu({
     if (!confirm('确认删除"' + file.name + '"？此操作不可恢复。')) return
     onClose()
     log.info('[FileTree] handleDelete:', file.path, 'isDirectory:', file.isDirectory)
+    // 2026-07-15: file.delete 需要 (vaultPath, filePath), 补 vaultPath
+    const vaultPath = await window.api.getVaultPath?.() ?? ''
     const result = file.isDirectory
-      ? await (window.api as any).file.delete(file.path)
-      : await (window.api.file.delete as any)(file.path)
+      ? await window.api.file.delete(vaultPath, file.path)
+      : await window.api.file.delete(vaultPath, file.path)
     log.info('[FileTree] delete result:', result)
     onRefresh()
   }
