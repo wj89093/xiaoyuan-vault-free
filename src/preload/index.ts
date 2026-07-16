@@ -253,7 +253,8 @@ const api = {
   saveFile: (path: string, content: string) => file.save(path, content),
   searchFiles: (query: string) => file.search(query),
   moveFile: (filePath: string, newParentDir: string) => file.move(filePath, newParentDir),
-  deleteFile: (vaultPath: string, filePath: string) => file.delete(vaultPath, filePath),
+  // 2026-07-16 (P0 backport): 接受单参数向后兼容, vaultPath 可选 (Phase 2 后删)
+  deleteFile: (filePath: string, vaultPath?: string) => file.delete(vaultPath ?? '', filePath),
   trashList: (vaultPath: string) => file.trashList(vaultPath),
   trashRestore: (vaultPath: string, originalPath: string) =>
     file.trashRestore(vaultPath, originalPath),

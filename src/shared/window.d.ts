@@ -1,6 +1,18 @@
+/**
+ * window.d.ts — mirrors preload/index.ts API surface
+ *
+ * 维护规则: preload/index.ts 加方法 → 同步加到这里 (namespace 结构跟 preload `const api` 完全一致)
+ *
+ * 2026-07-16 (Free 仓 P0 backport — team 49c6b8e):
+ *   - 删旧的 flat+namespace 混合声明, 改为纯 namespace (对齐 preload 实际 expose)
+ *   - 加缺失的 6 个 namespace: url / converter / query / clipboard / import / skill
+ *   - 加 free 特有的 maintenance.saveConversation / getTopicSummaries / briefing 系列
+ *   - 保留 flat aliases 类型 (向后兼容, Phase 2 改 renderer 后删)
+ *   - 加全局变量 __vaultPath / __cmView / toast
+ */
 import type { ImportFileResult } from './chat'
-// Type declarations for window.api (mirrors preload/index.ts API surface)
-// This eliminates no-unsafe-* errors when calling window.api methods
+
+// ─── Shared types ────────────────────────────────────────────────────
 
 export interface FileInfo {
   path: string
@@ -12,10 +24,6 @@ export interface FileInfo {
   tags?: string
 }
 
-// 2026-07-07 (Free 仓清理): 删 ChatMessage / ChatSession / AskResult / AskStreamChunk 4 个 chat 类型
-//   - chat 是 Pro 专属功能, Free 仓不实现 (见 src/main/buildFeatures.ts)
-//   - 配合删 preload/index.ts 的 chat namespace + shared/chat.ts 的 chat 类型
-
 export interface URLFetchResult {
   title: string
   content: string
@@ -25,183 +33,17 @@ export interface URLFetchResult {
   source: string
 }
 
-export interface ConvertResult {
-  success: boolean
-  markdown?: string
-  error?: string
-}
+// ─── window.api — namespace 结构, 跟 preload/index.ts `const api` 对齐 ──
 
-export interface TranscribeResult {
-  success: boolean
-  text?: string
-  error?: string
-}
-
-export interface BubbleSaveResult {
-  ok: boolean
-  error?: string
-}
-
-export interface GraphLoadResult {
-  nodes: number
-  edges: number
-  // Add more fields as needed
-}
-
-export interface AuthTokenReceived {
-  token: string
-  email: string
-}
-
-export interface StreamChunkData {
-  chunk: string
-  partial: string
-}
-
-export interface StreamErrorData {
-  error: string
-}
-
-export interface AutoAISettings {
-  enabled: boolean
-  interval: number
-  onClassify: boolean
-  onTags: boolean
-  onSummary: boolean
-  provider?: string
-}
-
-export interface EnrichResult {
-  // Define based on actual enrich result shape
-  [key: string]: unknown
-}
-
-export interface QueryResult {
-  // Define based on actual query result shape
-  [key: string]: unknown
-}
-
-// The full window.api type
 export interface XyVaultAPI {
-  // Lifecycle
-  onImportCompleted(callback: () => void): () => void
-  onQuickSwitch(callback: () => void): () => void
-  onGotoImport(callback: () => void): () => void
-
-  // URL operations
-  fetchURL(url: string): Promise<URLFetchResult>
-  saveURLToVault(url: string, vaultPath: string): Promise<string>
-
-  // Vault operations
-  openVault(): Promise<string | null>
-  createVault(): Promise<string | null>
-  createVaultWithAI(name: string, basePath: string): Promise<string | null>
-  getLastVault(): Promise<string | null>
-  clearLastVault(): Promise<boolean>
-  vaultRefresh(): Promise<{ ok: boolean }>
-  vaultList(): Promise<Array<{ path: string; name: string; lastOpened: number }>>
-  vaultOpenPath(path: string): Promise<string | null>
-  vaultRemove(path: string): Promise<boolean>
-  importFiles(vaultPath: string, filePaths: string[]): Promise<ImportFileResult[]>
-  fetchUrl(url: string): Promise<{ title: string; content: string }>
-  // Lint (migrated from autoAI)
-  autoAIListSchemas(): Promise<unknown[]>
-  autoAIGetPendingSchemas(): Promise<unknown[]>
-  autoAIGetLintReports(): Promise<unknown[]>
-  autoAIFixLintIssue(issue: {
-    type: string
-    pagePath?: string
-    deadTarget?: string
-    orphanTarget?: string
-  }): Promise<boolean>
-  autoAIRunLint(): Promise<unknown>
-  getLintReports(): Promise<unknown[]>
-  // convertFile
-  getSupportedFormats(): Promise<string[]>
-  transcribeAudio(filePath: string): Promise<TranscribeResult>
-  saveUrlContent(vaultPath: string, title: string, content: string): Promise<string>
-
-  // File operations
-  listFiles(): Promise<FileInfo[]>
-  searchFiles(query: string): Promise<FileInfo[]>
-  readFile(filePath: string): Promise<string>
-  renderFile(filePath: string): Promise<{ type: string; [key: string]: unknown }>
-  createFile(filePath: string, title: string, type?: string): Promise<boolean>
-  saveFile(filePath: string, content: string): Promise<boolean>
-  createFolder(folderPath: string): Promise<boolean>
-  renameFile(oldPath: string, newName: string): Promise<boolean>
-  deleteFile(filePath: string): Promise<boolean>
-  trashList(
-    vaultPath: string
-  ): Promise<Array<{ originalPath: string; trashPath: string; deletedAt: number; name: string }>>
-  trashRestore(vaultPath: string, originalPath: string): Promise<boolean>
-  trashDelete(vaultPath: string, originalPath: string): Promise<boolean>
-  trashClean(vaultPath: string): Promise<number>
-  listRawFiles(
-    vaultPath: string
-  ): Promise<
-    Array<{ month: string; files: Array<{ name: string; path: string; converted: boolean }> }>
-  >
-  archiveRawFile(rawPath: string): Promise<{ success: boolean }>
-  convertRawFile(
-    rawPath: string,
-    vaultPath: string
-  ): Promise<{ success: boolean; mdPath?: string; error?: string }>
-  deleteFolder(folderPath: string): Promise<boolean>
-  moveFile(filePath: string, newParentDir: string): Promise<boolean>
-  getVaultPath(): Promise<string | null>
-
-  // Build info (Pro / Open-source detection)
-  getBuildInfo(): Promise<{ isPro: boolean; isOpenSource: boolean; buildTarget: string }>
-
-  generateBriefing(): Promise<{
-    date: string
-    period: string
-    newPages: number
-    updatedPages: number
-    entities: string[]
-    highlights: string[]
-    health: string
-    raw: string
-  }>
-
-  // Clipboard watch
-  clipboardStart(vaultPath: string): Promise<boolean>
-  clipboardStop(): Promise<boolean>
-  clipboardSetVaultPath(vaultPath: string): Promise<boolean>
-
-  // 2026-07-08 backport from team 7d9c613: free 仓 importHandlers 链还活着 (Sidebar.tsx:207 用), 保留 openImportWindow, 删其他 7 个
-  openImportWindow(): Promise<boolean>
-
-  // Auth
-  authGetToken(): Promise<string | null>
-  authGetEmail(): Promise<string | null>
-  authClear(): Promise<boolean>
-  authOpenLogin(): Promise<string>
-  onAuthTokenReceived(callback: (data: AuthTokenReceived) => void): () => void
-
-  // Folder map
-  folderMapLoad(): Promise<Record<string, string>>
-  folderMapSave(map: Record<string, string>): Promise<boolean>
-
-  // Graph
-  graphLoad(): Promise<unknown>
-  graphRebuild(): Promise<GraphLoadResult>
-  // P3-2026-06-02 (backport): 增量重建,只重算 changedFiles 相关的边
-  graphRebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
-  // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
-  graphOnFileChange(
-    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
-  ): () => void
-
-  // Vault namespace (P3-2026-06-03: 补 renderer 用的命名空间 API)
+  // ── vault ──
   vault: {
     open(): Promise<string | null>
     create(): Promise<string | null>
     openFile(filePath: string): Promise<{ ok: boolean; path?: string }>
     getLast(): Promise<string | null>
+    getLastVault(): Promise<string | null>
     clearLast(): Promise<boolean>
-    // v1.5: 上次打开文件记忆 (per-vault)
     getLastFile(vaultPath: string): Promise<string | null>
     setLastFile(vaultPath: string, filePath: string): Promise<boolean>
     refresh(): Promise<{ ok: boolean }>
@@ -211,30 +53,40 @@ export interface XyVaultAPI {
     createAt(path: string): Promise<string | null>
     remove(path: string): Promise<boolean>
     path(): Promise<string | null>
-    // 2026-07-09 backport: post-commit audit (App 启动检查 uncommitted + 读 _log/)
     gitStatus(vaultPath: string): Promise<{
       uncommittedCount: number
-      files: Array<{ path: string; status: 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked'; author: string | null; mtime: number; diffLines: number }>
+      files: Array<{
+        path: string
+        status: 'modified' | 'added' | 'deleted' | 'renamed' | 'untracked'
+        author: string | null
+        mtime: number
+        diffLines: number
+      }>
       isGitRepo: boolean
       hasPostCommitHook: boolean
     }>
     gitDiff(vaultPath: string, filePath: string): Promise<string>
-    readAuditLog(vaultPath: string, limit?: number): Promise<Array<{
-      ts: string
-      actor: string
-      sha: string
-      files_changed: number
-      files: string[]
-      source: string
-    }>>
+    readAuditLog(
+      vaultPath: string,
+      limit?: number
+    ): Promise<
+      Array<{
+        ts: string
+        actor: string
+        sha: string
+        files_changed: number
+        files: string[]
+        source: string
+      }>
+    >
   }
-  // File namespace
+
+  // ── file ──
   file: {
-    list(): Promise<unknown[]>
+    list(vaultPath?: string): Promise<unknown[]>
     search(query: string): Promise<unknown[]>
     read(path: string): Promise<string>
-    render(path: string): Promise<{ type: string }>
-    create(path: string, title: string, type?: string): Promise<boolean>
+    render(path: string): Promise<{ type: string; [key: string]: unknown }>
     save(path: string, content: string): Promise<boolean>
     exists(path: string): Promise<boolean>
     walkDir(path: string): Promise<unknown>
@@ -251,64 +103,263 @@ export interface XyVaultAPI {
     listRaw(vaultPath: string): Promise<unknown[]>
     convertRaw(rawPath: string, vaultPath: string): Promise<unknown>
     listSchemas(vaultPath: string): Promise<unknown[]>
-    /** P3-2026-06-03: Pro 仓备份系统, Free 仓暂用 any cast */
-    listBackups?(filePath: string): Promise<unknown[]>
-    previewBackup?(backupId: string): Promise<string>
-    restoreBackup?(backupId: string): Promise<boolean>
+    listBackups(filePath: string): Promise<unknown[]>
+    previewBackup(filePath: string, timestamp: string): Promise<string>
+    restoreBackup(filePath: string, timestamp: string): Promise<boolean>
+    createFolder(folderPath: string): Promise<boolean>
+    deleteFolder(folderPath: string): Promise<boolean>
+    writeFsCache?(vaultPath: string, files: unknown[]): Promise<boolean>
+    getPreview?(filePath: string, maxChars?: number): Promise<{
+      success: boolean
+      preview: string
+      error?: string
+    }>
+    listDir?(path: string): Promise<Array<{ name: string; isDirectory: boolean }> | null>
   }
-  // Settings namespace
+
+  // ── schema ──
+  schema: {
+    list(): Promise<unknown[]>
+    getPending(): Promise<unknown[]>
+  }
+
+  // ── lint ──
+  lint: {
+    getReports(): Promise<unknown[]>
+    fixIssue(issue: {
+      type: string
+      pagePath?: string
+      deadTarget?: string
+      orphanTarget?: string
+    }): Promise<boolean>
+    run(): Promise<unknown>
+  }
+
+  // ── url (Free 仓特有: URL 导入 + fetch) ──
+  url: {
+    fetch(url: string): Promise<unknown>
+    save(url: string, vaultPath: string): Promise<string>
+    fetchUrl(url: string): Promise<{ title: string; content: string }>
+    saveUrl(vaultPath: string, title: string, content: string): Promise<string>
+  }
+
+  // ── converter (Free 仓特有: 文件格式转换) ──
+  converter: {
+    convert(filePath: string): Promise<unknown>
+    supported(): Promise<string[]>
+    transcribe(filePath: string): Promise<unknown>
+  }
+
+  // ── query (Free 仓特有: 主题解析 + AI 问答) ──
+  query: {
+    resolve(content: string, title?: string): Promise<unknown>
+    vault(question: string, vaultPath?: string): Promise<unknown>
+  }
+
+  // ── auth ──
+  auth: {
+    getToken(): Promise<string | null>
+    getEmail(): Promise<string | null>
+    clear(): Promise<boolean>
+    openLogin(): Promise<string>
+    debugLogin(email: string, code: string): Promise<string>
+    onTokenReceived(cb: (data: { token: string; email: string }) => void): () => void
+  }
+
+  // ── settings ──
   settings: {
     get(): Promise<{ theme: 'light' | 'dark' | 'system' }>
     getTheme(): Promise<'light' | 'dark' | 'system'>
     setTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
   }
-  // Graph namespace
+
+  // ── graph ──
   graph: {
     load(): Promise<unknown>
-    rebuild(): Promise<GraphLoadResult>
-    rebuildIncremental(changedFiles: string[]): Promise<GraphLoadResult>
+    rebuild(): Promise<{ nodes: number; edges: number }>
+    rebuildIncremental(changedFiles: string[]): Promise<{ nodes: number; edges: number }>
+    queryTopics(
+      name?: string,
+      options?: { maxNeighbors?: number; maxResults?: number }
+    ): Promise<{ query: string; nodes: unknown[]; edges: unknown[] }>
     onFileChange(
       cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
     ): () => void
   }
 
-  // Pre-existing missing methods (TODO: integrate with Pro 仓 or remove renderer calls)
-  bubbleExpand?: (...args: unknown[]) => unknown
-  openInDefaultApp?: (filePath: string) => Promise<void>
-  getPathForFile?: (file: File) => string
-  listSchemas?: (vaultPath: string) => Promise<unknown[]>
-  fileExists?: (path: string) => Promise<boolean>
+  // ── maintenance ──
+  maintenance: {
+    run(): Promise<unknown>
+    getTasks(): Promise<unknown[]>
+    updateTasks(tasks: unknown[]): Promise<boolean>
+    generateBriefing(): Promise<{
+      date: string
+      period: string
+      newPages: number
+      updatedPages: number
+      entities: string[]
+      highlights: string[]
+      health: string
+      raw: string
+    }>
+    saveConversation(params: {
+      title: string
+      topic: string
+      decisions: string[]
+      relatedFiles: string[]
+      nextSteps: string[]
+      discussion?: string
+    }): Promise<{ path: string; ok: boolean; error?: string }>
+    getConversations(
+      date: string,
+      options?: { topic?: string; maxResults?: number }
+    ): Promise<unknown[]>
+    getTopicSummaries(topic: string): Promise<unknown>
+  }
 
-  // Settings (flat namespace aliases)
+  // ── clipboard (Free 仓特有: 剪贴板监听) ──
+  clipboard: {
+    start(vaultPath: string): Promise<boolean>
+    stop(): Promise<boolean>
+    setVaultPath(vaultPath: string): Promise<boolean>
+  }
+
+  // ── shortcuts ──
+  shortcuts: {
+    onImportCompleted(cb: (filePaths?: string[]) => void): () => void
+    onQuickSwitch(cb: () => void): () => void
+    onGotoImport(cb: () => void): () => void
+  }
+
+  // ── import (Free 仓特有: 导入窗口) ──
+  import: {
+    openWindow(): Promise<boolean>
+    autoTrigger(filePaths: string[]): Promise<boolean>
+  }
+
+  // ── skill (Free 仓特有: Skill.md 用户 CRUD) ──
+  skill: {
+    list(): Promise<Array<{ name: string; path: string }>>
+    loadDefault(skills?: string[]): Promise<string>
+    read(name: string): Promise<string>
+    save(name: string, content: string): Promise<boolean>
+    delete(name: string): Promise<boolean>
+  }
+
+  // ── build (Free 仓特有: 构建信息) ──
+  build: {
+    getInfo(): Promise<{
+      isPro: boolean
+      isOpenSource: boolean
+      buildTarget: string
+    }>
+  }
+
+  // ── Legacy flat aliases (Phase 2 改完 renderer 后删除) ──
+  listFiles(): Promise<FileInfo[]>
+  searchFiles(query: string): Promise<FileInfo[]>
+  readFile(filePath: string): Promise<string>
+  renderFile(filePath: string): Promise<{ type: string; [key: string]: unknown }>
+  saveFile(filePath: string, content: string): Promise<boolean>
+  moveFile(filePath: string, newParentDir: string): Promise<boolean>
+  deleteFile(filePath: string, vaultPath?: string): Promise<boolean>
+  renameFile(oldPath: string, newName: string): Promise<boolean>
+  deleteFolder(folderPath: string): Promise<boolean>
+  trashList(vaultPath: string): Promise<unknown[]>
+  trashRestore(vaultPath: string, originalPath: string): Promise<boolean>
+  trashDelete(vaultPath: string, originalPath: string): Promise<boolean>
+  openImportWindow(): Promise<boolean>
+  listSchemas(vaultPath: string): Promise<unknown[]>
+  fileExists(filePath: string): Promise<boolean>
+  getLastVault(): Promise<string | null>
+  generateBriefing(): Promise<unknown>
+  getConversations(
+    date: string,
+    options?: { topic?: string; maxResults?: number }
+  ): Promise<unknown[]>
+  getTopicSummaries(topic: string): Promise<unknown>
+  graphLoad(): Promise<unknown>
+  graphRebuild(): Promise<{ nodes: number; edges: number }>
+  graphOnFileChange(
+    cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
+  ): () => void
+  authGetToken(): Promise<string | null>
+  authGetEmail(): Promise<string | null>
+  authClear(): Promise<boolean>
+  authOpenLogin(): Promise<string>
+  authDebugLogin(email: string, code: string): Promise<string>
+  selectDirectory(): Promise<string | null>
+  vaultRefresh(): Promise<{ ok: boolean }>
+  vaultOpenPath(path: string): Promise<string | null>
+  getBuildInfo(): Promise<{ isPro: boolean; isOpenSource: boolean; buildTarget: string }>
   settingsGetTheme(): Promise<'light' | 'dark' | 'system'>
   settingsSetTheme(theme: 'light' | 'dark' | 'system'): Promise<string>
-
-  // v1.5: lastFile aliases (flat — called by useVaultState)
-  getLastFile(vaultPath: string): Promise<string | null>
-  setLastFile(vaultPath: string, filePath: string): Promise<boolean>
-
-  // v1.4: writeFile (called by SettingsSections)
-  writeFile?(filePath: string, content: string): Promise<void>
-
-  // Maintenance
-  runMaintenance(): Promise<unknown>
-
-  // Briefing
-  generateBriefing(): Promise<unknown>
-  getConversations(date: string, options?: { topic?: string; maxResults?: number }): Promise<unknown[]>
-
-  // ─── Skill.md 用户 CRUD (v1.4 精简：仅用户写自己的 Skill) ───
+  onImportCompleted(cb: (filePaths?: string[]) => void): () => void
+  onQuickSwitch(cb: () => void): () => void
+  onGotoImport(cb: () => void): () => void
+  getVaultPath(): Promise<string | null>
   skillList(): Promise<Array<{ name: string; path: string }>>
-  skillLoadDefault(): Promise<string>
+  skillLoadDefault(skills?: string[]): Promise<string>
   skillRead(name: string): Promise<string>
   skillSave(name: string, content: string): Promise<boolean>
   skillDelete(name: string): Promise<boolean>
+
+  // ── Free 仓特有但 namespace 未覆盖的 (遗留 flat) ──
+  fetchUrl(url: string): Promise<{ title: string; content: string }>
+  saveUrlContent(vaultPath: string, title: string, content: string): Promise<string>
+  openVault(): Promise<string | null>
+  createVault(): Promise<string | null>
+  createVaultWithAI(name: string, basePath: string): Promise<string | null>
+  clearLastVault(): Promise<boolean>
+  vaultList(): Promise<Array<{ path: string; name: string; lastOpened: number }>>
+  vaultRemove(path: string): Promise<boolean>
+  importFiles(vaultPath: string, filePaths: string[]): Promise<ImportFileResult[]>
+  fetchURL(url: string): Promise<URLFetchResult>
+  saveURLToVault(url: string, vaultPath: string): Promise<string>
+  createFile(filePath: string, title: string, type?: string): Promise<boolean>
+  createFolder(folderPath: string): Promise<boolean>
+  runMaintenance(): Promise<unknown>
+  getSupportedFormats(): Promise<string[]>
+  transcribeAudio(filePath: string): Promise<{ success: boolean; text?: string; error?: string }>
+  clipboardStart(vaultPath: string): Promise<boolean>
+  clipboardStop(): Promise<boolean>
+  clipboardSetVaultPath(vaultPath: string): Promise<boolean>
+  onAuthTokenReceived(cb: (data: { token: string; email: string }) => void): () => void
+  folderMapLoad(): Promise<Record<string, string>>
+  folderMapSave(map: Record<string, string>): Promise<boolean>
+  graphRebuildIncremental(changedFiles: string[]): Promise<{ nodes: number; edges: number }>
+  writeFile?(filePath: string, content: string): Promise<void>
+  bubbleExpand?: (...args: unknown[]) => unknown
+  openInDefaultApp?: (filePath: string) => Promise<void>
+  getPathForFile?: (file: File) => string
+  getLastFile(vaultPath: string): Promise<string | null>
+  setLastFile(vaultPath: string, filePath: string): Promise<boolean>
+
+  // ── Legacy autoAI (lint 前身) flat ──
+  autoAIListSchemas(): Promise<unknown[]>
+  autoAIGetPendingSchemas(): Promise<unknown[]>
+  autoAIGetLintReports(): Promise<unknown[]>
+  autoAIFixLintIssue(issue: {
+    type: string
+    pagePath?: string
+    deadTarget?: string
+    orphanTarget?: string
+  }): Promise<boolean>
+  autoAIRunLint(): Promise<unknown>
+  getLintReports(): Promise<unknown[]>
 }
+
+// ── 全局非-preload 变量 (运行时注入, 不走 contextBridge) ──────────────
 
 declare global {
   interface Window {
     api: XyVaultAPI
-    toast: (...args: unknown[]) => unknown
+    /** 运行时注入: 当前 vault 路径 */
+    __vaultPath?: string | null
+    /** CodeMirror EditorView 实例 (Editor.tsx 注入) */
+    __cmView?: unknown
+    /** Toast 通知 (renderer 内部注入, 非 preload) */
+    toast?: { error(msg: string): void; success(msg: string): void; info(msg: string): void }
   }
 }
 

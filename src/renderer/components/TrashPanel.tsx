@@ -24,7 +24,7 @@ export function TrashPanel({ vaultPath, onNavigate, onClose }: TrashPanelProps):
     if (!vaultPath) return
     setLoading(true)
     try {
-      const list = await window.api.trashList(vaultPath)
+      const list = (await window.api.trashList(vaultPath)) as TrashItem[]
       setItems(list)
     } catch {
       /* ignore */
