@@ -14,12 +14,13 @@ import type { ImportFileResult } from '../shared/chat'
 
 console.log('[preload] script started')
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// 2026-07-16 (Free 仓 backport from team 37a8b15): 删 no-unsafe-argument (args 现在带类型)
 
 // ─── Shared helpers ─────────────────────────────────────────────────
 
 function handler<T>(channel: string, ...args: unknown[]): Promise<T> {
-  return ipcRenderer.invoke(channel, ...(args as any[])) as Promise<T>
+  return ipcRenderer.invoke(channel, ...args) as Promise<T>
 }
 
 function onEvent(channel: string, callback: (...args: unknown[]) => void): () => void {
@@ -158,7 +159,7 @@ const auth = {
   openLogin: () => handler<string>('auth:openLogin'),
   debugLogin: (email: string, code: string) => handler<string>('auth:debugLogin', email, code),
   onTokenReceived: (cb: (data: { token: string; email: string }) => void) =>
-    onEvent('auth:tokenReceived', cb as any)
+    onEvent('auth:tokenReceived', cb as (...args: unknown[]) => void)
 }
 
 const settings = {
@@ -179,7 +180,7 @@ const graph = {
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
   onFileChange: (
     cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
-  ) => onEvent('file:changed', cb as any)
+  ) => onEvent('file:changed', cb as (...args: unknown[]) => void)
 }
 
 const maintenance = {
@@ -207,9 +208,9 @@ const clipboard = {
 }
 
 const shortcuts = {
-  onImportCompleted: (cb: (filePaths?: string[]) => void) => onEvent('import:completed', cb as any),
-  onQuickSwitch: (cb: () => void) => onEvent('shortcut:quick-switch', cb as any),
-  onGotoImport: (cb: () => void) => onEvent('shortcut:goto-import', cb as any)
+  onImportCompleted: (cb: (filePaths?: string[]) => void) => onEvent('import:completed', cb as (...args: unknown[]) => void),
+  onQuickSwitch: (cb: () => void) => onEvent('shortcut:quick-switch', cb as (...args: unknown[]) => void),
+  onGotoImport: (cb: () => void) => onEvent('shortcut:goto-import', cb as (...args: unknown[]) => void)
 }
 
 const import_ = {
@@ -276,7 +277,7 @@ const api = {
   // P1-2026-06-03 (Free 仓): 订阅 vault 文件变化事件(由 fileWatcher emit)
   graphOnFileChange: (
     cb: (data: { path: string; type: 'modified' | 'created' | 'deleted' }[]) => void
-  ) => onEvent('file:changed', cb as any),
+  ) => onEvent('file:changed', cb as (...args: unknown[]) => void),
   authGetToken: () => auth.getToken(),
   authGetEmail: () => auth.getEmail(),
   authClear: () => auth.clear(),

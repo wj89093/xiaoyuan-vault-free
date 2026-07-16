@@ -6,6 +6,13 @@ import { parseFrontmatter } from '../frontmatter/index'
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
+// 2026-07-16 (Free 仓 backport from team 37a8b15): 加 FileDbRecord interface 替 as any
+interface FileDbRecord {
+  title?: string
+  tags?: string
+  [key: string]: unknown
+}
+
 export let db: Database.Database | null = null
 export let vaultPath: string = ''
 
@@ -207,7 +214,7 @@ export async function scanDirectory(dir: string, basePath: string = ''): Promise
       if (db) {
         const record = db
           .prepare('SELECT title, tags FROM files WHERE path = ?')
-          .get(relPath) as any
+          .get(relPath) as FileDbRecord | undefined
         if (record) {
           title = record.title ?? undefined
           tags = record.tags ?? undefined

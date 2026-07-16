@@ -2,8 +2,8 @@ import { Tray, Menu, nativeImage, app, Notification } from 'electron'
 import { join } from 'path'
 import log from 'electron-log/main'
 import { openImportWindow } from './importWindow'
-
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+// 2026-07-16 (Free 仓 backport from team 37a8b15): 删 eslint-disable, 用 setIsQuitting 替代 (app as any).isQuitting
+import { setIsQuitting } from './index'
 
 let tray: Electron.Tray | null = null
 
@@ -44,7 +44,7 @@ export function createTray(mainWindow: Electron.BrowserWindow): Electron.Tray {
     {
       label: '退出',
       click: () => {
-        ;(app as any).isQuitting = true
+        setIsQuitting(true)
         app.quit()
       }
     }

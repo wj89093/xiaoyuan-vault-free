@@ -6,7 +6,8 @@ const envPath = app.isPackaged
   ? join(app.getPath('userData'), '.env')
   : join(__dirname, '../../.env')
 config({ path: envPath })
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// 2026-07-16 (Free 仓 backport from team 37a8b15): 删 no-unsafe-member-access + no-explicit-any (unused)
 
 import { join } from 'path'
 import { readFile, writeFile } from 'fs/promises'
@@ -215,10 +216,13 @@ app.on('window-all-closed', () => {
 })
 
 // Handle tray "退出" to allow clean quit via app.exit()
-;(app as any).isQuitting = false
+// 2026-07-16 (Free 仓 backport from team 37a8b15): (app as any).isQuitting → _isQuitting + setIsQuitting/isQuittingCheck
+let _isQuitting = false
+export function setIsQuitting(v: boolean): void { _isQuitting = v }
+export function isQuittingCheck(): boolean { return _isQuitting }
 
 app.on('before-quit', (e) => {
-  if (!(app as any).isQuitting) {
+  if (!isQuittingCheck()) {
     e.preventDefault()
     log.info('Quit prevented, hiding to tray')
     return

@@ -6,7 +6,6 @@ import { join } from 'path'
 import { spawn } from 'child_process'
 import log from 'electron-log/main'
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
 const execFileAsync = promisify(execFile)
 
@@ -115,7 +114,7 @@ export async function transcribeAudio(filePath: string): Promise<string> {
     log.info(`[Whisper] done: ${filePath} → ${text.length} chars`)
     return text.trim()
   } catch (err) {
-    log.error(`[Whisper] failed: ${filePath}`, (err as any).message)
+    log.error(`[Whisper] failed: ${filePath}`, err instanceof Error ? err.message : String(err))
     throw err
   }
 }

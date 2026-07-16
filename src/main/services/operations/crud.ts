@@ -8,7 +8,8 @@ import log from 'electron-log/main'
 import { parseFrontmatter } from '../frontmatter/index'
 import { ensureInVault } from '../../ipc/fileHandlers/utils'
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
+// 2026-07-16 (Free 仓 backport from team 37a8b15): DbRow type 替 as any, no-explicit-any 删 (unused)
+type DbRow = Record<string, unknown>
 
 export { getVaultPath }
 
@@ -83,7 +84,7 @@ export async function renameFile(oldPath: string, newName: string): Promise<bool
       const oldRelPath = oldPath.startsWith(vp) ? oldPath.replace(vp + '/', '') : oldPath
       const newRelPath = join(dirname(oldRelPath), newName)
 
-      const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as any
+      const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as DbRow | undefined
       if (existing) {
         // Update file record
         db.prepare(
@@ -157,7 +158,7 @@ export async function moveFile(oldPath: string, newParentDir: string): Promise<b
       const oldRelPath = oldPath.startsWith(vp + '/') ? oldPath.slice(vp.length + 1) : oldPath
       const newRelPath = join(newParentDir, basename(oldRelPath))
 
-      const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as any
+      const existing = db.prepare('SELECT * FROM files WHERE path = ?').get(oldRelPath) as DbRow | undefined
       if (existing) {
         db.prepare('UPDATE files SET path = ?, folder = ? WHERE path = ?').run(
           newRelPath,

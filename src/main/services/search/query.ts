@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
 import log from 'electron-log/main'
 import { readFile, readdir } from 'fs/promises'
 import { basename, join } from 'path'
@@ -8,7 +7,8 @@ import { searchFiles } from '../search/search'
 import { parseFrontmatter } from '../frontmatter/index'
 import { loadGraph } from '../graph/graph'
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
+// 2026-07-16 (Free 仓 backport from team 37a8b15): eslint-disable 全部删, query.ts 无 any 残留
+//   跟 team 仓一致 (team 仓 query.ts 也没 eslint-disable)
 
 export interface QueryResult {
   question: string
@@ -55,7 +55,7 @@ export async function queryVault(question: string, options?: QueryOptions): Prom
       const indexContent = await readFile(indexPath, 'utf-8').catch(() => '')
       if (indexContent) {
         // Extract topic names from index.md (## headers)
-        const topicMatches = indexContent.match(/^##\s+(.+)/gm) ?? []
+        const topicMatches: string[] = (indexContent.match(/^##\s+(.+)/gm) ?? []) as string[]
         const topics = topicMatches.map((m) => m.replace(/^##\s+/, '').trim())
 
         // v1.7: topic 参数 — 只看指定 topic 目录 (Agent 传 topic=合同管理)
@@ -251,7 +251,8 @@ ${contextText}${relContextText}
       sources
     }
   } catch (err) {
-    log.error('[Query] failed:', (err as any).message)
-    return { question, answer: `查询失败: ${(err as any).message}`, sources: [] }
+    const errMsg = err instanceof Error ? err.message : String(err)
+    log.error('[Query] failed:', errMsg)
+    return { question, answer: `查询失败: ${errMsg}`, sources: [] }
   }
 }
