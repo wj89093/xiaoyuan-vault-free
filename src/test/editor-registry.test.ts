@@ -77,7 +77,7 @@ describe('v1.5 CM6 registry — 调用方迁移', () => {
 
   it('useMermaidWidget dblclick 用 callEdit("mermaid", ...)', () => {
     expect(mermaidWidget).toMatch(/import \{ callEdit \}.*editorRegistry/)
-    expect(mermaidWidget).toMatch(/callEdit\(['"]mermaid['"],\s*this as any,\s*wrapper,\s*view\)/)
+    expect(mermaidWidget).toMatch(/callEdit\(['"]mermaid['"],\s*this as unknown as Parameters<typeof callEdit>\[1],\s*wrapper,\s*view\)/)
   })
 
   it('Editor.tsx handleFormat 用 getActiveView() 不用 window.__cmView', () => {

@@ -70,7 +70,7 @@ export function ImportApp(): JSX.Element {
           name: '错误',
           path: '',
           status: 'error' as const,
-          error: (err as any)?.message ?? '导入失败'
+          error: err instanceof Error ? err.message : '导入失败'
         }
       ])
     } finally {

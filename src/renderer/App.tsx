@@ -13,6 +13,7 @@ import { VaultRouter } from './components/VaultRouter'
 import { AuditNotice } from './components/AuditNotice'
 import { ImportApp } from './ImportApp'
 import { useVaultState } from './hooks/useVaultState'
+import type { FileInfo } from '../shared/window'
 import { useAppUIState } from './hooks/useAppUIState'
 import { useKeyboardShortcuts, useGlobalShortcuts } from './hooks/useKeyboardShortcuts'
 
@@ -43,13 +44,13 @@ function useSettingsListener(
 }
 
 // ── Import observer callback factory ────────────────────────────────
-function useImportObserverCallbacks(setFiles: any) {
+function useImportObserverCallbacks(setFiles: (files: FileInfo[]) => void) {
   return {
     showOnboarding: false,
     onFilesImported: () => {
-      window.api.listFiles().then((f: any) => setFiles(f))
+      window.api.file.list().then((f) => setFiles(f as FileInfo[]))
     },
-    onFirstImportAnalyze: async (filePaths: string[], handleSendMessage: (msg: string) => void) => {
+    onFirstImportAnalyze: async (filePaths: string[], handleSendMessage?: (msg: string) => void) => {
       if (filePaths.length === 0) return
       const filesContent: string[] = []
       for (const p of filePaths.slice(0, 3)) {
@@ -71,7 +72,7 @@ function useImportObserverCallbacks(setFiles: any) {
 
 文件内容：
 ${filesContent.join('\n\n')}`
-      handleSendMessage(question)
+      handleSendMessage?.(question)
     }
   }
 }

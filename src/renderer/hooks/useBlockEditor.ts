@@ -14,6 +14,9 @@ export interface BlockWidget {
   from: number
   to: number
   getValue(): string
+  // 2026-07-16 (Free 仓 backport from team 31506dc): 加 _editing 字段消 as any
+  /** 内部标记：是否处于编辑模式（CM6 用，不要直接改） */
+  _editing?: boolean
 }
 
 interface EditingState {
@@ -49,7 +52,7 @@ function _startEdit(widget: BlockWidget, dom: HTMLElement, view: EditorView): vo
   const currentValue = from < to ? view.state.sliceDoc(from, to) : widget.getValue()
 
   // Mark widget as editing (blocks CM6 from rebuilding it during edit)
-  ;(widget as any)._editing = true
+  ;widget._editing = true
 
   // Create textarea
   const ta = document.createElement('textarea')
@@ -152,7 +155,7 @@ function confirmEdit(from: number, to: number): void {
   }
 
   // Mark not editing
-  ;(widget as any)._editing = false
+  ;widget._editing = false
   _editing = null
 
   // Validate positions against CURRENT doc
@@ -179,7 +182,7 @@ function abortEdit(): void {
   }
 
   // Mark not editing
-  ;(widget as any)._editing = false
+  ;widget._editing = false
   _editing = null
 
   // Force StateField rebuild via no-op transaction at widget range

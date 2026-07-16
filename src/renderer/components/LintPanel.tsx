@@ -3,6 +3,18 @@ import { useState, useEffect, memo, type JSX } from 'react'
 import { Shield, RefreshCw } from 'lucide-react'
 import { FloatingPanel } from './FloatingPanel'
 
+// 2026-07-16 (Free 仓 backport from team 6bd0f1a): 抽 LintReportItem 接口消 lintReports[0] as any
+interface LintReportItem {
+  date?: string
+  health?: string
+  totalWikiFiles?: number
+  totalFiles?: number
+  orphanPages?: string[]
+  deadLinks?: Array<{ from: string; target: string }>
+  stalePages?: string[]
+  contradictions?: unknown[]
+}
+
 interface LintPanelProps {
   onClose: () => void
   vaultPath: string | null
@@ -47,7 +59,7 @@ export const LintPanel = memo(function LintPanel({ onClose, vaultPath }: LintPan
 
       const lintReports = await window.api.getLintReports?.()
       if (lintReports && lintReports.length > 0) {
-        const r = lintReports[0] as any
+        const r = lintReports[0] as unknown as LintReportItem
         setReport({
           date: r.date ?? '',
           health: r.health ?? '未知',

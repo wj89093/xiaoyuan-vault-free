@@ -51,6 +51,9 @@ class MermaidWidget extends WidgetType {
   private _lang: string
   private _code: string
   private _view: EditorView | null = null
+  // 2026-07-16 (Free 仓 backport from team 31506dc): 加 _editing 字段消 as any
+  /** 内部标记：是否处于编辑模式（CM6 用） */
+  _editing?: boolean
 
   constructor(from: number, to: number, getDoc: () => string, lang: string, code: string) {
     super()
@@ -95,13 +98,13 @@ class MermaidWidget extends WidgetType {
     void renderMermaidWidget(wrapper, container, this._code, this._lang)
 
     wrapper.addEventListener('dblclick', (_e) => {
-      callEdit('mermaid', this as any, wrapper, view)
+      callEdit('mermaid', this as unknown as Parameters<typeof callEdit>[1], wrapper, view)
     })
     return wrapper
   }
 
   updateDOM(dom: HTMLElement, _view: EditorView): boolean {
-    if ((this as any)._editing) return true
+    if (this._editing) return true
     // If code changed, re-render
     const container = dom.querySelector('.mermaid-container') as HTMLElement | null
     if (container && container.getAttribute('data-code') !== this._code) {
