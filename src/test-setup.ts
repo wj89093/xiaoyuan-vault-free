@@ -22,11 +22,14 @@ Object.defineProperty(global, 'window', {
   writable: true
 })
 
-// Mock scrollIntoView
-Object.defineProperty(global.Element.prototype, 'scrollIntoView', {
-  value: vi.fn(),
-  writable: true
-})
+// Mock scrollIntoView (only in jsdom env — node env has no Element)
+// 2026-07-16 (P1 backport): backupManager.test.ts 用 node env, 加守卫
+if (typeof globalThis.Element !== 'undefined') {
+  Object.defineProperty(global.Element.prototype, 'scrollIntoView', {
+    value: vi.fn(),
+    writable: true
+  })
+}
 
 // Mock crypto.randomUUID
 Object.defineProperty(global, 'crypto', {
