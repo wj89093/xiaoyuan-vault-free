@@ -1,8 +1,58 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.9.0-free
-> 发布日期：2026-06-12
-> 最近更新：2026-06-12（v1.9.0 Obsidian 模式 + 两层状态模型 + AI 入门手册 + 3 个 SUMMARY/INDEX）
+> 当前版本：v1.10.0-free
+> 发布日期：2026-07-16
+> 最近更新：2026-07-16（v1.10.0 Preload 全面重构 + as any 清零 + 3 个 service 测试 backport）
+
+---
+
+## 2026-07-16 — v1.10.0-free Preload 全面重构 + as any 清零（2 commits）
+
+### 主题
+
+backport team 仓 v0.14 (Preload 全面重构 + as any 清零) 到 free 仓，补齐 free 仓与 team 仓的工程实践差距。**free 仓为开源版, team 专属功能不 backport**（跨 vault artifact / 邀请 / 成员 / PR / 权限 / AI 问答）。
+
+### Refactored
+
+- **window.d.ts 全面重写** (`5a780ed`, 4 文件 +275/-223) — backport team `49c6b8e`
+  - 删 315 行手工维护的混合 flat+namespace `XyVaultAPI` interface
+  - 改为纯 namespace 结构 (15 个 ns: vault/file/schema/lint/url/converter/query/auth/settings/graph/maintenance/clipboard/shortcuts/import/skill/build), 跟 preload `const api` 完全对齐
+  - 加全局变量 `__vaultPath` / `__cmView` / `toast` 类型声明
+  - 保留 flat aliases (向后兼容, Phase 2 改 renderer 后删)
+  - **暴露 3 个隐藏 bug** (之前 any 掩盖): FileTree `deleteFile` 缺 vaultPath 参数 / IconSidebar toast 类型不匹配 / TrashPanel `trashList` 返回 `unknown[]` 类型不匹配
+
+### Added (核心 service 测试)
+
+- **3 个 service 测试 backport** (`6a91e82`, 4 文件 +1432/-1) — backport team `9e8fcb9`
+  - `backupManager.test.ts` (25 case, +392): mock fs 覆盖 create/list/preview/restore/delete/backupCount 全路径
+  - `maintain.test.ts` (30 case, +700): mock 7 个外部依赖, 覆盖 orphan/stale/deadLinks/missingFields/conceptGap/suggestedLinks/矛盾检测/callAI 容错/wikiHealth 告警
+  - `graphBuild.test.ts` (8 case, +299): mock fs+frontmatter+graphStorage+graphTFIDF, 删 5 case (team 专属 `buildCrossVaultArtifacts`)
+- **测试覆盖**: 351 → **414 passed** (+63 case), 31 → 34 文件, skipped 5 → 1
+- **free↔team 适配**: 加 `// @vitest-environment node` (free 仓 vitest 默认 jsdom, mock fs/promises 缺 default export)
+- **test-setup.ts 加 Element 守卫**: scrollIntoView mock 只在 jsdom env 生效 (node env 测试需要)
+
+### Not Backported (team 专属功能)
+
+- **P2 VaultRouter 拆分** (`96f16c7`) — 推迟到下次, 需评估 useVaultSwitch hook 在 free 仓是否适用
+- **跨 vault artifact** (`buildCrossVaultArtifacts`) — free 仓无 team vault 概念
+- **邀请 / 成员 / PR / 权限 / AI 问答 / 双 vault 切换** — Pro 专属功能
+- **as any 剩余 9 个 commit** (`a9c427c`/`c60c8f8`/`c6a1e1f`/`c07eabe`/`cc77409`/`70adf6b`/`31506dc`/`6bd0f1a`/`37a8b15`) — 部分已 backport, 剩余需逐项评估 free↔team 差异
+
+### Verification
+
+- `tsc -b`: 0 errors
+- `eslint --max-warnings 0`: 0 errors, 0 warnings
+- `vitest`: **414 passed**, 1 skipped (34 files)
+- `build`: 5.74s
+
+### Commits (2)
+
+| commit | 内容 | +/- |
+|--------|------|-----|
+| `5a780ed` | refactor(types): P0 preload/window.d.ts 类型对齐 | +275/-223 |
+| `6a91e82` | test: P1 补充 3 个核心 service 测试 | +1432/-1 |
+
+---
 
 ---
 
