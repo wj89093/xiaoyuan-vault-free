@@ -1,8 +1,63 @@
 # 晓园 Vault 开源版 变更日志
 
-> 当前版本：v1.10.0-free
+> 当前版本：v1.11.0-free
 > 发布日期：2026-07-16
-> 最近更新：2026-07-16（v1.10.0 Preload 全面重构 + as any 清零 + 3 个 service 测试 backport）
+> 最近更新：2026-07-16（v1.11.0 as any 清零 + 5 个 team commit backport + 2 个真实 bug 修复）
+
+---
+
+## 2026-07-16 — v1.11.0-free as any 清零 + 5 个 team commit backport + 2 个真实 bug 修复（6 commits）
+
+### 主题
+
+今天接着 backport team v0.14 剩余 commit 5 个 + 收尾 cc77409, 顺手修复 2 个 free 仓长期隐藏的真实 bug。
+
+### Refactored (as any 清零)
+
+- **`876bac3` refactor(types): 清理 renderer 层 window as any** — backport team `c6a1e1f` (6 文件, +23/-12)
+  - window.d.ts 加 6 个全局变量类型 (__vaultFiles/__wikiLinkSuggestions/__frontmatterEdit/__tableEdit/__mermaidEdit)
+  - 5 个 renderer 文件 (window as any).X → window.X (App.tsx/useImageBlocks/useVaultState/useWikiLinks/*)
+- **`8b8eabe` refactor: renderer hooks/widgets 层 as any 清零** — backport team `6bd0f1a` + `31506dc` (6 文件, +31/-12)
+  - useBlockEditor.ts: BlockWidget 加 _editing? 字段, 消 3 处 widget as any
+  - useMermaidWidget.ts: MermaidWidget 加 _editing? 字段, (this as any) 改 typed
+  - ImportApp.tsx: (err as any)?.message → err instanceof Error
+  - LintPanel.tsx: 抽 LintReportItem interface
+  - App.tsx: useImportObserverCallbacks 类型对齐
+- **`0976dab` refactor: main/preload 层 as any → 0** — backport team `37a8b15` (7 文件, +38/-25)
+  - main/index.ts: (app as any).isQuitting → setIsQuitting/isQuittingCheck
+  - main/tray.ts: 用 setIsQuitting, 删 eslint-disable
+  - database.ts / crud.ts: 加 FileDbRecord/DbRow interface
+  - whisper.ts / query.ts: (err as any).message → err instanceof Error
+  - preload/index.ts: cb as any → cb as (...args: unknown[]) => void (6 处)
+
+### Fixed (2 个真实 bug)
+
+- **`532d506` fix(import): 恢复 getPathForFile IPC** — backport team `c60c8f8` (4 文件, +15/-4)
+  - **bug: ImportApp 拖拽/选择文件拿不到路径**
+    - 原因: miscHandlers.ts 没注册 file:getPathForFile IPC handler
+    - 修复: miscHandlers.ts 加 webUtils.getPathForFile(file) wrapper
+    - preload 加 file.getPathForFile 暴露 + window.d.ts 加类型
+    - ImportApp.tsx handleDrop + handleFileSelect 改 typed namespace 调用
+- **`0843eb5` fix(preload): 暴露 file.archiveQuery + 清 cast** — backport team `c60c8f8` 范围收尾 (3 文件, +11/-12)
+  - **bug: handleSaveAIMessage 永远失败**
+    - 原因1: preload 没暴露 archiveQuery, useVaultState.ts:312 (api as any).archiveQuery?.() 永远返回 undefined
+    - 原因2: archiveQuery 实际返回 string (文件路径), 原代码期望 {success, entitiesLinked, ...}, 走 else 分支
+    - 修复: preload file namespace 加 archiveQuery + window.d.ts 加类型 + useVaultState.ts 改 typed 调用 + 删 result 类型错位死代码
+
+### Metrics
+
+- as any 总数: 78 → **52** (-26, **33% 清理**)
+- 测试 case: 351 → **414** (+63, **18% 增长**)
+- 测试文件: 31 → 34 (+3)
+- 4 件套: 全过 ✅
+
+### Not Backported (低价值 / 风险高)
+
+- `c07eabe` dead API 调用 — free 仓 ImportApp 还在用 fetchUrl/saveUrlContent (URL 导入功能), 不能删
+- `a9c427c` audit 清理 — grants.ts / pathMatcher.ts free 仓没 (Pro 专属)
+- `c07eabe`/`cc77409` Batch 1 — 374a36c 已 backport 20/34 处, 剩 archiveQuery 已修
+- `70adf6b` 最后 1 处 as any — free 仓用 no-op 替代 (方向不同)
+- P2 `96f16c7` VaultRouter 拆分 — 高风险, 下次评估 useVaultSwitch hook 适配
 
 ---
 
