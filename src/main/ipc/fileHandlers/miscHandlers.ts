@@ -112,4 +112,11 @@ export function registerMiscHandlers(): void {
       : filePath
     return await restoreBackup(vaultPath, relPath, timestamp)
   })
+
+  // 2026-07-16 (Free 仓 backport from team c60c8f8): 补 file:getPathForFile (ImportApp 拖拽/选择文件获取绝对路径)
+  //   Electron contextIsolation 下 File.path 为 undefined, 需 main 进程调 webUtils.getPathForFile
+  ipcMain.handle('file:getPathForFile', async (_event, file: File) => {
+    const { webUtils } = await import('electron')
+    return webUtils.getPathForFile(file)
+  })
 }

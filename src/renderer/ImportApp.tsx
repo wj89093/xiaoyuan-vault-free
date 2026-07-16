@@ -87,7 +87,8 @@ export function ImportApp(): JSX.Element {
     if (files.length === 0) return
 
     // Use webUtils.getPathForFile via preload (File.path is undefined under contextIsolation)
-    const paths = files.map((f) => window.api.getPathForFile?.(f)).filter(Boolean) as string[]
+    // 2026-07-16 (Free 仓 backport from team c60c8f8): typed namespace 调用
+    const paths = (await Promise.all(files.map((f) => window.api.file.getPathForFile(f)))).filter(Boolean) as string[]
     if (paths.length > 0) {
       await handleFileImport(paths)
     }
@@ -99,9 +100,8 @@ export function ImportApp(): JSX.Element {
     input.multiple = true
     input.onchange = async () => {
       if (input.files) {
-        const paths = Array.from(input.files)
-          .map((f) => window.api.getPathForFile?.(f))
-          .filter(Boolean) as string[]
+        // 2026-07-16 (Free 仓 backport from team c60c8f8): typed namespace 调用
+        const paths = (await Promise.all(Array.from(input.files).map((f) => window.api.file.getPathForFile(f)))).filter(Boolean) as string[]
         if (paths.length > 0) {
           await handleFileImport(paths)
         }

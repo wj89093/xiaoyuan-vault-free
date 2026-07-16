@@ -108,6 +108,8 @@ export interface XyVaultAPI {
     restoreBackup(filePath: string, timestamp: string): Promise<boolean>
     createFolder(folderPath: string): Promise<boolean>
     deleteFolder(folderPath: string): Promise<boolean>
+    // 2026-07-16 (Free 仓 backport from team c60c8f8): 补 file.getPathForFile (ImportApp 拖拽/选择文件获取绝对路径)
+    getPathForFile(file: File): Promise<string>
     writeFsCache?(vaultPath: string, files: unknown[]): Promise<boolean>
     getPreview?(filePath: string, maxChars?: number): Promise<{
       success: boolean

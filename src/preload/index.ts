@@ -115,6 +115,8 @@ const file = {
     handler<string>('file:previewBackup', filePath, timestamp),
   restoreBackup: (filePath: string, timestamp: string) =>
     handler<boolean>('file:restoreBackup', filePath, timestamp),
+  // 2026-07-16 (Free 仓 backport from team c60c8f8): 补 file:getPathForFile (ImportApp 拖拽/选择文件获取绝对路径)
+  getPathForFile: (file: File) => handler<string>('file:getPathForFile', file),
   createFolder: (folderPath: string) => handler<boolean>('folder:create', folderPath),
   deleteFolder: (folderPath: string) => handler<boolean>('folder:delete', folderPath)
 }
