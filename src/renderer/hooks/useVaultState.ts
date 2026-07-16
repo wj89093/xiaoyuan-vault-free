@@ -78,7 +78,7 @@ export function useVaultState() {
       setVaultPath(path)
       const fileList = await api.listFiles()
       setFiles(fileList)
-      ;(window as any).__vaultFiles = fileList
+      window.__vaultFiles = fileList
       showToast('success', '知识库已创建并打开')
     }
   }, [])
@@ -89,7 +89,7 @@ export function useVaultState() {
       setVaultPath(path)
       const fileList = await api.listFiles()
       setFiles(fileList)
-      ;(window as any).__vaultFiles = fileList
+      window.__vaultFiles = fileList
       // v1.5: 自动选中上次打开的文件 (inline, 避免引未声明的 handleSelectFile)
       try {
         const lastFile = await api.getLastFile?.(path)
@@ -254,7 +254,7 @@ export function useVaultState() {
       await api.saveFile(filePath, `# ${fileName}\n\n`)
       const fileList = await api.listFiles()
       setFiles(fileList)
-      ;(window as any).__vaultFiles = fileList
+      window.__vaultFiles = fileList
       setSelectedFile(filePath)
       setContent(`# ${fileName}\n\n`)
       setIsDirty(false)
@@ -269,7 +269,7 @@ export function useVaultState() {
       await api.createFolder(folderPath)
       const fileList = await api.listFiles()
       setFiles(fileList)
-      ;(window as any).__vaultFiles = fileList
+      window.__vaultFiles = fileList
     },
     [vaultPath]
   )
@@ -380,7 +380,7 @@ export function useVaultState() {
           setVaultPath(lastPath)
           const fileList = await api.listFiles()
           setFiles(fileList)
-          ;(window as any).__vaultFiles = fileList
+          window.__vaultFiles = fileList
           // v1.5: 启动时也自动选中上次打开的文件
           try {
             const lastFile = await api.getLastFile?.(lastPath)

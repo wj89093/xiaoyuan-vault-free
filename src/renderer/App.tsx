@@ -90,7 +90,7 @@ function useLastVaultRestore(handleOpenVaultItem: (path: string) => void) {
 // ── Vault path global sync (for CM6 extensions) ─────────────────────
 function useVaultPathSync(vaultPath: string | null) {
   useEffect(() => {
-    ;(window as any).__vaultPath = vaultPath ?? null
+    ;window.__vaultPath = vaultPath ?? null
   }, [vaultPath])
 }
 

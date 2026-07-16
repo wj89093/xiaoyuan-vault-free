@@ -31,7 +31,7 @@ export function wikiLinksCompletionSource(config: WikiLinksConfig) {
     // 3. Local vault file fallback via window.__vaultFiles
     const explicitProvider = config.getSuggestions
     const globalProvider = getWikiLinksSuggestionsProvider()
-    const vaultFiles: any[] = (window as any).__vaultFiles ?? []
+    const vaultFiles: Array<{ path: string; name: string }> = window.__vaultFiles ?? []
 
     let results: any[] = []
     if (explicitProvider) {

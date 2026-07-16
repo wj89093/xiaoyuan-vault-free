@@ -28,13 +28,13 @@ import { treeGrowthEffect, treeProgressPlugin } from './useInlinePreview'
  */
 function resolveImageFileUrl(filename: string): string {
   const name = filename.trim()
-  const vp: string | null = (window as any).__vaultPath ?? null
+  const vp: string | null = window.__vaultPath ?? null
   if (!vp) return name
   return `file://${vp}/${name}`
 }
 
 function getVaultPath(): string | null {
-  return (window as any).__vaultPath ?? null
+  return window.__vaultPath ?? null
 }
 
 // ── Dimension Cache (prevents iOS scroll halts on remount) ───────────────────

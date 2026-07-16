@@ -356,8 +356,18 @@ declare global {
     api: XyVaultAPI
     /** 运行时注入: 当前 vault 路径 */
     __vaultPath?: string | null
+    /** 运行时注入: vault 文件列表缓存 */
+    __vaultFiles?: Array<{ path: string; name: string }>
     /** CodeMirror EditorView 实例 (Editor.tsx 注入) */
     __cmView?: unknown
+    /** 运行时注入: wikilink 建议函数 */
+    __wikiLinkSuggestions?: (query: string) => Promise<unknown[]>
+    /** 运行时注入: frontmatter 编辑回调 */
+    __frontmatterEdit?: (widget: unknown, dom: HTMLElement, view: unknown) => void
+    /** 运行时注入: table 编辑回调 */
+    __tableEdit?: (widget: unknown, dom: HTMLElement, view: unknown) => void
+    /** 运行时注入: mermaid 编辑回调 */
+    __mermaidEdit?: (widget: unknown, dom: HTMLElement, view: unknown) => void
     /** Toast 通知 (renderer 内部注入, 非 preload) */
     toast?: { error(msg: string): void; success(msg: string): void; info(msg: string): void }
   }

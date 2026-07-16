@@ -25,19 +25,20 @@ function _fileInfoToSuggestion(file: FileInfo): WikiLinkSuggestion {
 
 export function updateVaultFiles(files: FileInfo[]): void {
   _vaultFiles = files
-  ;(window as any).__vaultFiles = files
+  window.__vaultFiles = files
 }
 
 export function registerWikiLinksSuggestionsProvider(
   _suggestions: (query: string) => Promise<WikiLinkSuggestion[]>
 ): void {
   _getSuggestions = _suggestions
-  ;(window as any).__wikiLinkSuggestions = _getSuggestions
+  window.__wikiLinkSuggestions = _getSuggestions
 }
 
 export function getWikiLinksSuggestionsProvider(): (
   query: string
 ) => Promise<WikiLinkSuggestion[]> | null {
   if (_getSuggestions) return _getSuggestions
-  return (window as any).__wikiLinkSuggestions ?? null
+  // 2026-07-16 (Free 仓 backport from team c6a1e1f): window 全局类型用 unknown[], 这里 cast 一下
+  return (window.__wikiLinkSuggestions as (query: string) => Promise<WikiLinkSuggestion[]>) ?? null
 }
