@@ -83,6 +83,10 @@ const vault = {
 
 const file = {
   list: () => handler<any[]>('file:list'),
+  // 2026-07-16 (Free 仓 backport from team c60c8f8 范围 / 补 expose):
+  // archiveQuery 已在 importHandlers.ts 注册 'file:archiveQuery' IPC handler
+  // 但 preload 未暴露, useVaultState.ts 调 (api as any).archiveQuery?.() 永远 undefined
+  archiveQuery: (content: string) => handler<string>('file:archiveQuery', content),
   search: (query: string) => handler<any[]>('file:search', query),
   read: (path: string) => handler<string>('file:read', path),
   render: (path: string) => handler<{ type: string }>('file:render', path),

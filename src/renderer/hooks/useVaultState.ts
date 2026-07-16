@@ -309,18 +309,10 @@ export function useVaultState() {
     async (content: string) => {
       if (!vaultPath) return
       try {
-        const result = await (api as any).archiveQuery?.(content)
-        if (result?.success) {
-          const parts: string[] = []
-          if (result.entitiesLinked?.length) parts.push(`实体: ${result.entitiesLinked.join(', ')}`)
-          if (result.conceptsLinked?.length) parts.push(`概念: ${result.conceptsLinked.join(', ')}`)
-          const msg = parts.length
-            ? `已存档 → 关联 ${parts.join(' | ')}`
-            : `已存档 → ${result.sourcePage}`
-          showToast('success', msg)
-        } else {
-          showToast('error', `存档失败: ${result?.error ?? '未知错误'}`)
-        }
+        // 2026-07-16 (Free 仓 backport from team c60c8f8 范围 / 补 expose):
+        // archiveQuery 返回写入文件路径 (string), 不是 { success, entitiesLinked, ... }
+        const result = await api.file.archiveQuery(content)
+        showToast('success', `已存档 → ${result}`)
       } catch {
         showToast('error', '存档失败')
       }

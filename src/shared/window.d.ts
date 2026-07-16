@@ -84,6 +84,9 @@ export interface XyVaultAPI {
   // ── file ──
   file: {
     list(vaultPath?: string): Promise<unknown[]>
+    // 2026-07-16 (Free 仓 backport from team c60c8f8 范围 / 补 expose):
+    // archiveQuery 返回写入文件路径, main 端在 trashDir/query-{ts}.md
+    archiveQuery(content: string): Promise<string>
     search(query: string): Promise<unknown[]>
     read(path: string): Promise<string>
     render(path: string): Promise<{ type: string; [key: string]: unknown }>
