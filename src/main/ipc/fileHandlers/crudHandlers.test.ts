@@ -183,13 +183,15 @@ describe('crudHandlers (2026-07-17 新增, 补 IPC 测试盲点 #1b)', () => {
         const trashFiles = readdirSync(trashDir)
         const movedFile = trashFiles.find((f: string) => f.endsWith('todelete.md'))
         expect(movedFile).toBeDefined()
-        expect(existsSync(join(trashDir, movedFile))).toBe(true)
+        // type-narrow: movedFile! 是 string, 后续可用
+        const movedFileName = movedFile!
+        expect(existsSync(join(trashDir, movedFileName))).toBe(true)
 
         // .trash-meta.json 记录原路径
         const metaPath = join(trashDir, '.trash-meta.json')
         expect(existsSync(metaPath)).toBe(true)
         const meta = JSON.parse(readFileSync(metaPath, 'utf-8'))
-        expect(meta[movedFile]).toBe(filePath)
+        expect(meta[movedFileName]).toBe(filePath)
       } finally {
         rmSync(tmpDir, { recursive: true, force: true })
       }
