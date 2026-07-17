@@ -39,3 +39,6 @@ resources/scripts/
 
 # Agent-private working state (not part of project)
 SESSION-STATE.md
+
+# Subagent audit/research reports (agent output, 不入仓)
+reports/
