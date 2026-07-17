@@ -40,7 +40,10 @@ export async function _fileImportImpl(
       await copyFile(srcPath, dest)
       results.push({ name: fileName, path: dest, status: 'ok' })
       if (ext === '.md') {
-        markConverted(dest)
+        // 2026-07-17 fix: 加 await. 之前 fire-and-forget 有 race — 用户 import 完立即
+        // list 时, markConverted 还在写 .converted, 状态不一致. await 让 .converted
+        // sentinel 在 results 返回前已就绪.
+        await markConverted(dest)
       }
     } catch (e) {
       results.push({ name: fileName, path: dest, status: 'error', error: String(e) })
@@ -108,13 +111,16 @@ export async function _fileListRawImpl(vaultPath: string): Promise<RawMonthGroup
     const monthPath = join(rawDir, month)
     if (!(await stat(monthPath)).isDirectory()) continue
     const files = await readdir(monthPath)
-    const fileList = files
-      .filter((f) => !f.startsWith('.'))
-      .map((name) => ({
+    const fileList: RawFileEntry[] = []
+    for (const name of files.filter((f) => !f.startsWith('.'))) {
+      fileList.push({
         name,
         path: join(monthPath, name),
-        converted: isConverted(join(monthPath, name)) as unknown as boolean
-      }))
+        // 2026-07-17 fix: 原 (isConverted(...) as unknown as boolean) 是 Promise 被强转.
+        // 改成显式 await, 类型真实是 boolean, UI 拿到的 converted 字段是可用值.
+        converted: await isConverted(join(monthPath, name))
+      })
+    }
     result.push({ month, files: fileList })
   }
   return result
