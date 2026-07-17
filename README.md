@@ -2,9 +2,9 @@
 
 > 免费的本地知识库 · 类 Obsidian · macOS / Windows / Linux 桌面应用
 
-[![macOS](https://img.shields.io/badge/macOS-13+-blue)] ![Windows](https://img.shields.io/badge/Windows-10+-blue)] ![Linux](https://img.shields.io/badge/Linux-glibc%202.31+-blue)] ![Electron](https://img.shields.io/badge/Electron-34-green)] ![React](https://img.shields.io/badge/React-19-blueviolet)] ![License](https://img.shields.io/badge/license-MIT-brightgreen)]
+[![macOS](https://img.shields.io/badge/macOS-13+-blue)] ![Windows](https://img.shields.io/badge/Windows-10+-blue)] ![Linux](https://img.shields.io/badge/Linux-glibc%202.31+-blue)] ![Electron](https://img.shields.io/badge/Electron-34-green)] ![React](https://img.shields.io/badge/React-19-blueviolet)] ![License](https://img.shields.io/badge/license-MIT-brightgreen)] ![Latest release](https://img.shields.io/github/v/release/wj89093/xiaoyuan-vault-free?label=v1.11.0-free&color=brightgreen)](https://github.com/wj89093/xiaoyuan-vault-free/releases/latest)
 
-> 📝 **最新进展 / 版本**：见 [CHANGELOG.md](CHANGELOG.md) — 本文件只讲产品，不讲版本细节
+> 📝 **最新发布版本**：**v1.11.0-free** (2026-07-16) — [GitHub Releases](https://github.com/wj89093/xiaoyuan-vault-free/releases) 下载安装包 / [CHANGELOG.md](CHANGELOG.md) 看变更详情 / 本文件只讲产品定位，不讲版本细节
 
 ---
 
@@ -77,7 +77,7 @@ v1.4 仍保留用户写自己 Skill.md 的能力（**设置面板 → Skill.md**
 
 **方式一：DMG 安装（推荐）**
 
-1. 下载 `晓园-Vault-1.8.0-free-arm64.dmg`
+1. 去 [GitHub Releases](https://github.com/wj89093/xiaoyuan-vault-free/releases) 下载最新 `晓园-Vault-*-free-arm64.dmg`（Apple Silicon）或 `*x64.dmg`（Intel）— badge 上方会显示当前最新版本号
 2. 双击挂载 DMG
 3. **重要**：打开终端，运行以下命令解除安全限制：
 
@@ -89,7 +89,7 @@ sudo xattr -cr "/Volumes/晓园 Vault/晓园 Vault.app"
 
 **方式二：zip 安装**
 
-1. 下载 `晓园-Vault-1.8.0-free-arm64.zip`
+1. 在 [GitHub Releases](https://github.com/wj89093/xiaoyuan-vault-free/releases) 下载最新 `晓园-Vault-*-free.zip`，选择你架构的版本
 2. 解压后，在终端运行：
 
 ```bash
@@ -99,13 +99,15 @@ mv ~/Downloads/晓园\ Vault.app /Applications/
 
 ### Windows
 
-下载 `晓园-Vault-Setup-1.4.0-free.exe`，双击安装。
+去 [GitHub Releases](https://github.com/wj89093/xiaoyuan-vault-free/releases) 下载最新 `晓园-Vault-Setup-*-free.exe` (x64)，双击安装。
 
 ### Linux
 
+去 [GitHub Releases](https://github.com/wj89093/xiaoyuan-vault-free/releases) 下载最新 `晓园-Vault-*-free.AppImage`，然后执行：
+
 ```bash
-chmod +x 晓园-Vault-1.4.0-free.AppImage
-./晓园-Vault-1.4.0-free.AppImage
+chmod +x 晓园-Vault-*-free.AppImage
+./晓园-Vault-*-free.AppImage
 ```
 
 > macOS 用户优先下 arm64 dmg（Apple Silicon 原生）。
