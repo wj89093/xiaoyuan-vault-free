@@ -176,15 +176,15 @@ describe('crudHandlers (2026-07-17 新增, 补 IPC 测试盲点 #1b)', () => {
         // 原文件已删
         expect(existsSync(filePath)).toBe(false)
 
-        // trash dir 创建 + 文件移动过去
+        // trash dir 创建 + 文件移动过去 (文件命名格式: <timestamp>-<md5hash>, 故意不保留原名)
         const trashDir = join(vaultPath, '.vault-trash')
         expect(existsSync(trashDir)).toBe(true)
         const { readdirSync } = await import('fs')
         const trashFiles = readdirSync(trashDir)
-        const movedFile = trashFiles.find((f: string) => f.endsWith('todelete.md'))
-        expect(movedFile).toBeDefined()
-        // type-narrow: movedFile! 是 string, 后续可用
-        const movedFileName = movedFile!
+        // 排除 .trash-meta.json, 只看实际文件
+        const realFiles = trashFiles.filter((f: string) => f !== '.trash-meta.json')
+        expect(realFiles).toHaveLength(1)
+        const movedFileName = realFiles[0]
         expect(existsSync(join(trashDir, movedFileName))).toBe(true)
 
         // .trash-meta.json 记录原路径
