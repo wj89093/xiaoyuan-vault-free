@@ -77,7 +77,8 @@ export function startFileWatcher(vaultPath: string): void {
     watcher.on('error', (err) => {
       console.error('[fileWatcher] watch error:', err)
     })
-    console.log('[fileWatcher] started for', vaultPath)
+    // dev tools only (electron console.debug 默认隐藏)
+    console.debug('[fileWatcher] started for', vaultPath)
   } catch (err) {
     console.error('[fileWatcher] start failed:', err)
   }

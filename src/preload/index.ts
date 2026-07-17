@@ -12,7 +12,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { ImportFileResult } from '../shared/chat'
 
-console.log('[preload] script started')
+// dev tools only (electron console.debug 默认隐藏)
+console.debug('[preload] script started')
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // 2026-07-16 (Free 仓 backport from team 37a8b15): 删 no-unsafe-argument (args 现在带类型)
@@ -309,6 +310,7 @@ const api = {
   skillDelete: (name: string) => skill.delete(name)
 }
 
-console.log('[preload] exposing api to window.api')
+// dev tools only (electron console.debug 默认隐藏)
+console.debug('[preload] exposing api to window.api')
 contextBridge.exposeInMainWorld('api', api)
 export type XyVaultAPI = typeof api
